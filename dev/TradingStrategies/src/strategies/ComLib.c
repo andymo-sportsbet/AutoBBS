@@ -13,6 +13,15 @@
 #define USE_INTERNAL_SL FALSE
 #define USE_INTERNAL_TP FALSE
 
+/* used to round a double to X decimal places */
+double roundUp(double lots,double volumeStep)
+{
+	double adjustedLots = lots;
+	double remainder = fmod(lots, volumeStep);
+	if (remainder > volumeStep / 2)
+		adjustedLots += volumeStep;
+	return floor(adjustedLots / volumeStep) * volumeStep;
+}
 
 int filterExcutionTF(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {

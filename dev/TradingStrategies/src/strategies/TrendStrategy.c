@@ -572,12 +572,15 @@ void splitBuyOrders_MACDDaily(StrategyParams* pParams, Indicators* pIndicators, 
 {
 	double takePrice;
 	double lots;	
+	double reminding, main;
+	double test;
 	
 	if (pIndicators->tradeMode == 1)
 	{
 		//takePrice = 0;
 		takePrice = pIndicators->riskCap * 1.5* pBase_Indicators->dailyATR;
 		lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, 1.5* pBase_Indicators->dailyATR) * pIndicators->risk;
+
 	}
 	else
 	{
@@ -586,12 +589,17 @@ void splitBuyOrders_MACDDaily(StrategyParams* pParams, Indicators* pIndicators, 
 		stopLoss = abs(pParams->orderInfo[0].stopLoss - pIndicators->entryPrice);
 	}
 
-	//takePrice = 1 * 1.5*  pBase_Indicators->dailyATR;
-	//openSingleLongEasy(takePrice, stopLoss, lots / 2, 0);
-	//takePrice = 2 * 1.5*  pBase_Indicators->dailyATR;
-	//openSingleLongEasy(takePrice, stopLoss, lots / 2, 0);
-	
-	openSingleLongEasy(takePrice, stopLoss, lots, 0);
+	if (pIndicators->riskCap > 0 && lots >= pIndicators->minLotSize)
+	{
+		lots = roundUp(lots, pIndicators->volumeStep);
+		
+		//takePrice = 1 * 1.5*  pBase_Indicators->dailyATR;
+		openSingleLongEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
+		takePrice = 0;
+		openSingleLongEasy(takePrice, stopLoss, pIndicators->minLotSize, 0);
+	}
+	else
+		openSingleLongEasy(takePrice, stopLoss, lots, 0);
 
 	//openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk);
 }
@@ -612,12 +620,16 @@ void splitSellOrders_MACDDaily(StrategyParams* pParams, Indicators* pIndicators,
 		stopLoss = abs(pParams->orderInfo[0].stopLoss - pIndicators->entryPrice);
 	}
 	
-	//takePrice = 1 * 1.5* pBase_Indicators->dailyATR;;
-	//openSingleShortEasy(takePrice, stopLoss, lots/2, 0);
-	//takePrice = 2 * 1.5* pBase_Indicators->dailyATR;
-	//openSingleShortEasy(takePrice, stopLoss, lots/2, 0);
-	
-	openSingleShortEasy(takePrice, stopLoss, lots, 0);
+	if (pIndicators->riskCap > 0)
+	{
+		lots = roundUp(lots, pIndicators->volumeStep);
+		//takePrice = 1 * 1.5* pBase_Indicators->dailyATR;;
+		openSingleShortEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
+		takePrice = 0;
+		openSingleShortEasy(takePrice, stopLoss, pIndicators->minLotSize, 0);
+	}
+	else
+		openSingleShortEasy(takePrice, stopLoss, lots, 0);
 
 	//openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk);
 	
@@ -3183,8 +3195,6 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 	dailyBaseLine = ma20Daily;
 
-	pIndicators->riskCap = 0.0;
-
 	if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
 	{
 
@@ -3218,7 +3228,10 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 		isEnableEntryEOD = TRUE;
 
-		//pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
+		pIndicators->minLotSize = 0.5;
+		pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
+
+		pIndicators->volumeStep = 0.5;
 	}
 	else if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{

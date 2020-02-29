@@ -579,6 +579,11 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 		pParams->accountInfo.totalOpenTradeRiskPercent = pParams->accountInfo.totalOpenTradeRiskPercent / (pParams->accountInfo.equity / originEquity);
 
 	}
+	
+	pIndicators->riskCap = 0.0;
+	pIndicators->minLotSize = 0.01;
+	pIndicators->volumeStep = 0.01;
+
 	workoutExecutionTrend(pParams, pIndicators, pBase_Indicators);
 
 	return returnCode;

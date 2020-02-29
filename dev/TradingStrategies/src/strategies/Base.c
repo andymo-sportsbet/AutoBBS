@@ -255,7 +255,8 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Base_Indicator
 
 	pIndicators->maTrend = getMATrend(iAtr(B_PRIMARY_RATES, 20, 1), B_PRIMARY_RATES, 1);
 	pIndicators->ma_Signal = getMATrend_Signal(B_PRIMARY_RATES);
-		
+
+	
 	return SUCCESS;
 }
 

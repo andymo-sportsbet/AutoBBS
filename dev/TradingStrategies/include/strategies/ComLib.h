@@ -123,6 +123,10 @@ extern "C" {
 
 		//Risk reward 
 		double riskCap;
+
+		double minLotSize;
+
+		double volumeStep;
 		
 	} Indicators;
 	
@@ -148,6 +152,7 @@ extern "C" {
 
 	BOOL isNextdayMACDPostiveBar(int startShift);
 	BOOL isNextdayMACDPostiveBar2(StrategyParams* pParams,int orderIndex,int startShift);
+	double roundUp(double lots, double volumeStep);
 
 #ifdef __cplusplus
 } /* extern "C" */
