@@ -592,7 +592,7 @@ void splitBuyOrders_MACDDaily(StrategyParams* pParams, Indicators* pIndicators, 
 	if (pIndicators->riskCap > 0 && lots >= pIndicators->minLotSize)
 	{
 		lots = roundUp(lots, pIndicators->volumeStep);
-		if (lots / pIndicators->volumeStep > 10)
+		if (lots / pIndicators->volumeStep > 5)
 		{		
 			//takePrice = 1 * 1.5*  pBase_Indicators->dailyATR;
 			openSingleLongEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
@@ -627,7 +627,7 @@ void splitSellOrders_MACDDaily(StrategyParams* pParams, Indicators* pIndicators,
 	if (pIndicators->riskCap > 0)
 	{
 		lots = roundUp(lots, pIndicators->volumeStep);
-		if (lots / pIndicators->volumeStep > 10)
+		if (lots / pIndicators->volumeStep > 5)
 		{	
 			//takePrice = 1 * 1.5* pBase_Indicators->dailyATR;;
 			openSingleShortEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
