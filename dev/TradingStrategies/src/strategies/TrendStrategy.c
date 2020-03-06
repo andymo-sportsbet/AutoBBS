@@ -3443,6 +3443,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		pIndicators->stopMovingBackSL = TRUE;
 
 		//isEnableNextdayBar = TRUE;
+
+		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, startShift);
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPUSD") != NULL)
 	{
@@ -3473,6 +3475,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		isEnableNextdayBar = TRUE;
 
 		//pIndicators->riskCap = 1.9;
+
+		//dailyBaseLine = iMA(3, B_DAILY_RATES, 50, startShift);
 
 	}
 	else if (strstr(pParams->tradeSymbol, "AUDNZD") != NULL)
@@ -3678,7 +3682,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 					if (isEnableBeiLi == TRUE
 						&& pIndicators->entrySignal != 0 
-						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
+						//&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
 						&& iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0,BUY))
 					{
 						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD BeiLi",
@@ -4243,6 +4247,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(Strateg
 		//isMACDZeroExit = TRUE;
 
 		//isEnableASI = TRUE;
+
+		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, 1); // 50 Daily MA
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPUSD") != NULL)
 	{
@@ -4270,6 +4276,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(Strateg
 		//isMACDZeroExit = TRUE;
 
 		isEnableASI = TRUE;
+		
 	}
 	else if (strstr(pParams->tradeSymbol, "AUDJPY") != NULL)
 	{
@@ -4320,7 +4327,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(Strateg
 
 		pIndicators->stopMovingBackSL = TRUE;
 
-		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, 1); // 50 Daily MA
+		//dailyBaseLine = iMA(3, B_DAILY_RATES, 50, 1); // 50 Daily MA
 	}
 	else
 	{
