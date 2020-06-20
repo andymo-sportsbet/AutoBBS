@@ -597,6 +597,11 @@ int hasOpenOrder()
 	return easyTradePtr->hasOpenOrder();
 }
 
+int hasSameDayOrderExcludeBreakeventOrdersEasy(time_t currentTime, BOOL * pIsOpen,double points)
+{
+	return easyTradePtr->hasSameDayOrderExcludeBreakeventOrders(currentTime, pIsOpen, points);
+}
+
 int hasSameDayOrderEasy(time_t currentTime,BOOL * pIsOpen)
 {
 	return easyTradePtr->hasSameDayOrder(currentTime, pIsOpen);
@@ -622,9 +627,19 @@ int getOrderCountTodayEasy(time_t currentTime)
 	return easyTradePtr->getOrderCountToday(currentTime);
 }
 
+int getOrderCountTodayExcludeBreakeventOrdersEasy(time_t currentTime, double points)
+{
+	return easyTradePtr->getOrderCountTodayExcludeBreakeventOrders(currentTime, points);
+}
+
 int getOrderCountEasy()
 {
 	return easyTradePtr->getOrderCount();
+}
+
+int getLossTimesInDayExcludeBreakeventOrdersEasy(time_t currentTime, double * total_lost_pips, double points)
+{
+	return easyTradePtr->getLossTimesInDayExcludeBreakeventOrders(currentTime, total_lost_pips,points);
 }
 
 int getLossTimesInDayEasy( time_t currentTime, double * total_lost_pips)

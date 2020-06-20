@@ -944,9 +944,11 @@ AsirikuyReturnCode validateCurrentTimeEasy(StrategyParams* pParams, int primary_
 int getLossTimesInWeekEasy(time_t currentTime, double * total_lost_pips);
 int getWinTimesInWeekEasy(time_t currentTime);
 
+int getLossTimesInDayExcludeBreakeventOrdersEasy(time_t currentTime, double * total_lost_pips, double points);
 int getLossTimesInDayEasy(time_t currentTime, double * total_lost_pips);
 int getWinTimesInDayEasy(time_t currentTime);
 
+int getOrderCountTodayExcludeBreakeventOrdersEasy(time_t currentTime, double points);
 int getOrderCountTodayEasy(time_t currentTime);
 int getOrderCountEasy();
 
@@ -1068,6 +1070,7 @@ AsirikuyReturnCode addDistortedArray(int sourceRateIndex, int ratesIndex, double
 AsirikuyReturnCode freeRates(int ratesIndex);
 
 int hasOpenOrder();
+int hasSameDayOrderExcludeBreakeventOrdersEasy(time_t currentTime, BOOL * pIsOpen, double points);
 int hasSameDayOrderEasy(time_t currentTime, BOOL *pIsOpen);
 int hasSameWeekOrderEasy(time_t currentTime, BOOL *pIsOpen);
 OrderType getLastestOpenOrderTypeEasy(int rateIndex, double *pHigh, double *pLow);

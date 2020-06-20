@@ -348,7 +348,7 @@ void splitBuyOrders_Daily_GBPJPY_Swing(StrategyParams* pParams, Indicators* pInd
 	if (gap > 0.1)
 		takePrice = min(gap, 0.3);
 
-	
+	takePrice = 0;
 	openSingleLongEasy(takePrice, stopLoss, lots, 1);
 
 }
@@ -394,6 +394,7 @@ void splitSellOrders_Daily_GBPJPY_Swing(StrategyParams* pParams, Indicators* pIn
 
 	if (gap > 0.1)
 		takePrice = min(gap, 0.3);
+	takePrice = 0;
 
 	openSingleShortEasy(takePrice, stopLoss, lots, 1);
 
@@ -2109,8 +2110,15 @@ static BOOL GBPJPY_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
+
+
+	//if (pBase_Indicators->pDailyPredictATR >= 1)
+	//	pIndicators->maxTradeTime = 2;
+	//else
+	//	pIndicators->maxTradeTime = 1;
+
+	pIndicators->maxTradeTime = 1;
 	
-	pIndicators->maxTradeTime = 2;
 
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 	
@@ -2371,6 +2379,9 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 
 	int latestOrderIndex = 0, orderCountToday = 0;
 
+	BOOL isBreakEvent = FALSE;
+	int euro_index_rate;
+	double ATREuroPeriod = 0.0;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
@@ -2383,10 +2394,32 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	pIndicators->risk = 1;
 	pIndicators->tpMode = 0;
 	
+	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
+		pIndicators->executionTrend = 0;
+	else if (pBase_Indicators->dailyTrend > 0)
+		pIndicators->executionTrend = 1;
+	else if (pBase_Indicators->dailyTrend < 0)
+		pIndicators->executionTrend = -1;
+	else
+		pIndicators->executionTrend = 0;
+
 	pBase_Indicators->maTrend = getMATrend(iAtr(B_SECONDARY_RATES, 20, 1), B_SECONDARY_RATES, 1);
 
 	//Range = 0.5;
-	Range = min(0.5, pBase_Indicators->pDailyPredictATR / 2);	
+	Range = min(0.5, pBase_Indicators->pDailyPredictATR / 2);
+	//if (pBase_Indicators->pDailyPredictATR < 1.2)
+	//	Range = 0.5;
+	//else if (pBase_Indicators->pDailyPredictATR < 1.5)
+	//	Range = 0.6;
+	//else
+	//	Range = 0.7;
+
+	if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 0)
+	{
+		if (hasOpenOrder())
+			pIndicators->exitSignal = EXIT_ALL;
+		return SUCCESS;
+	}
 
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR);
@@ -2402,9 +2435,16 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	}
 	else
 		return SUCCESS;	
+
 	intradayLow = min(close_prev1, intradayLow);
 	intradayHigh = max(close_prev1, intradayHigh);
 	ATR0 = fabs(intradayHigh - intradayLow);
+
+	//euro_index_rate = shift1Index_primary - ((timeInfo1.tm_hour - 9) * 60 + timeInfo1.tm_min);
+	//count = (timeInfo1.tm_hour - 9) * 60 + timeInfo1.tm_min - 1;
+	////count must > 1, otherwise, cause TA_MIN error 
+	//iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, euro_index_rate, count, &(pIndicators->euro_high), &(pIndicators->euro_low));
+	//ATREuroPeriod = fabs(pIndicators->euro_high - pIndicators->euro_low);
 
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, ATR0 = %lf,IntraDaily High = %lf, Low=%lf, Close=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, intradayHigh, intradayLow, intradayClose);
@@ -2420,19 +2460,24 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 		return SUCCESS;
 	}	
 
+
 	//if (pIndicators->risk > 1)
 	//	maxTradeTime = 2;
 
 	// secondary rate is 5M , priarmy rate is 1M
 	if (hasSameDayOrderEasy(currentTime, &isOpen) == FALSE)
+	//if (hasSameDayOrderExcludeBreakeventOrdersEasy(currentTime, &isOpen,0.1) == FALSE)
 	{
 		//在80点内，必须入场，如果放弃了，就放弃当日交易。
-		if (ATR0 > 0.8)
-			return SUCCESS;
+		//if (ATR0 > 1.0)
+		//	return SUCCESS;
 
 		//加入5M均线的支持
 		if (pParams->bidAsk.ask[0] - intradayLow >= Range 
-			&& pBase_Indicators->maTrend > 0
+			&& intradayHigh - pParams->bidAsk.bid[0] < 0.3
+			//&& pBase_Indicators->maTrend > 0
+			&& (pIndicators->executionTrend > 0 || (pIndicators->executionTrend == 0 && pBase_Indicators->maTrend > 0))
+			&& timeInfo1.tm_hour <= 15		
 			)
 		{
 			pIndicators->executionTrend = 1;
@@ -2442,7 +2487,10 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 		}
 
 		if (intradayHigh - pParams->bidAsk.bid[0] >= Range 
-			&& pBase_Indicators->maTrend < 0
+			&& pParams->bidAsk.ask[0] - intradayLow < 0.3
+			//&& pBase_Indicators->maTrend < 0
+			&& (pIndicators->executionTrend < 0 || (pIndicators->executionTrend == 0 && pBase_Indicators->maTrend < 0))
+			&& timeInfo1.tm_hour <= 15
 			)
 		{
 			pIndicators->executionTrend = -1;
@@ -2454,6 +2502,14 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	}
 	else
 	{
+		if (pIndicators->winTimes > 0){
+			if (hasSameDayOrderEasy(currentTime, &isOpen) == TRUE && isOpen == TRUE)
+				pIndicators->exitSignal = EXIT_ALL;
+			return SUCCESS;
+		}
+
+		//latestOrderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
+
 		//这里可以考虑getlatestorder, 不单单是open order，因为可能会平保
 		//side = getLastestOpenOrderTypeEasy_GBPJPY(B_PRIMARY_RATES, &openOrderHigh, &openOrderLow);
 		side = getLastestOrderTypeEasy(B_PRIMARY_RATES, &openOrderHigh, &openOrderLow,&isOpen);
@@ -2461,59 +2517,14 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 		//如果已经有了一个trade，那就是第二次交易，要使用日内的高低点
 		//如果有了2个trades,那就是第三次交易了，使用orderHigh, orderLow.
 		orderCountToday = getOrderCountTodayEasy(currentTime);
+		//orderCountToday = getOrderCountTodayExcludeBreakeventOrdersEasy(currentTime,0.1);
 		if (orderCountToday == 1)
 		{
 			openOrderHigh = intradayHigh;
 			openOrderLow = intradayLow;
+
 		}
-		
-		////如果浮盈20点，就移动止损20点。如果浮盈30点以上，移动止损10点。
-		//if (orderCountToday >= 1)
-		//{
-		//	if (isOpen == TRUE)
-		//	{
-		//		entryPrice = pParams->orderInfo[latestOrderIndex].openPrice;
-		//		if (side == SELL)
-		//		{
-		//			pIndicators->entryPrice = pParams->bidAsk.bid[0];
-		//			if (entryPrice - pIndicators->entryPrice >= 0.2 && entryPrice - pIndicators->entryPrice < 0.3)
-		//			{
-		//				pIndicators->executionTrend = -1;
-		//				pIndicators->stopLossPrice = pIndicators->entryPrice + 0.2 - pIndicators->adjust;
-		//				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, trace stop loss on sell order: floating profit =%lf, stopLossPrice=%lf",
-		//					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, entryPrice - pIndicators->entryPrice, pIndicators->stopLossPrice);
-		//			}
-
-		//			if (entryPrice - pIndicators->entryPrice >= 0.3)
-		//			{
-		//				pIndicators->executionTrend = -1;
-		//				pIndicators->stopLossPrice = pIndicators->entryPrice + 0.1 - pIndicators->adjust;
-		//				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, trace stop loss on sell order: floating profit =%lf, stopLossPrice=%lf",
-		//					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, entryPrice - pIndicators->entryPrice, pIndicators->stopLossPrice);
-		//			}					
-		//		}
-
-		//		if (side == BUY)
-		//		{
-		//			pIndicators->entryPrice = pParams->bidAsk.ask[0];
-		//			if (pIndicators->entryPrice - entryPrice >= 0.2 && pIndicators->entryPrice - entryPrice < 0.3)
-		//			{
-		//				pIndicators->executionTrend = 1;
-		//				pIndicators->stopLossPrice = pIndicators->entryPrice - 0.2 + pIndicators->adjust;
-		//				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, trace stop loss on sell order: floating profit =%lf, stopLossPrice=%lf",
-		//					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entryPrice - entryPrice, pIndicators->stopLossPrice);
-		//			}
-
-		//			if (pIndicators->entryPrice - entryPrice >= 0.3)
-		//			{
-		//				pIndicators->executionTrend = 1;
-		//				pIndicators->stopLossPrice = pIndicators->entryPrice - 0.1 + pIndicators->adjust;
-		//				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, trace stop loss on sell order: floating profit =%lf, stopLossPrice=%lf",
-		//					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entryPrice - entryPrice, pIndicators->stopLossPrice);
-		//			}
-		//		}
-		//	}
-		//}
+			
 
 		//从第一单开始：close negative if 浮盈大于20点后
 		if (orderCountToday >= 1)
@@ -2527,79 +2538,105 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 				entryPrice = pParams->orderInfo[latestOrderIndex].openPrice;
 				if (side == SELL)
 				{
-					if (entryPrice - openOrderLow > 0.2 && entryPrice - pParams->bidAsk.ask[0] < 0)
+					//如果过了20点后，出现第一个5M的阳线，离场。
+					if (entryPrice - openOrderLow > 0.3 &&
+						//entryPrice - pParams->bidAsk.ask[0] < 0
+						//iClose(B_SECONDARY_RATES, 1) > iOpen(B_SECONDARY_RATES,1)
+						entryPrice - pParams->bidAsk.ask[0] < 0.3
+						//pParams->bidAsk.ask[0] - openOrderLow > 0.2
+						)						
 					{
 						//closeAllWithNegativeEasy(5, currentTime, 3); //close them intraday on break event
 						closeShortEasy(pParams->orderInfo[latestOrderIndex].ticket);
 						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, closing sell order: entryPrice =%lf, openOrderLow=%lf",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, entryPrice, openOrderLow);
+						return SUCCESS;
 					}
 				}
 
 				if (side == BUY)
 				{
-					if (openOrderHigh - entryPrice > 0.2 && entryPrice - pParams->bidAsk.bid[0] > 0)
+					//如果过了20点后，出现第一个5M的阴线，离场
+					if (openOrderHigh - entryPrice > 0.3 && 
+						//entryPrice - pParams->bidAsk.bid[0] > 0
+						//iClose(B_SECONDARY_RATES, 1) < iOpen(B_SECONDARY_RATES, 1)
+						pParams->bidAsk.bid[0] - entryPrice < 0.3
+						//openOrderHigh - pParams->bidAsk.bid[0] > 0.2
+						)
 					{
 						//closeAllWithNegativeEasy(5, currentTime, 3);//close them intraday on break event
 						closeLongEasy(pParams->orderInfo[latestOrderIndex].ticket);
 						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, closing buy order: entryPrice =%lf, openOrderHigh=%lf",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, entryPrice, openOrderHigh);
+						return SUCCESS;
 					}
 				}
 			}			
-		}
+		}	
 		
-		if (isOpen == TRUE && side == SELL)
+		//if (orderCountToday == 1 && pParams->orderInfo[latestOrderIndex].ticket != 0 && pParams->orderInfo[latestOrderIndex].isOpen == FALSE && pParams->orderInfo[latestOrderIndex].profit < 0
+		//	&& fabs(pParams->orderInfo[latestOrderIndex].openPrice - pParams->orderInfo[latestOrderIndex].closePrice) <= 0.1)
+		//	isBreakEvent = TRUE;
+
+		if (side == SELL)
 		{
-
-			if (orderCountToday == 2)
+			
+			if (isOpen == TRUE)
 			{
-				openOrderLow = min(openOrderLow, pParams->orderInfo[latestOrderIndex].openPrice);
-			}
-
-			if (pParams->bidAsk.ask[0] - openOrderLow >= Range)
-				//if (pParams->bidAsk.ask[0] - intradayLow >= Range)
-			{
-				pIndicators->executionTrend = 1;
-				pIndicators->entryPrice = pParams->bidAsk.ask[0];
-				pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
-							
-				//pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
-				//pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
-				if (pIndicators->lossTimes < pIndicators->maxTradeTime && pIndicators->winTimes == 0)
+				if (orderCountToday == 2)
 				{
-					//pIndicators->risk = pow(2, pIndicators->lossTimes);
-					pIndicators->entrySignal = 1;
+					openOrderLow = min(openOrderLow, pParams->orderInfo[latestOrderIndex].openPrice);
 				}
-				pIndicators->exitSignal = EXIT_SELL;
+
+
+				if (pParams->bidAsk.ask[0] - openOrderLow >= Range)
+					//if (pParams->bidAsk.ask[0] - intradayLow >= Range)
+				{
+					pIndicators->executionTrend = 1;
+					pIndicators->entryPrice = pParams->bidAsk.ask[0];
+					pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
+
+					//pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
+					//pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
+					if (pIndicators->lossTimes < pIndicators->maxTradeTime && pIndicators->winTimes == 0 )
+					{
+						//pIndicators->risk = pow(2, pIndicators->lossTimes);
+						//pIndicators->entrySignal = 1;
+					}
+					pIndicators->exitSignal = EXIT_SELL;
+				}
 			}
 
 		}
 
-		if (isOpen == TRUE &&side == BUY)
+		if (side == BUY)
 		{
-			if (orderCountToday == 2)
+			if (isOpen == TRUE )
 			{
-				openOrderHigh = max(openOrderHigh, pParams->orderInfo[latestOrderIndex].openPrice);
-			}
 
-			if (openOrderHigh - pParams->bidAsk.bid[0] >= Range)
-				//if (intradayHigh - pParams->bidAsk.bid[0] >= Range)
-			{
-				pIndicators->executionTrend = -1;
-				pIndicators->entryPrice = pParams->bidAsk.bid[0];
-				pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->dailyATR;				
-				//pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
-				//pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
-				if (pIndicators->lossTimes < pIndicators->maxTradeTime && pIndicators->winTimes == 0)
+				if (orderCountToday == 2)
 				{
-					//pIndicators->risk = pow(2, pIndicators->lossTimes);
-					pIndicators->entrySignal = -1;
+					openOrderHigh = max(openOrderHigh, pParams->orderInfo[latestOrderIndex].openPrice);
 				}
 
-				pIndicators->exitSignal = EXIT_BUY;
-			}
+				if (openOrderHigh - pParams->bidAsk.bid[0] >= Range)
+					//if (intradayHigh - pParams->bidAsk.bid[0] >= Range)
+				{
+					pIndicators->executionTrend = -1;
+					pIndicators->entryPrice = pParams->bidAsk.bid[0];
+					pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->dailyATR;
+					//pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
+					//pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
+					if (pIndicators->lossTimes < pIndicators->maxTradeTime && pIndicators->winTimes == 0)
+					{
+						//pIndicators->risk = pow(2, pIndicators->lossTimes);
+						//pIndicators->entrySignal = -1;
+					}
 
+					pIndicators->exitSignal = EXIT_BUY;
+				}
+
+			}
 		}
 
 	}

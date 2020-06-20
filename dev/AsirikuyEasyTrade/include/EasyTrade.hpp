@@ -955,6 +955,7 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
   int getLossTimesInWeek(time_t currentTime, double * total_lost_pips);
   int getWinTimesInWeek(time_t currentTime);
 
+  int getLossTimesInDayExcludeBreakeventOrders(time_t currentTime, double * total_lost_pips, double points);
   int getLossTimesInDay(time_t currentTime, double * total_lost_pips);
   int getWinTimesInDay(time_t currentTime);
 
@@ -966,12 +967,14 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
   int getLastestOrderIndexExcept(int rateIndex, int exceptIndexs[]);
   int hasBigWinInCurrentTrend(int rateIndex, OrderType type, double points);
 
+  int getOrderCountTodayExcludeBreakeventOrders(time_t currentTime, double points);
   int getOrderCountToday(time_t currentTime);
   int getOrderCount();
   double getLastestOrderPrice(int rateIndex, BOOL * pIsOpen);
 
 
   int hasOpenOrder();
+  int hasSameDayOrderExcludeBreakeventOrders(time_t currentTime, BOOL *pIsOpen, double points);
   int hasSameDayOrder(time_t currentTime, BOOL *pIsOpen);
   int hasSameWeekOrder(time_t currentTime, BOOL *pIsOpen);
   double hasSameDayDayTradingOrder(int rateIndex, OrderInfo * pOrder, double * pHigh, double * pLow);

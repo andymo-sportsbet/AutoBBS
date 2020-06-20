@@ -3055,6 +3055,31 @@ int EasyTrade::hasSameWeekOrder(time_t currentTime, BOOL *pIsOpen)
 	return FALSE;
 }
 
+int EasyTrade::hasSameDayOrderExcludeBreakeventOrders(time_t currentTime, BOOL *pIsOpen,double points)
+{
+	int i;
+	struct tm timeInfo1, timeInfo2;
+	safe_gmtime(&timeInfo1, currentTime);
+
+	*pIsOpen = FALSE;
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		if (pParams->orderInfo[i].ticket != 0)
+		{
+			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+			if (timeInfo1.tm_year == timeInfo2.tm_year &&  timeInfo1.tm_mon == timeInfo2.tm_mon && timeInfo1.tm_mday == timeInfo2.tm_mday)
+			{
+				if (pParams->orderInfo[i].isOpen == FALSE && pParams->orderInfo[i].profit< 0 && fabs(pParams->orderInfo[i].openPrice - pParams->orderInfo[i].closePrice) <= points)
+					continue;
+				*pIsOpen = pParams->orderInfo[i].isOpen;
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 int EasyTrade::hasSameDayOrder( time_t currentTime,BOOL *pIsOpen)
 {
 	int i;
@@ -3469,6 +3494,34 @@ int EasyTrade::getOrderCount()
 	return count;
 }
 
+int EasyTrade::getOrderCountTodayExcludeBreakeventOrders(time_t currentTime, double points)
+{
+	int i;
+	int count = 0;
+	struct tm timeInfo1, timeInfo2;
+
+
+	safe_gmtime(&timeInfo1, currentTime);
+
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		if (pParams->orderInfo[i].ticket != 0)
+		{
+			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+
+			if (timeInfo1.tm_year == timeInfo2.tm_year && timeInfo1.tm_yday == timeInfo2.tm_yday)
+			{
+				if (pParams->orderInfo[i].isOpen == FALSE && pParams->orderInfo[i].profit< 0 && fabs(pParams->orderInfo[i].openPrice - pParams->orderInfo[i].closePrice) <= points)
+					continue;
+				count++;
+			}
+		}
+
+	}
+
+	return count;
+}
+
 int EasyTrade::getOrderCountToday(time_t currentTime)
 {
 	int i;
@@ -3493,6 +3546,58 @@ int EasyTrade::getOrderCountToday(time_t currentTime)
 	}
 
 	return count;
+}
+
+int EasyTrade::getLossTimesInDayExcludeBreakeventOrders(time_t currentTime, double * total_lost_pips,double points)
+{
+	int i;
+	int lossTimes = 0;
+	struct tm timeInfo1, timeInfo2;
+	*total_lost_pips = 0;
+
+	safe_gmtime(&timeInfo1, currentTime);
+
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		if (pParams->orderInfo[i].ticket != 0)
+		{
+			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+
+			if (timeInfo1.tm_year == timeInfo2.tm_year && timeInfo1.tm_yday == timeInfo2.tm_yday)
+			{
+				if (pParams->orderInfo[i].isOpen == FALSE && pParams->orderInfo[i].profit < 0 && fabs(pParams->orderInfo[i].closePrice - pParams->orderInfo[i].openPrice) >= points)
+				{
+					lossTimes++;
+					*total_lost_pips += fabs(pParams->orderInfo[i].closePrice - pParams->orderInfo[i].openPrice) * pParams->orderInfo[i].lots;
+				}
+
+				if (pParams->orderInfo[i].isOpen == TRUE)
+				{
+					if (pParams->orderInfo[i].type == BUY && pParams->bidAsk.ask[0] < pParams->orderInfo[i].openPrice
+						//&& fabs(pParams->bidAsk.ask[0] - pParams->orderInfo[i].openPrice) > 0.2
+						)
+					{
+						lossTimes++;
+						*total_lost_pips += fabs(pParams->bidAsk.ask[0] - pParams->orderInfo[i].openPrice)* pParams->orderInfo[i].lots;
+					}
+
+					if (pParams->orderInfo[i].type == SELL && pParams->bidAsk.bid[0] > pParams->orderInfo[i].openPrice
+						//&& fabs(pParams->bidAsk.ask[0] - pParams->orderInfo[i].openPrice) > 0.2
+						)
+					{
+						lossTimes++;
+						*total_lost_pips += fabs(pParams->bidAsk.bid[0] - pParams->orderInfo[i].openPrice)* pParams->orderInfo[i].lots;
+					}
+				}
+
+			}
+
+
+		}
+
+	}
+
+	return lossTimes;
 }
 
 int EasyTrade::getLossTimesInDay(time_t currentTime,double * total_lost_pips)
@@ -3567,7 +3672,7 @@ int EasyTrade::getWinTimesInDay(time_t currentTime)
 				if (pParams->orderInfo[i].isOpen == FALSE && pParams->orderInfo[i].profit > 0)
 					winningTimes++;
 
-				if (pParams->orderInfo[i].isOpen == TRUE)
+				if (pParams->orderInfo[i].isOpen == TRUE && pParams->orderInfo[i].takeProfit > 0)
 				{
 					if (pParams->orderInfo[i].type == BUY && pParams->bidAsk.ask[0] > pParams->orderInfo[i].takeProfit)
 						winningTimes++;
