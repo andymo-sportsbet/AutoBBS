@@ -34,8 +34,8 @@ void splitBuyOrders_Daily_XAUUSD_Swing(StrategyParams* pParams, Indicators* pInd
 void splitSellOrders_Daily_XAUUSD_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
 
 //22： 跨日交易
-void splitBuyOrders_MultiDays_XAUUSD_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
-void splitSellOrders_MultiDays_XAUUSD_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
+void splitBuyOrders_MultiDays_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
+void splitSellOrders_MultiDays_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
 
 
 void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
@@ -59,7 +59,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 
 //5M MA+ BBand
 //跨日
-AsirikuyReturnCode workoutExecutionTrend_XAUUSD_MultipleDay(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
+AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 //GBPJPY
 //日内交易

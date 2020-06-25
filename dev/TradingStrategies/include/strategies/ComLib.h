@@ -103,8 +103,14 @@ extern "C" {
 		double euro_close;
 		double euro_open;
 
+		double atr0;
+
 		double atr_euro_range;
+		double takePrice;
+		double takeprice2;
+		double stopLoss;
 		int startHour;
+		int endHour;
 		int maxTradeTime;
 
 		BOOL stopMovingBackSL;

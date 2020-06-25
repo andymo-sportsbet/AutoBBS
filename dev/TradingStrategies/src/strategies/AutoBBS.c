@@ -75,7 +75,7 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			splitBuyOrders_Daily_XAUUSD_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 22:
-			splitBuyOrders_MultiDays_XAUUSD_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+			splitBuyOrders_MultiDays_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;			
 		case 23:
 			splitBuyOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -95,6 +95,10 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 		case 28:
 			splitBuyOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
+		case 29:
+			splitBuyOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+			break;
+
 	}
 	
 }
@@ -158,7 +162,7 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		splitSellOrders_Daily_XAUUSD_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 22:
-		splitSellOrders_MultiDays_XAUUSD_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		splitSellOrders_MultiDays_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 23:
 		splitSellOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -177,6 +181,9 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		break;
 	case 28:
 		splitSellOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		break;
+	case 29:
+		splitSellOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	}
 }
@@ -236,18 +243,17 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	case 18:
 		workoutExecutionTrend_4HBBS_Swing_BoDuan(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 19:
-		//workoutExecutionTrend_XAUUSD_DayTrading(pParams, pIndicators, pBase_Indicators);
-		workoutExecutionTrend_XAUUSD_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators);
+	case 19:		
+		workoutExecutionTrend_DayTrading_ExecutionOnly(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 20:
 		workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 21:				
-		workoutExecutionTrend_XAUUSD_MultipleDay(pParams, pIndicators, pBase_Indicators);
+		workoutExecutionTrend_MultipleDay(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 22:		
-		workoutExecutionTrend_GBPJPY_MultipleDay(pParams, pIndicators, pBase_Indicators);
+		workoutExecutionTrend_MultipleDay(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 23:
 		workoutExecutionTrend_MACD_Daily(pParams, pIndicators, pBase_Indicators);
@@ -684,7 +690,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "06/01/17 13:47") == 0)
+	if (strcmp(timeString, "05/10/16 23:30") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if (strcmp(timeString, "22/01/20 23:00") == 0)
