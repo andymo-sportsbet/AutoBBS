@@ -2036,25 +2036,25 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 	if (timeInfo1.tm_hour < startTradingTime)
 		return FALSE;
 
-	asia_index_rate = shift1Index - ((timeInfo1.tm_hour - startTradingTime) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
+	//asia_index_rate = shift1Index - ((timeInfo1.tm_hour - startTradingTime) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
 
-	count = (startTradingTime-1) * (60 / execution_tf) - 1;
-	if (count >= 1)
-		iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, asia_index_rate, count, &(pIndicators->asia_high), &(pIndicators->asia_low));
-	else
-		return FALSE;
+	//count = (startTradingTime-1) * (60 / execution_tf) - 1;
+	//if (count >= 1)
+	//	iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, asia_index_rate, count, &(pIndicators->asia_high), &(pIndicators->asia_low));
+	//else
+	//	return FALSE;
 
-	pIndicators->asia_low = min(close_prev1, pIndicators->asia_low);
-	pIndicators->asia_high = max(close_prev1, pIndicators->asia_high);
-	pIndicators->asia_open = close_prev1;
-	pIndicators->asia_close = iClose(B_PRIMARY_RATES, asia_index_rate);
+	//pIndicators->asia_low = min(close_prev1, pIndicators->asia_low);
+	//pIndicators->asia_high = max(close_prev1, pIndicators->asia_high);
+	//pIndicators->asia_open = close_prev1;
+	//pIndicators->asia_close = iClose(B_PRIMARY_RATES, asia_index_rate);
 
-	
-	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf",
-		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low);
+	//
+	//pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf",
+	//	(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low);
 
-	if (fabs(pIndicators->asia_high - pIndicators->asia_low) > pIndicators->atr_euro_range)
-		return FALSE;
+	//if (fabs(pIndicators->asia_high - pIndicators->asia_low) > pIndicators->atr_euro_range*1.2)
+	//	return FALSE;
 
 	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE)
 		readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
@@ -3653,28 +3653,84 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	else
 		side = NONE;
 
+	// TODO: 需要修改BASE,支持在收盘重新计算Trend，但是需要时间。
+	//暂时选在在第二天开盘离场，实盘中有点差的问题，还有周末跳空的问题。
+	//if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE && timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
+	if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE && timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 0)
+	{
+
+		if (pParams->orderInfo[latestOrderIndex].type == BUY &&
+			//pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 0
+			pIndicators->executionTrend <= 0
+			)
+			pIndicators->exitSignal = EXIT_ALL;
+		if (pParams->orderInfo[latestOrderIndex].type == SELL &&
+			//pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 0
+			pIndicators->executionTrend >= 0
+			)
+			pIndicators->exitSignal = EXIT_ALL;
+		return SUCCESS;
+	}
 
 	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{
+		//if (timeInfo1.tm_year == 2019)
+		pIndicators->atr_euro_range = max((double)parameter(AUTOBBS_IS_ATREURO_RANGE), (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 3);
 		pIndicators->stopLoss = pIndicators->atr_euro_range*0.93;
 		pIndicators->takePrice = max(3, pIndicators->stopLoss * 0.4);
 
-		//if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 0 && pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
-		//{
-		//	if (side == BUY && pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice > pIndicators->stopLoss)
-		//	{
-		//		pIndicators->executionTrend = 1;
-		//		pIndicators->entryPrice = pParams->bidAsk.ask[0];
-		//		pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice;
-		//	}
+		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
+			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->atr_euro_range, pIndicators->stopLoss, pIndicators->takePrice);
 
-		//	if (side == SELL && pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] > pIndicators->stopLoss)
-		//	{
-		//		pIndicators->executionTrend = -1;
-		//		pIndicators->entryPrice = pParams->bidAsk.bid[0];
-		//		pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice;
-		//	}
-		//}
+		if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 5 && pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
+		{
+			if (side == BUY)
+			{
+				if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice > pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 2* pIndicators->stopLoss)
+				{
+					pIndicators->executionTrend = 1;
+					pIndicators->entryPrice = pParams->bidAsk.ask[0];
+					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice;
+				}
+				if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 2 * pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 3 * pIndicators->stopLoss)
+				{
+					pIndicators->executionTrend = 1;
+					pIndicators->entryPrice = pParams->bidAsk.ask[0];
+					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice + pIndicators->stopLoss;
+				}
+				//if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 3 * pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 4 * pIndicators->stopLoss)
+				//{
+				//	pIndicators->executionTrend = 1;
+				//	pIndicators->entryPrice = pParams->bidAsk.ask[0];
+				//	pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice + 2* pIndicators->stopLoss;
+				//}
+			}
+
+			if (side == SELL)
+			{
+				if (pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] > pIndicators->stopLoss && pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 2 * pIndicators->stopLoss)
+				{
+					pIndicators->executionTrend = -1;
+					pIndicators->entryPrice = pParams->bidAsk.bid[0];
+					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice;
+				}
+
+				if (pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] >= 2* pIndicators->stopLoss && pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 3 * pIndicators->stopLoss)
+				{
+					pIndicators->executionTrend = -1;
+					pIndicators->entryPrice = pParams->bidAsk.bid[0];
+					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice - pIndicators->stopLoss;
+				}
+				//if (pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] >= 3 * pIndicators->stopLoss && pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 4 * pIndicators->stopLoss)
+				//{
+				//	pIndicators->executionTrend = -1;
+				//	pIndicators->entryPrice = pParams->bidAsk.bid[0];
+				//	pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice - 2* pIndicators->stopLoss;
+				//}
+
+			}
+
+		}
 
 		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators) == FALSE)
 			return SUCCESS;
@@ -3706,21 +3762,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			return SUCCESS;
 	}
 
-	if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE && timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
-	{		
-		if (pParams->orderInfo[latestOrderIndex].type == BUY && 
-			//pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 0
-			pIndicators->executionTrend <= 0
-			)
-			pIndicators->exitSignal = EXIT_ALL;
-		if (pParams->orderInfo[latestOrderIndex].type == SELL && 
-			//pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 0
-			pIndicators->executionTrend >= 0
-			)
-			pIndicators->exitSignal = EXIT_ALL;
-		return SUCCESS;
-	}
-
+	
 	if (side == NONE)
 	{
 		if (pBase_Indicators->maTrend > 0)
