@@ -2786,7 +2786,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 	{
 
 		preWeeklyClose = iClose(B_WEEKLY_RATES, 1);
-		iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1);
+		iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1,0);
 
 		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
 		weekly_baseline = (weeklyHigh + weeklyLow) / 2;
@@ -3579,7 +3579,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	{		
 
 		preWeeklyClose = iClose(B_WEEKLY_RATES, 1);
-		iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1);
+		iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1,0);
 
 		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
 		weekly_baseline = (weeklyHigh + weeklyLow) / 2;
@@ -4376,7 +4376,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(Strateg
 	}
 
 	preWeeklyClose = iClose(B_WEEKLY_RATES, 1);
-	iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1);
+	iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1,0);
 
 	iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
 	weekly_baseline = (weeklyHigh + weeklyLow) / 2;
@@ -5958,7 +5958,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 
 		dailyMA20 = iMA(3, B_DAILY_RATES, 20, 1);
 
-		iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1);
+		iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1,0);
 
 
 		iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily - 1, range, &rangeHigh, &rangeLow);
@@ -6379,7 +6379,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 
 	cmfVolume = getCMFVolume(B_DAILY_RATES, fastMAPeriod, 1);
 
-	iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1);
+	iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1,0);
 	
 
 	iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily - 1, range, &rangeHigh, &rangeLow);

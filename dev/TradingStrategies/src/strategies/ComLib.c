@@ -522,7 +522,7 @@ BOOL XAUUSD_IsKeyDate(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	time_t currentTime;
 	struct tm timeInfo1, timeInfo2;
-	time_t keyDates[100] = { 0 };
+	time_t keyDates[1000] = { 0 };
 	int i = 0;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
@@ -530,7 +530,7 @@ BOOL XAUUSD_IsKeyDate(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 
 	readXAUUSDKeyNewsDateFile(&keyDates);
 
-	for (i = 0; i < 100; i++)
+	for (i = 0; i < 1000; i++)
 	{
 		safe_gmtime(&timeInfo2, keyDates[i]);
 		if (timeInfo1.tm_year == timeInfo2.tm_year && timeInfo1.tm_mon == timeInfo2.tm_mon && timeInfo1.tm_mday == timeInfo2.tm_mday) // same date

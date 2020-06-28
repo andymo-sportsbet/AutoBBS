@@ -186,14 +186,14 @@ void closeAllLimitPreviousDayOrders(StrategyParams* pParams);
 
 BOOL isNewDay(StrategyParams* pParams, time_t currentTime);
 
-AsirikuyReturnCode iTrend3Rules(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend);
-AsirikuyReturnCode iTrend3Rules_preDays(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend, int preDays);
+AsirikuyReturnCode iTrend3Rules(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend,int index);
+AsirikuyReturnCode iTrend3Rules_preDays(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend, int preDays, int index);
 AsirikuyReturnCode iTrend_MA(double iATR, int ratesArrayIndex, int *trend);
-AsirikuyReturnCode iTrend_HL(int ratesArrayIndex, int *trend);
+AsirikuyReturnCode iTrend_HL(int ratesArrayIndex, int *trend, int index);
 AsirikuyReturnCode iTrend_MA_WeeklyBar_For4H(double iATR, int *trend);
-AsirikuyReturnCode iTrend_MA_DailyBar_For1H(double iATR, int *trend);
+AsirikuyReturnCode iTrend_MA_DailyBar_For1H(double iATR, int *trend,int index);
 AsirikuyReturnCode iTrend3Rules_LookBack(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend);
-AsirikuyReturnCode iTrend_HL_preDays(int ratesArrayIndex, int *trend, int preDays);
+AsirikuyReturnCode iTrend_HL_preDays(int ratesArrayIndex, int *trend, int preDays,int index);
 
 void predictDailyATR(StrategyParams* pParams, Base_Indicators* pIndicators);
 void predictWeeklyATR(StrategyParams* pParams, Base_Indicators* pIndicators);

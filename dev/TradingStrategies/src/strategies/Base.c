@@ -42,8 +42,8 @@ AsirikuyReturnCode loadWeeklyIndicators(StrategyParams* pParams, Base_Indicators
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_WEEKLY_RATES].time[shift0Index]);
 		
-	iTrend3Rules(pParams, pIndicators, B_WEEKLY_RATES, 2, &(pIndicators->weekly3RulesTrend));
-	iTrend_HL(B_WEEKLY_RATES, &(pIndicators->weeklyHLTrend));
+	iTrend3Rules(pParams, pIndicators, B_WEEKLY_RATES, 2, &(pIndicators->weekly3RulesTrend),0);
+	iTrend_HL(B_WEEKLY_RATES, &(pIndicators->weeklyHLTrend),0);
 	if (pIndicators->weeklyMAMode == 0)
 		iTrend_MA(pIndicators->weeklyATR, B_FOURHOURLY_RATES, &(pIndicators->weeklyMATrend));
 	else
@@ -132,23 +132,20 @@ If index = 1 -> current day (EOD)
 If index == 0 -> previous day (SOD)
 */
 static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Base_Indicators* pIndicators,int index)
-{
-	int shift0Index = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 1 - index;
-	int shift1Index = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 2 -index;
+{	
+	int shift0Index = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 1;
+	int shift1Index = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 2;	
 	char       timeString[MAX_TIME_STRING_SIZE] = "";
 	int pre3KTrend, preHLTrend;
 	
-	double preDayClose = iClose(B_DAILY_RATES, 1 - index);
-	double preDay2Close = iClose(B_DAILY_RATES, 2 - index);
-
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_DAILY_RATES].time[shift0Index]);
-		
-	iTrend3Rules(pParams, pIndicators, B_DAILY_RATES, 2, &(pIndicators->daily3RulesTrend));
-	iTrend_HL(B_DAILY_RATES, &(pIndicators->dailyHLTrend));
-	//iTrend_MA(pIndicators->dailyATR,B_HOURLY_RATES, &(pIndicators->dailyMATrend));
-	iTrend_MA_DailyBar_For1H(pIndicators->dailyATR, &(pIndicators->dailyMATrend));
 
-	iSRLevels(pParams, pIndicators, B_DAILY_RATES, shift1Index,2, &(pIndicators->dailyHigh), &(pIndicators->dailyLow));
+	iTrend3Rules(pParams, pIndicators, B_DAILY_RATES, 2, &(pIndicators->daily3RulesTrend),index);
+	iTrend_HL(B_DAILY_RATES, &(pIndicators->dailyHLTrend),index);
+	//iTrend_MA(pIndicators->dailyATR,B_HOURLY_RATES, &(pIndicators->dailyMATrend));
+	iTrend_MA_DailyBar_For1H(pIndicators->dailyATR, &(pIndicators->dailyMATrend),index);
+
+	iSRLevels(pParams, pIndicators, B_DAILY_RATES, shift1Index-index,2, &(pIndicators->dailyHigh), &(pIndicators->dailyLow));
 
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, dailyHLTrend = %ld,dailyMATrend=%ld",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->dailyHLTrend, pIndicators->dailyMATrend);
@@ -159,15 +156,15 @@ static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Base_Indi
 	// 修正3K趋势，合并K,在巨大的K线后的孕线。	
 	if (pIndicators->dailyHLTrend == 1 && pIndicators->daily3RulesTrend == 0)
 	{
-		iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 1);
+		iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 1,index);
 		if (pre3KTrend == UP)
 			pIndicators->daily3RulesTrend = UP;
 		else 
 		{
-			iTrend_HL_preDays(B_DAILY_RATES, &preHLTrend,1);
+			iTrend_HL_preDays(B_DAILY_RATES, &preHLTrend,1,index);
 			if (preHLTrend == 1 && pre3KTrend == 0)
 			{
-				iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 2);
+				iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 2,index);
 				if (pre3KTrend == UP)
 					pIndicators->daily3RulesTrend = UP;
 			}
@@ -176,15 +173,15 @@ static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Base_Indi
 
 	if (pIndicators->dailyHLTrend == -1 && pIndicators->daily3RulesTrend == 0)
 	{
-		iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 1);
+		iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 1,index);
 		if (pre3KTrend == DOWN)
 			pIndicators->daily3RulesTrend = DOWN;
 		else
 		{
-			iTrend_HL_preDays(B_DAILY_RATES, &preHLTrend, 1);
+			iTrend_HL_preDays(B_DAILY_RATES, &preHLTrend, 1,index);
 			if (preHLTrend == -1 && pre3KTrend == 0)
 			{
-				iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 2);
+				iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 2,index);
 				if (pre3KTrend == DOWN)
 					pIndicators->daily3RulesTrend = DOWN;
 			}
@@ -206,9 +203,16 @@ static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Base_Indi
 static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Base_Indicators* pIndicators)
 {	
 	int shift0Index = pParams->ratesBuffers->rates[B_HOURLY_RATES].info.arraySize - 1;
+	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	char       timeString[MAX_TIME_STRING_SIZE] = "";
+	time_t currentTime;
+	struct tm timeInfo1;
+	int index = 0;
+
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_HOURLY_RATES].time[shift0Index]);
-	
+
+	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
+	safe_gmtime(&timeInfo1, currentTime);
 
 	pIndicators->dailyATR = iAtr(B_DAILY_RATES, (int)parameter(ATR_AVERAGING_PERIOD), 1);
 
@@ -253,10 +257,17 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Base_Indicator
 		loadWeeklyIndicators(pParams, pIndicators);
 	}
 	
-	loadDailyIndicators(pParams, pIndicators);
+	if (timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
+	{
+		index = 1;
+	}
+
+	loadDailyIndicators(pParams, pIndicators,index);
 	loadIntradayKeyKIndicators(pParams, pIndicators);
 	
 
+	//Those two are used for weekly swing only. They are inactive now.
+	//TODO: should be clean up.
 	pIndicators->maTrend = getMATrend(iAtr(B_PRIMARY_RATES, 20, 1), B_PRIMARY_RATES, 1);
 	pIndicators->ma_Signal = getMATrend_Signal(B_PRIMARY_RATES);
 
@@ -271,7 +282,6 @@ static BOOL isValidSupport(double position,double dailyATR)
 
 	return FALSE;
 }
-
 
 AsirikuyReturnCode workoutDailyTrend(StrategyParams* pParams, Base_Indicators* pIndicators)
 {	
@@ -562,21 +572,25 @@ AsirikuyReturnCode iSRLevels_WithIndex(StrategyParams* pParams, Base_Indicators*
 	return SUCCESS;
 }
 
-AsirikuyReturnCode iTrend_HL_preDays(int ratesArrayIndex, int *trend,int preDays)
+/*
+If index = 1 -> current day (EOD)
+If index == 0 -> previous day (SOD)
+*/
+AsirikuyReturnCode iTrend_HL_preDays(int ratesArrayIndex, int *trend,int preDays,int index)
 {
 	double preHigh1, preHigh2;
 	double preLow1, preLow2;
 	double preClose1, preClose2;
 
 	*trend = RANGE;
-	preHigh1 = iHigh(ratesArrayIndex, 1 + preDays);
-	preHigh2 = iHigh(ratesArrayIndex, 2 + preDays);
+	preHigh1 = iHigh(ratesArrayIndex, 1 + preDays - index);
+	preHigh2 = iHigh(ratesArrayIndex, 2 + preDays - index);
 
-	preClose1 = iClose(ratesArrayIndex, 1 + preDays);
-	preClose2 = iClose(ratesArrayIndex, 2 + preDays);
+	preClose1 = iClose(ratesArrayIndex, 1 + preDays - index);
+	preClose2 = iClose(ratesArrayIndex, 2 + preDays - index);
 
-	preLow1 = iLow(ratesArrayIndex, 1 + preDays);
-	preLow2 = iLow(ratesArrayIndex, 2 + preDays);
+	preLow1 = iLow(ratesArrayIndex, 1 + preDays - index);
+	preLow2 = iLow(ratesArrayIndex, 2 + preDays - index);
 
 	if (preHigh1 > preHigh2 &&
 		//preLow1 > preLow2 &&
@@ -595,6 +609,10 @@ AsirikuyReturnCode iTrend_HL_preDays(int ratesArrayIndex, int *trend,int preDays
 	return SUCCESS;
 }
 
+/*
+If index = 1 -> current day (EOD)
+If index == 0 -> previous day (SOD)
+*/
 //检查是否满足高点更高，低点更高，并且收盘也是更高，那就是UP
 AsirikuyReturnCode iTrend_HL(int ratesArrayIndex,int *trend,int index)
 {
@@ -717,13 +735,17 @@ AsirikuyReturnCode iTrend_MA_WeeklyBar_For4H(double iATR, int *trend)
 	return SUCCESS;
 }
 
-AsirikuyReturnCode iTrend_MA_DailyBar_For1H(double iATR, int *trend)
+/*
+If index = 1 -> current day (EOD)
+If index == 0 -> previous day (SOD)
+*/
+AsirikuyReturnCode iTrend_MA_DailyBar_For1H(double iATR, int *trend,int index)
 {
 	double ma50M, ma200M;
 
 	*trend = RANGE;
-	ma50M = iMA(3, B_DAILY_RATES, 2, 1);
-	ma200M = iMA(3, B_DAILY_RATES, 8, 1);
+	ma50M = iMA(3, B_DAILY_RATES, 2, 1-index);
+	ma200M = iMA(3, B_DAILY_RATES, 8, 1 - index);
 	if (ma50M - ma200M > 0.5 * iATR)
 		*trend = UP_NORMAL;
 
@@ -781,7 +803,11 @@ AsirikuyReturnCode iTrend3Rules_LookBack(StrategyParams* pParams, Base_Indicator
 	
 }
 
-AsirikuyReturnCode iTrend3Rules_preDays(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend,int preDays)
+/*
+If index = 1 -> current day (EOD)
+If index == 0 -> previous day (SOD)
+*/
+AsirikuyReturnCode iTrend3Rules_preDays(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend,int preDays,int index)
 {
 	TA_RetCode retCode;
 	int shift0Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 1 - preDays;
@@ -789,23 +815,23 @@ AsirikuyReturnCode iTrend3Rules_preDays(StrategyParams* pParams, Base_Indicators
 	int       outBegIdx, outNBElement;
 	double	  boxHigh, boxLow;
 
-	retCode = TA_MIN(shift1Index - 1, shift1Index - 1, pParams->ratesBuffers->rates[ratesArrayIndex].low, shift, &outBegIdx, &outNBElement, &boxLow);
+	retCode = TA_MIN(shift1Index - 1 + index, shift1Index - 1 + index, pParams->ratesBuffers->rates[ratesArrayIndex].low, shift, &outBegIdx, &outNBElement, &boxLow);
 	if (retCode != TA_SUCCESS)
 	{
 		return logTALibError("TA_MIN()", retCode);
 	}
 
-	retCode = TA_MAX(shift1Index - 1, shift1Index - 1, pParams->ratesBuffers->rates[ratesArrayIndex].high, shift, &outBegIdx, &outNBElement, &boxHigh);
+	retCode = TA_MAX(shift1Index - 1 + index, shift1Index - 1 + index, pParams->ratesBuffers->rates[ratesArrayIndex].high, shift, &outBegIdx, &outNBElement, &boxHigh);
 	if (retCode != TA_SUCCESS)
 	{
 		return logTALibError("TA_MAX()", retCode);
 	}
 
 	*pTrend = RANGE;
-	if (iClose(ratesArrayIndex, 1) > boxHigh) //周规则，向上。 c3 > max(h1,h2)
+	if (iClose(ratesArrayIndex, 1 - index) > boxHigh) //周规则，向上。 c3 > max(h1,h2)
 		*pTrend = UP;
 
-	if (iClose(ratesArrayIndex, 1) < boxLow) //周规则，向上。
+	if (iClose(ratesArrayIndex, 1 - index) < boxLow) //周规则，向上。
 		*pTrend = DOWN;
 
 	return SUCCESS;
@@ -819,18 +845,18 @@ If index == 0 -> previous day (SOD)
 AsirikuyReturnCode iTrend3Rules(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shift, int * pTrend,int index)
 {
 	TA_RetCode retCode;
-	int shift0Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 1 - index;
-	int shift1Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 2 - index;
+	int shift0Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 1;
+	int shift1Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 2;
 	int       outBegIdx, outNBElement;
 	double	  boxHigh, boxLow;	
 
-	retCode = TA_MIN(shift1Index - 1, shift1Index - 1, pParams->ratesBuffers->rates[ratesArrayIndex].low, shift, &outBegIdx, &outNBElement, &boxLow);
+	retCode = TA_MIN(shift1Index - 1 + index, shift1Index - 1 + index, pParams->ratesBuffers->rates[ratesArrayIndex].low, shift, &outBegIdx, &outNBElement, &boxLow);
 	if (retCode != TA_SUCCESS)
 	{
 		return logTALibError("TA_MIN()", retCode);
 	}
 
-	retCode = TA_MAX(shift1Index - 1, shift1Index - 1, pParams->ratesBuffers->rates[ratesArrayIndex].high, shift, &outBegIdx, &outNBElement, &boxHigh);
+	retCode = TA_MAX(shift1Index - 1 + index, shift1Index - 1 + index, pParams->ratesBuffers->rates[ratesArrayIndex].high, shift, &outBegIdx, &outNBElement, &boxHigh);
 	if (retCode != TA_SUCCESS)
 	{
 		return logTALibError("TA_MAX()", retCode);
