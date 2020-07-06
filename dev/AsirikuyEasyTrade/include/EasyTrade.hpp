@@ -964,6 +964,7 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
   int getLossTimesFromNow(time_t currentTime, double * pTotal_Lost_Pips);
 
   int getSameSideTradesInCurrentTrend(int rateIndex, OrderType type);
+  int getSameSideWonTradesInCurrentTrend(int rateIndex, OrderType type);
   int getLastestOrderIndexExcept(int rateIndex, int exceptIndexs[]);
   int hasBigWinInCurrentTrend(int rateIndex, OrderType type, double points);
 

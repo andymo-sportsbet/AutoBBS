@@ -481,18 +481,19 @@ void splitBuyOrders_4HSwing_Shellington(StrategyParams* pParams, Indicators* pIn
 
 	double lots, lots_singal;
 
-	double total_pre_lost = 0;
-	int lostTimes;
 	time_t currentTime;
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 
+	if (pIndicators->isEnableBuyMinLotSize == TRUE)
+		lots_singal = pIndicators->minLotSize;
+	else
+		lots_singal = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, max(stopLoss,pBase_Indicators->dailyATR*1.5)) * pIndicators->risk;
 
-	takePrice = pBase_Indicators->pWeeklyPredictATR / 2;
-	takePrice = min(takePrice, pBase_Indicators->dailyATR);
-
-	openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk);
+	takePrice = pIndicators->takePrice;
+		
+	openSingleLongEasy(takePrice, stopLoss, lots_singal, 0);
 
 }
 
@@ -516,11 +517,14 @@ void splitSellOrders_4HSwing_Shellington(StrategyParams* pParams, Indicators* pI
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
+	if (pIndicators->isEnableSellMinLotSize == TRUE)
+		lots_singal = pIndicators->minLotSize;
+	else
+		lots_singal = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, max(stopLoss, pBase_Indicators->dailyATR*1.5)) * pIndicators->risk;
+	takePrice = pIndicators->takePrice;
+	
 
-	takePrice = pBase_Indicators->pWeeklyPredictATR / 2;
-	takePrice = min(takePrice, pBase_Indicators->dailyATR);
-
-	openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk);	
+	openSingleShortEasy(takePrice, stopLoss, lots_singal, 0);
 }
 
 
@@ -1941,6 +1945,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
 	int orderIndex = 0;
 
+
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
@@ -1957,6 +1962,14 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 
+	if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
+	{
+		pIndicators->stopLoss = 2.5;
+	}
+	else if (strstr(pParams->tradeSymbol, "GBPAUD") != NULL)
+	{
+		pIndicators->stopLoss = pBase_Indicators->pWeeklyPredictMaxATR;
+	}
 	//4H filter
 	if (timeInfo1.tm_hour % 4 == 0 && timeInfo1.tm_min < 3)
 	{
@@ -1999,7 +2012,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 			pIndicators->executionTrend = 1;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 			pIndicators->stopLossPrice = pIndicators->bbsStopPrice_4H;
-			pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - 2.5);
+			pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pIndicators->stopLoss);
 				
 			//趋势转折的第一单
 			if (orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].type != BUY))
@@ -2025,7 +2038,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 			pIndicators->entryPrice = pParams->bidAsk.bid[0];
 			pIndicators->stopLossPrice = pIndicators->bbsStopPrice_4H;
 	
-			pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + 2.5);
+			pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pIndicators->stopLoss);
 
 			//趋势转折的第一单
 			if (orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].type != SELL))
@@ -6725,7 +6738,7 @@ AsirikuyReturnCode workoutExecutionTrend_Test(StrategyParams* pParams, Indicator
 使用保守的止损计算仓位。
 没有加量反手单
 */
-AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
+AsirikuyReturnCode workoutExecutionTrend_4H_ShellingtonVer1(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	double movement = 0;
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -6759,6 +6772,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 	BOOL isEnableSlow = TRUE;
 	BOOL isEnableATR = TRUE;
 	BOOL isEnableWeeklyATRControl = TRUE;
+	BOOL isEnableMACD = TRUE;
 
 	int startHour = 0;
 
@@ -6787,6 +6801,9 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 
 	volume1 = iVolume(B_DAILY_RATES, 1);
 	volume2 = iVolume(B_DAILY_RATES, 2);
+
+	pIndicators->takePrice = pBase_Indicators->pWeeklyPredictATR / 2;
+	pIndicators->takePrice = min(pIndicators->takePrice, pBase_Indicators->dailyATR);
 
 	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{
@@ -6819,9 +6836,10 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPAUD") != NULL)
 	{
+		isEnableMACD = FALSE;
 		level = 0.001; 
 		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
+		isEnableBeiLi = FALSE;
 		isEnableSlow = FALSE;
 		isEnableATR = FALSE;
 
@@ -6831,6 +6849,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 		slowMAPeriod = 10;
 		signalMAPeriod = 5;
 
+		//pIndicators->takePrice = 0;
 	}
 	else if (strstr(pParams->tradeSymbol, "AUDNZD") != NULL)
 	{
@@ -6900,7 +6919,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 			diffDays = difftime(currentTime, pParams->orderInfo[orderIndex].closeTime) / (60 * 60 * 24);
 			diffWeeks = (timeInfo1.tm_wday + 1 + diffDays) / 7;
 
-			close_index_rate = shift1Index - (diff4Hours - diffWeeks * 2);
+			close_index_rate = shift1Index_4H - (diff4Hours - diffWeeks * 2 * 6);
 
 			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,diff4Hours=%d,diffDays=%d,diffWeeks=%d,orderIndex=%d,close_index_rate=%d,bbsIndex_excution=%d",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, diff4Hours, diffDays, diffWeeks,orderIndex, close_index_rate, pIndicators->bbsIndex_4H);
@@ -6923,9 +6942,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 				if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
 					&& (isEnableWeeklyATRControl == FALSE || fabs(iLow(B_WEEKLY_RATES, 0) - pIndicators->entryPrice) <= pBase_Indicators->pWeeklyPredictATR)
 					&& pIndicators->bbsIndex_4H >= close_index_rate
-					&& fast1 > level
-					&& fast1 > slow1
-					&& fast1 > fast2		
+					&& (isEnableMACD == FALSE || (fast1 > level && fast1 > slow1 && fast1 > fast2))
 					&& (isEnableSlow == FALSE || slow1 > 0)
 					&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
 					&& (isVolumeControl == FALSE || volume1 > volume2)
@@ -6960,9 +6977,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 				if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))					
 					&& (isEnableWeeklyATRControl == FALSE || fabs(iLow(B_WEEKLY_RATES, 0) - pIndicators->entryPrice) <= pBase_Indicators->pWeeklyPredictATR)
 					&& pIndicators->bbsIndex_4H >= close_index_rate
-					&& fast1 < (-1* level)
-					&& fast1 < slow1
-					&& fast1 < fast2	
+					&& (isEnableMACD == FALSE || (fast1 < (-1 * level) && fast1 < slow1 && fast1 < fast2))					
 					&& (isEnableSlow == FALSE || slow1 < 0)
 					&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
 					&& (isVolumeControl == FALSE || volume1 > volume2)
@@ -6979,6 +6994,234 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 				pIndicators->exitSignal = EXIT_SELL;
 		}
 		
+	}
+	return SUCCESS;
+}
+
+/*
+以4H的均线为入场，出场
+移动止损
+没有止盈
+*/
+AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
+{
+	double movement = 0;
+	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
+	int    shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
+	int    shift1Index_4H = pParams->ratesBuffers->rates[B_FOURHOURLY_RATES].info.arraySize - 2;
+	int   dailyTrend;
+	time_t currentTime;
+	struct tm timeInfo1, closeTimeInfo;
+	char   timeString[MAX_TIME_STRING_SIZE] = "";
+	BOOL isOpen;
+	OrderType side;
+	double openOrderHigh, openOrderLow;
+
+	double preHigh = iHigh(B_PRIMARY_RATES, 1);
+	double preLow = iLow(B_PRIMARY_RATES, 1);
+	double preClose = iClose(B_PRIMARY_RATES, 1);
+
+	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
+
+	int orderIndex = -1;
+	int execution_tf, close_index_rate = -1, diff4Hours, diffDays, diffWeeks;
+
+	int level = 0;
+	BOOL isEnableWeeklyATRControl = TRUE;	
+	BOOL isEnableWeeklyTrend = FALSE;
+	int startHour = 0;
+	int buyWonTimes = 0, sellWonTimes = 0;
+
+	double atr5 = iAtr(B_DAILY_RATES, 5, 1);
+	double volume1, volume2;
+
+	int fastMAPeriod = 12, slowMAPeriod = 26, signalMAPeriod = 9;
+
+	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
+	safe_gmtime(&timeInfo1, currentTime);
+	safe_timeString(timeString, currentTime);
+
+	// 满足日图历史的趋势分析。
+	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
+		dailyTrend = 0;
+	else if (pBase_Indicators->dailyTrend > 0)
+		dailyTrend = 1;
+	else if (pBase_Indicators->dailyTrend < 0)
+		dailyTrend = -1;
+	else
+		dailyTrend = 0;
+
+	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
+
+	execution_tf = (int)pParams->settings[TIMEFRAME];
+
+	pIndicators->takePrice = pBase_Indicators->pWeeklyPredictATR / 2;
+	pIndicators->takePrice = min(pIndicators->takePrice, pBase_Indicators->dailyATR);
+
+	if (strstr(pParams->tradeSymbol, "XAUAUD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		isEnableWeeklyTrend = TRUE;
+		buyWonTimes = 3;
+		sellWonTimes = 1;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 4;
+	}
+	else if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		isEnableWeeklyTrend = TRUE;
+		buyWonTimes = 2;
+		sellWonTimes = 2;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 3;
+	}
+	else if (strstr(pParams->tradeSymbol, "GBPAUD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		buyWonTimes = 2;
+		sellWonTimes = 2;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 3;
+	}
+	else if (strstr(pParams->tradeSymbol, "AUDUSD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		buyWonTimes = 1;
+		sellWonTimes = 1;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 3;
+	}
+	else if (strstr(pParams->tradeSymbol, "AUDNZD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 3;
+		//pIndicators->takePrice = 0;
+		isEnableWeeklyTrend = TRUE;
+		buyWonTimes = 1;
+		sellWonTimes = 1;
+	}
+	else if (strstr(pParams->tradeSymbol, "US500USD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 3;
+		buyWonTimes = 2;
+		sellWonTimes = 1;
+
+		pIndicators->minLotSize = 1;
+		pIndicators->isEnableSellMinLotSize = TRUE;
+	}
+
+
+	//4H filter	
+	if ((timeInfo1.tm_hour - startHour) % 4 == 0 && timeInfo1.tm_min < 3)
+	{
+		// ATR mode
+		pIndicators->splitTradeMode = 27;
+		pIndicators->tpMode = 3;
+
+		trend_MA = getMATrend(iAtr(B_FOURHOURLY_RATES, 20, 1), B_FOURHOURLY_RATES, 1);
+
+		if (trend_MA > 0 )
+			trend_4H = 1;
+		else if (trend_MA < 0)
+			trend_4H = -1;
+		//满足多重通道当日动态的趋势分析
+
+		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
+		
+
+		if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE)
+		{
+			safe_gmtime(&closeTimeInfo, pParams->orderInfo[orderIndex].closeTime);
+
+			//skip weekend, consider cross a new year.
+			diff4Hours = difftime(currentTime, pParams->orderInfo[orderIndex].closeTime) / (60 * 60 * 4);
+			diffDays = difftime(currentTime, pParams->orderInfo[orderIndex].closeTime) / (60 * 60 * 24);
+			diffWeeks = (timeInfo1.tm_wday + 1 + diffDays) / 7;
+
+			close_index_rate = shift1Index_4H - (diff4Hours - diffWeeks * 2 *6);
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,diff4Hours=%d,diffDays=%d,diffWeeks=%d,orderIndex=%d,close_index_rate=%d,bbsIndex_excution=%d",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, diff4Hours, diffDays, diffWeeks, orderIndex, close_index_rate, pIndicators->bbsIndex_4H);
+		}
+
+
+		if (trend_4H == 1 //&& pBase_Indicators->weekly3RulesTrend == UP
+			)
+		{
+			if (pIndicators->bbsTrend_4H == 1)
+			{
+				pIndicators->executionTrend = 1;
+				pIndicators->entryPrice = pParams->bidAsk.ask[0];
+
+				pIndicators->stopLossPrice = min(pIndicators->bbsStopPrice_4H, iMA(3, B_FOURHOURLY_RATES, 200, 1) - pBase_Indicators->pDailyATR * 0.5);
+				//pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->pDailyATR * 1.5);
+							
+
+				//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
+				//{
+				//	if (pParams->bidAsk.ask[0] - pParams->orderInfo[orderIndex].openPrice > pIndicators->stopLoss )
+				//	{	
+				//		pIndicators->stopLossPrice = pParams->orderInfo[orderIndex].openPrice;
+				//	}					
+				//}
+
+				//orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
+
+				if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
+					&& (isEnableWeeklyATRControl == FALSE || fabs(iLow(B_WEEKLY_RATES, 0) - pIndicators->entryPrice) <= pBase_Indicators->pWeeklyPredictATR)
+					&& (pParams->orderInfo[orderIndex].type == SELL || pIndicators->bbsIndex_4H >= close_index_rate)
+					&& getSameSideWonTradesInCurrentTrendEasy(B_PRIMARY_RATES, BUY) < buyWonTimes
+					&& (isEnableWeeklyTrend == FALSE || pBase_Indicators->weeklyTrend_Phase != RANGE)
+					)
+				{
+
+					pIndicators->entrySignal = 1;
+
+				}				
+				
+			}
+			pIndicators->exitSignal = EXIT_SELL;
+			//else
+			//	pIndicators->exitSignal = EXIT_BUY;
+
+		}
+
+		if (trend_4H == -1 //&& pBase_Indicators->weekly3RulesTrend == DOWN
+			)
+		{
+			if (pIndicators->bbsTrend_4H == -1)
+			{
+				pIndicators->executionTrend = -1;
+				pIndicators->entryPrice = pParams->bidAsk.bid[0];
+
+				pIndicators->stopLossPrice = max(pIndicators->bbsStopPrice_4H, iMA(3, B_FOURHOURLY_RATES, 200, 1) + pBase_Indicators->pDailyATR * 0.5);
+				//pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->pDailyATR * 1.5);
+
+				//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
+				//{
+
+				//	if (pParams->orderInfo[orderIndex].openPrice - pParams->bidAsk.bid[0] > pIndicators->stopLoss )
+				//	{
+				//		pIndicators->stopLossPrice = pParams->orderInfo[orderIndex].openPrice;
+				//	}
+
+				//}
+
+				if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
+					&& (isEnableWeeklyATRControl == FALSE || fabs(iLow(B_WEEKLY_RATES, 0) - pIndicators->entryPrice) <= pBase_Indicators->pWeeklyPredictATR)
+					&& (pParams->orderInfo[orderIndex].type == BUY || pIndicators->bbsIndex_4H >= close_index_rate)
+					&& getSameSideWonTradesInCurrentTrendEasy(B_PRIMARY_RATES, SELL) < sellWonTimes
+					&& (isEnableWeeklyTrend == FALSE || pBase_Indicators->weeklyTrend_Phase != RANGE)
+					)
+				{
+					pIndicators->entrySignal = -1;					
+				}
+				
+			}
+			pIndicators->exitSignal = EXIT_BUY;
+
+		}
+		//else
+		//	pIndicators->exitSignal = EXIT_SELL;
+
 	}
 	return SUCCESS;
 }

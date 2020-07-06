@@ -283,6 +283,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	//	break;
 	case 30:
 		workoutExecutionTrend_4H_Shellington(pParams, pIndicators, pBase_Indicators);
+		//workoutExecutionTrend_4H_ShellingtonVer1(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 31:
 		workoutExecutionTrend_Ichimoko_Daily_New(pParams, pIndicators, pBase_Indicators);
@@ -601,6 +602,8 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 	pIndicators->riskCap = 0.0;
 	pIndicators->minLotSize = 0.01;
 	pIndicators->volumeStep = 0.01;
+	pIndicators->isEnableBuyMinLotSize = FALSE;
+	pIndicators->isEnableSellMinLotSize = FALSE;
 
 	workoutExecutionTrend(pParams, pIndicators, pBase_Indicators);
 
@@ -690,7 +693,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "05/10/16 23:30") == 0)
+	if (strcmp(timeString, "06/03/19 20:00") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if (strcmp(timeString, "22/01/20 23:00") == 0)

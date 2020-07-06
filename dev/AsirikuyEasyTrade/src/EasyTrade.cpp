@@ -3386,6 +3386,108 @@ int EasyTrade::hasBigWinInCurrentTrend(int rateIndex, OrderType type,double poin
 	return TRUE;
 }
 
+int EasyTrade::getSameSideWonTradesInCurrentTrend(int rateIndex, OrderType type)
+{
+	int sameSideTimes = 0;
+	struct tm timeInfo1;
+	int index1, index2, index3, index4,index5,index6;
+	int	exceptIndexs[5] = {};
+		
+	index1 = getLastestOrderIndex(rateIndex);
+	if (index1 >= 0)
+	{
+		if (pParams->orderInfo[index1].type == type)
+		{
+			if (pParams->orderInfo[index1].profit > 0)
+				sameSideTimes++;
+		}
+		else
+			return sameSideTimes;
+	}
+	else
+		return sameSideTimes;
+
+	exceptIndexs[0] = index1;
+
+	index2 = getLastestOrderIndexExcept(rateIndex, exceptIndexs);
+	if (index2 >= 0)
+	{
+		if (pParams->orderInfo[index2].type == type)
+		{
+			if (pParams->orderInfo[index2].profit > 0)
+				sameSideTimes++;
+		}			
+		else
+			return sameSideTimes;
+	}
+	else
+		return sameSideTimes;
+
+	exceptIndexs[1] = index2;
+
+	index3 = getLastestOrderIndexExcept(rateIndex, exceptIndexs);
+	if (index3 >= 0)
+	{
+		if (pParams->orderInfo[index3].type == type)
+		{
+			if (pParams->orderInfo[index3].profit > 0)
+				sameSideTimes++;
+		}			
+		else
+			return sameSideTimes;
+	}
+	else
+		return sameSideTimes;
+
+	exceptIndexs[2] = index3;
+
+	index4 = getLastestOrderIndexExcept(rateIndex, exceptIndexs);
+	if (index4 >= 0)
+	{
+		if (pParams->orderInfo[index4].type == type)
+		{
+			if (pParams->orderInfo[index4].profit > 0)
+				sameSideTimes++;
+		}		
+		else
+			return sameSideTimes;
+	}
+	else
+		return sameSideTimes;
+
+	exceptIndexs[3] = index4;
+	index5 = getLastestOrderIndexExcept(rateIndex, exceptIndexs);
+	if (index5 >= 0)
+	{
+		if (pParams->orderInfo[index5].type == type)
+		{
+			if (pParams->orderInfo[index5].profit > 0)
+				sameSideTimes++;
+		}
+		else
+			return sameSideTimes;
+	}
+	else
+		return sameSideTimes;
+
+	exceptIndexs[4] = index5;
+	index6 = getLastestOrderIndexExcept(rateIndex, exceptIndexs);
+	if (index6 >= 0)
+	{
+		if (pParams->orderInfo[index6].type == type)
+		{
+			if (pParams->orderInfo[index6].profit > 0)
+				sameSideTimes++;
+		}
+		else
+			return sameSideTimes;
+	}
+	else
+		return sameSideTimes;
+
+	return sameSideTimes;
+}
+
 int EasyTrade::getSameSideTradesInCurrentTrend(int rateIndex, OrderType type)
 {		
 	int sameSideTimes = 0;	

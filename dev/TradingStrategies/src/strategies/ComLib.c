@@ -610,7 +610,7 @@ AsirikuyReturnCode modifyOrders(StrategyParams* pParams, Indicators* pIndicators
 		takePrice = fabs(pIndicators->entryPrice - pIndicators->takeProfitPrice);
 	}
 	
-	if ((int)parameter(AUTOBBS_TREND_MODE) == 15)
+	if ((int)parameter(AUTOBBS_TREND_MODE) == 15 )
 	{
 
 		//traceLatestOpenStopLoss(pParams, pIndicators, pBase_Indicators, 3, 0.5);

@@ -134,6 +134,9 @@ extern "C" {
 		double minLotSize;
 
 		double volumeStep;
+
+		BOOL isEnableBuyMinLotSize;
+		BOOL isEnableSellMinLotSize;
 		
 	} Indicators;
 	

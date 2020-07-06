@@ -666,6 +666,11 @@ int getSameSideTradesInCurrentTrendEasy(int rateIndex, OrderType type)
 	return easyTradePtr->getSameSideTradesInCurrentTrend(rateIndex, type);
 }
 
+int getSameSideWonTradesInCurrentTrendEasy(int rateIndex, OrderType type)
+{
+	return easyTradePtr->getSameSideWonTradesInCurrentTrend(rateIndex, type);
+}
+
 OrderType getLastestOrderTypeEasy(int rateIndex, double *pHigh, double *pLow, BOOL * pIsOpen)
 {
 	return easyTradePtr->getLastestOrderType(rateIndex, pHigh, pLow, pIsOpen);

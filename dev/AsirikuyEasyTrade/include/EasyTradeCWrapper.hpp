@@ -1089,6 +1089,7 @@ double hasSameDayDayTradingOrderEasy(int rateIndex, OrderInfo * pOrder, double *
 AsirikuyReturnCode getHighLowEasy(int ratesArrayIndex, int shfitIndex, int shift, double *pHigh, double *pLow);
 
 int getSameSideTradesInCurrentTrendEasy(int rateIndex, OrderType type);
+int getSameSideWonTradesInCurrentTrendEasy(int rateIndex, OrderType type);
 
 double caculateStrategyWeeklyPNLEasy(time_t currentTime);
 
