@@ -3620,7 +3620,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	double range;
 	double floatingTP;
 	double daily_baseline = 0.0, dailyHigh = 0.0, dailyLow = 0.0, preDailyClose;	
+	int executionTrend;
 
+	BOOL isSameDayOrder = FALSE;
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
 
@@ -3633,14 +3635,15 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	pIndicators->tpMode = 0;
 
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
-		pIndicators->executionTrend = 0;
+		executionTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
-		pIndicators->executionTrend = 1;
+		executionTrend = 1;
 	else if (pBase_Indicators->dailyTrend < 0)
-		pIndicators->executionTrend = -1;
+		executionTrend = -1;
 	else
-		pIndicators->executionTrend = 0;
+		executionTrend = 0;
 
+	//pIndicators->executionTrend = executionTrend;
 	//计算日内高低点
 	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
@@ -3665,10 +3668,17 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	//3. if have open order, not 
 
 	latestOrderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
-	if (latestOrderIndex >= 0 && pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
+	if (latestOrderIndex >= 0 && pParams->orderInfo[latestOrderIndex].isOpen == TRUE){
 		side = pParams->orderInfo[latestOrderIndex].type;
+
+		safe_gmtime(&timeInfo2, pParams->orderInfo[latestOrderIndex].openTime);
+		if (timeInfo1.tm_year == timeInfo2.tm_year &&  timeInfo1.tm_mon == timeInfo2.tm_mon && timeInfo1.tm_mday == timeInfo2.tm_mday)
+			isSameDayOrder = TRUE;
+	}
 	else
 		side = NONE;
+
+
 
 	// TODO: 需要修改BASE,支持在收盘重新计算Trend，但是需要时间。
 	//暂时选在在第二天开盘离场，实盘中有点差的问题，还有周末跳空的问题。
@@ -3686,8 +3696,8 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			//daily_baseline = iMA(3, B_DAILY_RATES, 50, 0);
 
 			if (pParams->orderInfo[latestOrderIndex].type == BUY &&
-				(pIndicators->executionTrend < 0 ||
-				(pIndicators->executionTrend == 0 &&
+				(executionTrend < 0 ||
+				(executionTrend == 0 &&
 				//	preDailyClose < daily_baseline &&
 				pBase_Indicators->dailyMATrend < 0
 				)
@@ -3695,8 +3705,8 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 				)
 				pIndicators->exitSignal = EXIT_ALL;
 			if (pParams->orderInfo[latestOrderIndex].type == SELL &&
-				(pIndicators->executionTrend > 0 ||
-				(pIndicators->executionTrend == 0 &&
+				(executionTrend > 0 ||
+				(executionTrend == 0 &&
 				//preDailyClose > daily_baseline &&
 				pBase_Indicators->dailyMATrend > 0
 				)
@@ -3712,12 +3722,12 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 				if (pParams->orderInfo[latestOrderIndex].type == BUY &&
 					//pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 0
-					pIndicators->executionTrend <= 0
+					executionTrend <= 0
 					)
 					pIndicators->exitSignal = EXIT_ALL;
 				if (pParams->orderInfo[latestOrderIndex].type == SELL &&
 					//pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 0
-					pIndicators->executionTrend >= 0
+					executionTrend >= 0
 					)
 					pIndicators->exitSignal = EXIT_ALL;
 				return SUCCESS;
@@ -3734,7 +3744,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		pIndicators->atr_euro_range = max((double)parameter(AUTOBBS_IS_ATREURO_RANGE), (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 3);
 		pIndicators->stopLoss = pIndicators->atr_euro_range*0.93;
 		pIndicators->takePrice = max(3, pIndicators->stopLoss * 0.4);
-
+		
 		floatingTP = pIndicators->takePrice;
 		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->atr_euro_range, pIndicators->stopLoss, pIndicators->takePrice);
@@ -3788,7 +3798,10 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			}			
 		}
 
-		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators) == FALSE)
+		//如果是当天的单子，入场后，不需要过滤。
+		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && 
+			isSameDayOrder == FALSE
+			&& XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators) == FALSE)
 			return SUCCESS;
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
@@ -3797,7 +3810,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		//pIndicators->stopLoss = pIndicators->atr_euro_range*0.88;
 		
 		//如果有趋势，加大Range
-		if ((int)parameter(AUTOBBS_RANGE) == 1 && pIndicators->executionTrend != 0)		
+		if ((int)parameter(AUTOBBS_RANGE) == 1 && executionTrend != 0)		
 			pIndicators->atr_euro_range = max((double)parameter(AUTOBBS_IS_ATREURO_RANGE), (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 2 * 0.8);
 
 		pIndicators->stopLoss = pIndicators->atr_euro_range* 1.1;
@@ -3860,7 +3873,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			}
 		}
 
-		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && GBPJPY_MultipleDays_Allow_Trade(pParams, pIndicators, pBase_Indicators) == FALSE)
+		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 &&
+			isSameDayOrder == FALSE &&
+			GBPJPY_MultipleDays_Allow_Trade(pParams, pIndicators, pBase_Indicators) == FALSE)
 			return SUCCESS;
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPUSD") != NULL)
@@ -3869,7 +3884,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		//pIndicators->stopLoss = pIndicators->atr_euro_range*0.88;
 
 		//如果有趋势，加大Range
-		if ((int)parameter(AUTOBBS_RANGE) == 1 && pIndicators->executionTrend != 0)
+		if ((int)parameter(AUTOBBS_RANGE) == 1 && executionTrend != 0)
 			pIndicators->atr_euro_range = max((double)parameter(AUTOBBS_IS_ATREURO_RANGE), (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 2 * 0.8);
 
 		pIndicators->stopLoss = pIndicators->atr_euro_range* 1.1;
