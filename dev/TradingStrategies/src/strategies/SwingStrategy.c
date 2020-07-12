@@ -2011,11 +2011,12 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 	int startTradingTime = pIndicators->startHour;
 	//int startTradingTime = 2;
 	double ATRWeekly0;
-	
+	double weeklyATR = (pBase_Indicators->pWeeklyPredictMaxATR + pBase_Indicators->pWeeklyPredictATR) / 2;
+
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
-
+	
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 
 
@@ -2058,41 +2059,31 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 
 	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE)
 		readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
-	else
-	{
-		pBase_Indicators->pWeeklyPredictATR = 20;
-		pBase_Indicators->pWeeklyPredictMaxATR = 25;
-	}
+	//else
+	//{
+	//	pBase_Indicators->pWeeklyPredictATR = 20;
+	//	pBase_Indicators->pWeeklyPredictMaxATR = 25;
+	//}
+
+	//if ((pBase_Indicators->dailyTrend == 6 || pBase_Indicators->dailyTrend == -6))
+	//	return TRUE;
+
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
-	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, ATRWeekly0 = %lf,pWeeklyPredictATR = %lf, pWeeklyPredictMaxATR=%lf",
-		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATRWeekly0, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR);
-
-	//if (pBase_Indicators->pDailyPredictATR <= pIndicators->atr_euro_range * 0.6)
-	//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR = %lf",
-	//	(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR);
+	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictMaxATR=%lf,pWeeklyPredictATR=%lf",
+		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, ATRWeekly0, pBase_Indicators->pWeeklyPredictMaxATR, pBase_Indicators->pWeeklyPredictATR);
 
 	if (pBase_Indicators->pDailyPredictATR < pIndicators->atr_euro_range)
 		return FALSE;
 
-	if (ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR && pBase_Indicators->pDailyPredictATR < 10)
+	if (ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR && pBase_Indicators->pDailyPredictATR < 10)	
 	{
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictATR = %lf, pWeeklyPredictMaxATR=%lf",
-			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, ATRWeekly0, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR);
 		return FALSE;
 	}
 
-	//if (ATRWeekly0 < pBase_Indicators->pWeeklyPredictATR)
-	//{
-	//	if (pBase_Indicators->pDailyPredictATR >= 12 && pBase_Indicators->pDailyPredictATR < 15)
-	//		pIndicators->risk = 2;
-	//	else if (pBase_Indicators->pDailyPredictATR >= 15)
-	//		pIndicators->risk = 2.5;
-	//}
-
-	if (iAtr(B_DAILY_RATES, 1, 1) >= max(20, pBase_Indicators->pWeeklyPredictATR)) //日波幅到了最小的周波幅
+	if (iAtr(B_DAILY_RATES, 1, 1) >= max(20, pBase_Indicators->pWeeklyPredictATR / 2)) //日波幅到了最小的周波幅
 		return FALSE;
-	if (fabs(close_prev1 - close_prev2) >= max(10, pBase_Indicators->pWeeklyPredictATR / 2)) //日升跌幅到了一半的最小周波幅
+	if (fabs(close_prev1 - close_prev2) >= max(10, pBase_Indicators->pWeeklyPredictATR / 3)) //日升跌幅到了一半的最小周波幅
 		return FALSE;
 
 	return TRUE;
@@ -2412,6 +2403,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	BOOL isBreakEvent = FALSE;
 	int euro_index_rate;
 	double ATREuroPeriod = 0.0;
+	int executionTrend;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
@@ -2425,13 +2417,13 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	pIndicators->tpMode = 0;
 	
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
-		pIndicators->executionTrend = 0;
+		executionTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
-		pIndicators->executionTrend = 1;
+		executionTrend = 1;
 	else if (pBase_Indicators->dailyTrend < 0)
-		pIndicators->executionTrend = -1;
+		executionTrend = -1;
 	else
-		pIndicators->executionTrend = 0;
+		executionTrend = 0;
 
 	pBase_Indicators->maTrend = getMATrend(iAtr(B_SECONDARY_RATES, 20, 1), B_SECONDARY_RATES, 1);
 
@@ -2496,7 +2488,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 		if (pParams->bidAsk.ask[0] - intradayLow >= Range 
 			&& intradayHigh - pParams->bidAsk.bid[0] < Range
 			//&& pBase_Indicators->maTrend > 0
-			&& (pIndicators->executionTrend > 0 || (pIndicators->executionTrend == 0 && pBase_Indicators->maTrend > 0))
+			&& (executionTrend > 0 || (executionTrend == 0 && pBase_Indicators->maTrend > 0))
 			&& timeInfo1.tm_hour <= 15		
 			)
 		{
@@ -2509,7 +2501,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 		if (intradayHigh - pParams->bidAsk.bid[0] >= Range 
 			&& pParams->bidAsk.ask[0] - intradayLow < Range
 			//&& pBase_Indicators->maTrend < 0
-			&& (pIndicators->executionTrend < 0 || (pIndicators->executionTrend == 0 && pBase_Indicators->maTrend < 0))
+			&& (executionTrend < 0 || (executionTrend == 0 && pBase_Indicators->maTrend < 0))
 			&& timeInfo1.tm_hour <= 15
 			)
 		{
@@ -3798,9 +3790,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			}			
 		}
 
-		//如果是当天的单子，入场后，不需要过滤。
-		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && 
-			isSameDayOrder == FALSE
+		//如果是当天的单子，入场后，不需要过滤。		
+		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 
+			&& isSameDayOrder == FALSE			
 			&& XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators) == FALSE)
 			return SUCCESS;
 	}
@@ -4078,7 +4070,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	{
 		openOrderHigh = intradayHigh;
 		openOrderLow = intradayLow;
-		if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
+		if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE 
+			//&& isSameDayOrder == TRUE
+			)
 		{
 			entryPrice = pParams->orderInfo[latestOrderIndex].openPrice;
 			if (side == SELL)
@@ -5038,7 +5032,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 
 	int asia_index_rate = 0;
 	double asia_ATR = 0;
-
+	int executionTrend;
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
 
@@ -5051,13 +5045,13 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 	pIndicators->tpMode = 0;
 
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
-		pIndicators->executionTrend = 0;
+		executionTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
-		pIndicators->executionTrend = 1;
+		executionTrend = 1;
 	else if (pBase_Indicators->dailyTrend < 0)
-		pIndicators->executionTrend = -1;
+		executionTrend = -1;
 	else
-		pIndicators->executionTrend = 0;
+		executionTrend = 0;
 
 	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{
@@ -5144,7 +5138,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 		if (pParams->bidAsk.ask[0] - intradayLow >= Range && intradayHigh - pParams->bidAsk.bid[0] < Range 
 			&& ( (asia_ATR > Range && iClose(B_DAILY_RATES, 0) - iOpen(B_DAILY_RATES, 0) > 0)
 			|| asia_ATR <= Range)
-			&& pIndicators->executionTrend > 0 						
+			&& executionTrend > 0 						
 			&& timeInfo1.tm_hour <= pIndicators->endHour			
 			)
 		{
@@ -5155,7 +5149,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 		}
 
 		if (pParams->bidAsk.ask[0] - intradayLow >= Range && intradayHigh - pParams->bidAsk.bid[0] < Range			
-			&& pIndicators->executionTrend == 0 && pBase_Indicators->maTrend > 0
+			&& executionTrend == 0 && pBase_Indicators->maTrend > 0
 			&& timeInfo1.tm_hour <= pIndicators->endHour
 			)
 		{
@@ -5168,7 +5162,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 		if (intradayHigh - pParams->bidAsk.bid[0] >= Range 	&& pParams->bidAsk.ask[0] - intradayLow < Range 
 			&&(( asia_ATR > Range && iClose(B_DAILY_RATES, 0) - iOpen(B_DAILY_RATES, 0) < 0)
 			|| asia_ATR <= Range )			
-			&& pIndicators->executionTrend < 0 
+			&& executionTrend < 0 
 			&& timeInfo1.tm_hour <= pIndicators->endHour			
 			)
 		{
@@ -5179,7 +5173,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 		}
 
 		if (intradayHigh - pParams->bidAsk.bid[0] >= Range 	&& pParams->bidAsk.ask[0] - intradayLow < Range			
-			&& pIndicators->executionTrend == 0 && pBase_Indicators->maTrend < 0
+			&& executionTrend == 0 && pBase_Indicators->maTrend < 0
 			&& timeInfo1.tm_hour <= pIndicators->endHour
 			)
 		{
