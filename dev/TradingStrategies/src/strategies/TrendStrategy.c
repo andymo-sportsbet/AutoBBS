@@ -3172,6 +3172,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 	BOOL isEnableNextdayBar = FALSE;
 
+	BOOL isEnableNoStopLoss = FALSE;
+
 	double preWeeklyClose, preWeeklyClose1;
 	double shortDailyHigh = 0.0, shortDailyLow = 0.0, dailyHigh = 0.0, dailyLow = 0.0, weeklyHigh = 0.0, weeklyLow = 0.0, shortWeeklyHigh = 0.0, shortWeeklyLow = 0.0;
 	double daily_baseline = 0.0, weekly_baseline = 0.0, daily_baseline_short = 0.0, weekly_baseline_short = 0.0;
@@ -3331,7 +3333,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, startShift);
 
 		pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
-				
+		
 	}
 	else if (strstr(pParams->tradeSymbol, "XAUEUR") != NULL)
 	{
@@ -3498,6 +3500,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		//isEnableNextdayBar = TRUE;
 
 		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, startShift);
+
+		//isEnableNoStopLoss = TRUE;
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPUSD") != NULL)
 	{
@@ -3633,16 +3637,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
-		//if (iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR)
-		//{
-		//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictMaxATR=%lf",
-		//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, iAtr(B_WEEKLY_RATES, 1, 0), pBase_Indicators->pWeeklyPredictMaxATR);
-		//	return FALSE;
-		//}
-		
-		//if (volume1 < volume2)
-		//	pIndicators->risk = 0.5;
-				
+		pIndicators->stopLoss = stopLoss;
 
 		if (pIndicators->fast > level
 			&& (isEnableSlow == FALSE || pIndicators->slow > 0)
@@ -3654,19 +3649,30 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			pIndicators->executionTrend = 1;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 
-			//pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			//pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->pDailyMaxATR);
-
 			pIndicators->stopLossPrice = pIndicators->entryPrice - stopLoss;
-			//if(orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
-			//{
-			//	pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pParams->orderInfo[orderIndex].openPrice);
-			//}
-			//pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
-				
+			if (isEnableNoStopLoss == TRUE && orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
+			{
+				//Not moving stop loss
+				pIndicators->executionTrend = 0;				
+				{
 
-			//pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			//pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
+
+					if (pParams->bidAsk.ask[0] - pParams->orderInfo[orderIndex].openPrice > pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[orderIndex].openPrice < 2 * pIndicators->stopLoss
+						)
+					{
+						pIndicators->executionTrend = 1;
+						pIndicators->entryPrice = pParams->bidAsk.ask[0];
+						pIndicators->stopLossPrice = pParams->orderInfo[orderIndex].openPrice;
+					}
+					else if (pParams->bidAsk.ask[0] - pParams->orderInfo[orderIndex].openPrice >= 2 * pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[orderIndex].openPrice < 3 * pIndicators->stopLoss)
+					{
+						pIndicators->executionTrend = 1;
+						pIndicators->entryPrice = pParams->bidAsk.ask[0];
+						pIndicators->stopLossPrice = pParams->orderInfo[orderIndex].openPrice + pIndicators->stopLoss;
+					}
+				}
+								
+			}
 			
 			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, entryPrice=%lf, preclose=%lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entryPrice, iClose(B_DAILY_RATES, startShift));
@@ -3703,11 +3709,6 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						)
 						pIndicators->risk = maxRisk;
 
-					//if (pParams->orderInfo[orderIndex].type == BUY &&
-					//	pParams->orderInfo[orderIndex].profit > 0 && fabs(pParams->orderInfo[orderIndex].closePrice - pParams->orderInfo[orderIndex].openPrice) >= 1) //GBPJPY first, over 100 points
-					//{
-					//	pIndicators->tradeMode = 2;
-					//}
 
 					//如果是在趋势的后端，不做。
 					if (isEnableLate == TRUE && preHist1 > histLevel && preHist2 > histLevel && preHist3 > histLevel && preHist4 > histLevel && preHist5 > histLevel
@@ -3773,20 +3774,29 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			pIndicators->executionTrend = -1;
 			pIndicators->entryPrice = pParams->bidAsk.bid[0];	
 
-			//pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			//pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->pDailyMaxATR);
-
 			pIndicators->stopLossPrice = pIndicators->entryPrice + stopLoss;
-
-			//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
-			//{
-			//	pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pParams->orderInfo[orderIndex].openPrice);
-			//}
-
-			//pIndicators->stopLossPrice = pIndicators->entryPrice + 1.5 * pBase_Indicators->dailyATR;
-
-			//pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			//pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
+			
+			if (isEnableNoStopLoss == TRUE && orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
+			{
+				//Not moving stop loss
+				pIndicators->executionTrend = 0;
+				
+				{
+					if (pParams->orderInfo[orderIndex].openPrice - pParams->bidAsk.bid[0] > pIndicators->stopLoss && pParams->orderInfo[orderIndex].openPrice - pParams->bidAsk.bid[0] < 2 * pIndicators->stopLoss
+						)
+					{
+						pIndicators->executionTrend = -1;
+						pIndicators->entryPrice = pParams->bidAsk.bid[0];
+						pIndicators->stopLossPrice = pParams->orderInfo[orderIndex].openPrice;
+					}
+					else if (pParams->orderInfo[orderIndex].openPrice - pParams->bidAsk.bid[0] >= 2 * pIndicators->stopLoss && pParams->orderInfo[orderIndex].openPrice - pParams->bidAsk.bid[0] < 3 * pIndicators->stopLoss)
+					{
+						pIndicators->executionTrend = -1;
+						pIndicators->entryPrice = pParams->bidAsk.bid[0];
+						pIndicators->stopLossPrice = pParams->orderInfo[orderIndex].openPrice - pIndicators->stopLoss;
+					}
+				}
+			}
 
 			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, entryPrice=%lf, preclose=%lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entryPrice, iClose(B_DAILY_RATES, startShift));
@@ -3822,12 +3832,6 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						|| (isAllVolumeRisk == TRUE && pIndicators->CMFVolumeGap < 0 && pIndicators->cmfVolume <  0 && pIndicators->volume1 < pIndicators->volume2)
 						)
 						pIndicators->risk = maxRisk;
-
-					//if (pParams->orderInfo[orderIndex].type == SELL 
-					//	&&  pParams->orderInfo[orderIndex].profit > 0 && fabs(pParams->orderInfo[orderIndex].closePrice - pParams->orderInfo[orderIndex].openPrice) >= 1) //GBPJPY first, over 100 points
-					//{					
-					//	pIndicators->tradeMode = 2;
-					//}
 
 					//如果是在趋势的后端，不做。
 					if (isEnableLate == TRUE && preHist1 < (histLevel*-1) && preHist2 < (histLevel*-1) && preHist3 < (histLevel*-1) && preHist4 < (histLevel*-1) && preHist5 < (histLevel*-1)
@@ -7058,7 +7062,15 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 	pIndicators->takePrice = pBase_Indicators->pWeeklyPredictATR / 2;
 	pIndicators->takePrice = min(pIndicators->takePrice, pBase_Indicators->dailyATR);
 
-	if (strstr(pParams->tradeSymbol, "XAUAUD") != NULL)
+	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		isEnableWeeklyTrend = TRUE;
+		buyWonTimes = 1;
+		sellWonTimes = 1;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 4;
+	}
+	else if (strstr(pParams->tradeSymbol, "XAUAUD") != NULL)
 	{
 		isEnableWeeklyATRControl = TRUE;
 		isEnableWeeklyTrend = TRUE;

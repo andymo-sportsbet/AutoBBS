@@ -415,11 +415,13 @@ void splitBuyOrders_Daily_Swing_ExecutionOnly(StrategyParams* pParams, Indicator
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 		
-	lots_singal = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, pIndicators->takePrice)* pIndicators->risk;
+	//lots_singal = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, pIndicators->takePrice)* pIndicators->risk;
 
 	//takePrice = max(pBase_Indicators->pDailyMaxATR - pIndicators->atr0, pIndicators->takePrice);	
-	takePrice = 0;
-	openSingleLongEasy(takePrice, stopLoss, lots_singal, 0);
+	//takePrice = 0;
+	//openSingleLongEasy(takePrice, stopLoss, lots_singal, 0);
+	takePrice = gap - pIndicators->adjust;
+	openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk);
 
 }
 
@@ -438,12 +440,14 @@ void splitSellOrders_Daily_Swing_ExecutionOnly(StrategyParams* pParams, Indicato
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 		
-	lots_singal = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, pIndicators->takePrice)* pIndicators->risk;
+	//lots_singal = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, pIndicators->takePrice)* pIndicators->risk;
 
-	//takePrice = max(pBase_Indicators->pDailyMaxATR - pIndicators->atr0, pIndicators->takePrice);	
-	takePrice = 0;
+	////takePrice = max(pBase_Indicators->pDailyMaxATR - pIndicators->atr0, pIndicators->takePrice);	
+	//takePrice = 0;
 
-	openSingleShortEasy(takePrice, stopLoss, lots_singal, 0);
+	//openSingleShortEasy(takePrice, stopLoss, lots_singal, 0);
+	takePrice = gap - pIndicators->adjust;
+	openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk);
 
 }
 
@@ -673,8 +677,8 @@ void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIn
 	if (down_gap <= pATR / 3)
 	{
 		takePrice = up_gap / 4;
-		if (up_gap <= pATR / 4)
-			pIndicators->risk *= 2;
+		//if (up_gap <= pATR / 4)
+		//	pIndicators->risk *= 2;
 		lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice) * pIndicators->risk * 3;
 		openSingleLongEasy(takePrice, stopLoss, lots, 0);
 	}
@@ -695,8 +699,8 @@ void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pI
 	if (up_gap <= pATR / 3)
 	{
 		takePrice = down_gap / 4;
-		if (up_gap <= pATR / 4)
-			pIndicators->risk *= 2;
+		//if (up_gap <= pATR / 4)
+		//	pIndicators->risk *= 2;
 		lots = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, takePrice) * pIndicators->risk * 3;
 		openSingleShortEasy(takePrice, stopLoss, lots, 0);
 	}
@@ -773,25 +777,27 @@ AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams* pParams, Ind
 	time_t currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_timeString(timeString, currentTime);
 
+	workoutExecutionTrend_ATR_Hedge(pParams, pIndicators, pBase_Indicators);
 
-	switch (pBase_Indicators->dailyTrend_Phase)
-	{
-	case MIDDLE_UP_RETREAT_PHASE:
-	case MIDDLE_DOWN_RETREAT_PHASE:
-	case RANGE_PHASE:
-		//逆势空间对冲交易
-		workoutExecutionTrend_Hedge(pParams, pIndicators, pBase_Indicators);
-		//if (pIndicators->entrySignal == 0) 
-		//	workoutExecutionTrend_ATR_Hedge(pParams, pIndicators, pBase_Indicators);
-		break;
-	case BEGINNING_UP_PHASE:
-	case BEGINNING_DOWN_PHASE:
-	case MIDDLE_UP_PHASE:
-	case MIDDLE_DOWN_PHASE:
-		break;
-	}
+	//switch (pBase_Indicators->dailyTrend_Phase)
+	//{
+	//case MIDDLE_UP_RETREAT_PHASE:
+	//case MIDDLE_DOWN_RETREAT_PHASE:
+	//case RANGE_PHASE:
+	//	//逆势空间对冲交易
+	//	//workoutExecutionTrend_Hedge(pParams, pIndicators, pBase_Indicators);
+	//	//if (pIndicators->entrySignal == 0) 
+	//		workoutExecutionTrend_ATR_Hedge(pParams, pIndicators, pBase_Indicators);
+	//	break;
+	//case BEGINNING_UP_PHASE:
+	//case BEGINNING_DOWN_PHASE:
+	//case MIDDLE_UP_PHASE:
+	//case MIDDLE_DOWN_PHASE:
+	//	//workoutExecutionTrend_ATR_Hedge(pParams, pIndicators, pBase_Indicators);
+	//	break;
+	//}
 
-	profitManagement(pParams, pIndicators, pBase_Indicators);
+	//profitManagement(pParams, pIndicators, pBase_Indicators);
 
 	return SUCCESS;
 }
@@ -807,8 +813,8 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 	double currentLow = iLow(B_DAILY_RATES, 0);
 	double currentHigh = iHigh(B_DAILY_RATES, 0);
 
-	double down_gap = pIndicators->entryPrice - pBase_Indicators->pMaxDailyLow;
-	double up_gap = pBase_Indicators->pMaxDailyHigh - pIndicators->entryPrice;
+	double down_gap;
+	double up_gap;
 
 	double ATR0 = iAtr(B_DAILY_RATES, 1, 0);
 	double ATR20 = iAtr(B_DAILY_RATES, 20, 1);
@@ -817,6 +823,7 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 	double preOpen = iOpen(B_PRIMARY_RATES, 1);
 	double preClose = iClose(B_PRIMARY_RATES, 1);
 	double intradayClose = iClose(B_DAILY_RATES, 0), intradayHigh = iHigh(B_DAILY_RATES, 0), intradayLow = iLow(B_DAILY_RATES, 0);
+	BOOL isOpen = FALSE;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
 	safe_gmtime(&timeInfo1, currentTime);
@@ -834,9 +841,10 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 	pIndicators->tpMode = 0;
 	pIndicators->splitTradeMode = 15;
 
+	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_RETREAT_PHASE || pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_RETREAT_PHASE || pBase_Indicators->dailyTrend_Phase == RANGE)
 	{
-		//至少有1/3 空间,Sell
-		if (up_gap <= pBase_Indicators->pDailyATR / 3)
+		//至少有1/3 空间,Sell		
+		if (pBase_Indicators->pMaxDailyHigh - pParams->bidAsk.bid[0] <= pBase_Indicators->pDailyATR / 3)
 		{
 			pIndicators->executionTrend = -1;
 			pIndicators->entryPrice = pParams->bidAsk.bid[0];
@@ -844,13 +852,14 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 
 			if (ATR0 >= pMaxATR && preClose < preOpen && intradayHigh - intradayClose >= ATR0 * 0.1
 				&& timeInfo1.tm_hour < 23
-				&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
+				&& !hasSameDayOrderEasy(currentTime, &isOpen)
+				//&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
 				)
 				pIndicators->entrySignal = -1;
 
 			pIndicators->exitSignal = EXIT_BUY;
 		}
-		else if (down_gap <= pBase_Indicators->pDailyATR / 3)
+		else if (pParams->bidAsk.ask[0] - pBase_Indicators->pMaxDailyLow <= pBase_Indicators->pDailyATR / 3)
 		{
 			pIndicators->executionTrend = 1;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
@@ -859,7 +868,8 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 			//逆势对冲交易
 			if (ATR0 >= pMaxATR && preClose > preOpen && intradayClose - intradayLow >= ATR0 * 0.1
 				&& timeInfo1.tm_hour < 23
-				&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
+				&& !hasSameDayOrderEasy(currentTime,&isOpen)
+				//&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
 				)
 				pIndicators->entrySignal = 1;
 
@@ -3751,13 +3761,15 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 					pIndicators->entryPrice = pParams->bidAsk.ask[0];
 					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice;
 				}
-				if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 2 * pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 3 * pIndicators->stopLoss)
+				else if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 2 * pIndicators->stopLoss 
+					//&& pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 3 * pIndicators->stopLoss
+					)
 				{
 					pIndicators->executionTrend = 1;
 					pIndicators->entryPrice = pParams->bidAsk.ask[0];
 					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice + pIndicators->stopLoss;
 				}
-				//if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 3 * pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 4 * pIndicators->stopLoss)
+				//else if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 3 * pIndicators->stopLoss )
 				//{
 				//	pIndicators->executionTrend = 1;
 				//	pIndicators->entryPrice = pParams->bidAsk.ask[0];
@@ -3774,7 +3786,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice;
 				}
 
-				if (pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] >= 2 * pIndicators->stopLoss && pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 3 * pIndicators->stopLoss)
+				if (pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] >= 2 * pIndicators->stopLoss 
+					//&& pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 3 * pIndicators->stopLoss
+					)
 				{
 					pIndicators->executionTrend = -1;
 					pIndicators->entryPrice = pParams->bidAsk.bid[0];
@@ -3831,7 +3845,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 					pIndicators->entryPrice = pParams->bidAsk.ask[0];
 					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice + pIndicators->stopLoss;
 				}
-				else if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 3 * pIndicators->stopLoss && pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 4 * pIndicators->stopLoss)
+				else if (pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice >= 3 * pIndicators->stopLoss 
+					//&& pParams->bidAsk.ask[0] - pParams->orderInfo[latestOrderIndex].openPrice < 4 * pIndicators->stopLoss
+					)
 				{
 					pIndicators->executionTrend = 1;
 					pIndicators->entryPrice = pParams->bidAsk.ask[0];
@@ -3855,7 +3871,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 					pIndicators->entryPrice = pParams->bidAsk.bid[0];
 					pIndicators->stopLossPrice = pParams->orderInfo[latestOrderIndex].openPrice - pIndicators->stopLoss;
 				}
-				else if (pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] >= 3 * pIndicators->stopLoss && pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 4 * pIndicators->stopLoss)
+				else if (pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] >= 3 * pIndicators->stopLoss 
+					//&& pParams->orderInfo[latestOrderIndex].openPrice - pParams->bidAsk.bid[0] < 4 * pIndicators->stopLoss
+					)
 				{
 					pIndicators->executionTrend = -1;
 					pIndicators->entryPrice = pParams->bidAsk.bid[0];
@@ -4022,7 +4040,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	if (side == NONE)
 	{
 		if (pBase_Indicators->maTrend > 0 
-			&& pBase_Indicators->dailyTrend >=-1
+			&& pBase_Indicators->dailyTrend >=-1			
 			)
 		{
 			upperBBand = iBBands(B_PRIMARY_RATES, 50, 2, 0, 1);
@@ -4045,7 +4063,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		}
 
 		if (pBase_Indicators->maTrend < 0 
-			&& pBase_Indicators->dailyTrend <=1
+			&& pBase_Indicators->dailyTrend <=1			
 			)
 		{
 			lowerBBand = iBBands(B_PRIMARY_RATES, 50, 2, 2, 1);
@@ -4079,6 +4097,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			{
 				if (entryPrice - openOrderLow > pIndicators->takePrice &&
 					entryPrice - pParams->bidAsk.ask[0] < floatingTP
+					//&&	iClose(B_PRIMARY_RATES, 1) > iOpen(B_PRIMARY_RATES,1)
 					)
 				{
 					//closeAllWithNegativeEasy(5, currentTime, 3); //close them intraday on break event
@@ -4101,7 +4120,8 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			{
 				//如果过了20点后，出现第一个5M的阴线，离场
 				if (openOrderHigh - entryPrice > pIndicators->takePrice &&
-					pParams->bidAsk.bid[0] - entryPrice < floatingTP
+					pParams->bidAsk.bid[0] - entryPrice < floatingTP 
+					//&&	iClose(B_PRIMARY_RATES, 1) < iOpen(B_PRIMARY_RATES, 1)
 					)
 				{
 					//closeAllWithNegativeEasy(5, currentTime, 3);//close them intraday on break event
@@ -5003,7 +5023,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Ind
 	return SUCCESS;
 }
 
-AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
+AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
 	int    shift0Index_secondary = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 1, shift1Index_secondary = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
@@ -5131,46 +5151,45 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 
 	if (hasCurrentDayOrder == FALSE)
 	{
-		//if (ATR0 > 2* Range - 0.5)
-		//	return SUCCESS;
 
-		//加入5M均线的支持
-		if (pParams->bidAsk.ask[0] - intradayLow >= Range && intradayHigh - pParams->bidAsk.bid[0] < Range 
-			&& ( (asia_ATR > Range && iClose(B_DAILY_RATES, 0) - iOpen(B_DAILY_RATES, 0) > 0)
-			|| asia_ATR <= Range)
-			&& executionTrend > 0 						
-			&& timeInfo1.tm_hour <= pIndicators->endHour			
-			)
-		{
-			pIndicators->executionTrend = 1;
-			pIndicators->entryPrice = pParams->bidAsk.ask[0];
-			pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
-			pIndicators->entrySignal = 1;
-		}
+		////加入5M均线的支持
+		//if (pParams->bidAsk.ask[0] - intradayLow >= Range && intradayHigh - pParams->bidAsk.bid[0] < Range 
+		//	&& ( (asia_ATR > Range && iClose(B_DAILY_RATES, 0) - iOpen(B_DAILY_RATES, 0) > 0)
+		//	|| asia_ATR <= Range)
+		//	&& executionTrend > 0 						
+		//	&& timeInfo1.tm_hour <= pIndicators->endHour			
+		//	)
+		//{
+		//	pIndicators->executionTrend = 1;
+		//	pIndicators->entryPrice = pParams->bidAsk.ask[0];
+		//	pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
+		//	pIndicators->entrySignal = 1;
+		//}
 
 		if (pParams->bidAsk.ask[0] - intradayLow >= Range && intradayHigh - pParams->bidAsk.bid[0] < Range			
-			&& executionTrend == 0 && pBase_Indicators->maTrend > 0
+			&& executionTrend == 1
+			&& pBase_Indicators->maTrend > 0
 			&& timeInfo1.tm_hour <= pIndicators->endHour
 			)
 		{
 			pIndicators->executionTrend = 1;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
-			pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
+			pIndicators->stopLossPrice = intradayLow;
 			pIndicators->entrySignal = 1;
 		}
 
-		if (intradayHigh - pParams->bidAsk.bid[0] >= Range 	&& pParams->bidAsk.ask[0] - intradayLow < Range 
-			&&(( asia_ATR > Range && iClose(B_DAILY_RATES, 0) - iOpen(B_DAILY_RATES, 0) < 0)
-			|| asia_ATR <= Range )			
-			&& executionTrend < 0 
-			&& timeInfo1.tm_hour <= pIndicators->endHour			
-			)
-		{
-			pIndicators->executionTrend = -1;
-			pIndicators->entryPrice = pParams->bidAsk.bid[0];
-			pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->dailyATR;
-			pIndicators->entrySignal = -1;
-		}
+		//if (intradayHigh - pParams->bidAsk.bid[0] >= Range 	&& pParams->bidAsk.ask[0] - intradayLow < Range 
+		//	&&(( asia_ATR > Range && iClose(B_DAILY_RATES, 0) - iOpen(B_DAILY_RATES, 0) < 0)
+		//	|| asia_ATR <= Range )			
+		//	&& executionTrend < 0 
+		//	&& timeInfo1.tm_hour <= pIndicators->endHour			
+		//	)
+		//{
+		//	pIndicators->executionTrend = -1;
+		//	pIndicators->entryPrice = pParams->bidAsk.bid[0];
+		//	pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->dailyATR;
+		//	pIndicators->entrySignal = -1;
+		//}
 
 		if (intradayHigh - pParams->bidAsk.bid[0] >= Range 	&& pParams->bidAsk.ask[0] - intradayLow < Range			
 			&& executionTrend == 0 && pBase_Indicators->maTrend < 0
@@ -5179,7 +5198,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 		{
 			pIndicators->executionTrend = -1;
 			pIndicators->entryPrice = pParams->bidAsk.bid[0];
-			pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->dailyATR;
+			pIndicators->stopLossPrice = intradayHigh;
 			pIndicators->entrySignal = -1;
 		}
 	}
@@ -5298,6 +5317,206 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 		}
 
 	}
+
+	return SUCCESS;
+}
+AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
+{
+	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
+	int    shift0Index_secondary = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 1, shift1Index_secondary = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
+	time_t currentTime;
+	struct tm timeInfo1;
+	double intradayClose = iClose(B_PRIMARY_RATES, 0), intradayHigh, intradayLow;
+	double ATR0, Range;
+	double close_prev1 = iClose(B_DAILY_RATES, 1), high_prev1 = iHigh(B_DAILY_RATES, 1), low_prev1 = iLow(B_DAILY_RATES, 1), close_prev2 = iClose(B_DAILY_RATES, 2);
+
+	double openOrderHigh, openOrderLow;
+	int count, isOpen;
+	double adjust = 0.03;
+	char       timeString[MAX_TIME_STRING_SIZE] = "";
+	OrderType side;
+
+	Order_Info orderInfo;
+
+	double entryPrice;
+
+	int latestOrderIndex = 0, orderCountToday = 0;
+
+	int euro_index_rate;
+	double ATREuroPeriod = 0.0;
+
+	BOOL hasCurrentDayOrder = FALSE;
+
+	int asia_index_rate = 0;
+	double asia_ATR = 0;
+	int executionTrend;
+
+	double upperBBand, lowerBBand;
+	int fastMAPeriod = 5, slowMAPeriod = 10, signalMAPeriod = 5;
+	int startShift = 1;
+	double preHist1, preHist2, preHist3, preHist4, preHist5;
+	double fast1, fast2, fast3, fast4, fast5;
+	double slow1, slow2, slow3, slow4, slow5;
+
+	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
+	safe_gmtime(&timeInfo1, currentTime);
+
+
+	safe_timeString(timeString, currentTime);
+
+
+	pIndicators->splitTradeMode = 29;
+	pIndicators->risk = 1;
+	pIndicators->tpMode = 0;
+
+	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
+		executionTrend = 0;
+	else if (pBase_Indicators->dailyTrend > 0)
+		executionTrend = 1;
+	else if (pBase_Indicators->dailyTrend < 0)
+		executionTrend = -1;
+	else
+		executionTrend = 0;
+
+	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
+	{
+		pIndicators->stopLoss = pIndicators->atr_euro_range;
+		pIndicators->takePrice = pIndicators->stopLoss * 0.6;
+		pIndicators->startHour = 9;
+		pIndicators->endHour = 15;
+	}
+
+	pBase_Indicators->maTrend = getMATrend(iAtr(B_SECONDARY_RATES, 20, 1), B_SECONDARY_RATES, 1);
+
+	Range = pIndicators->stopLoss;
+
+	if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 0)
+	{
+		if (hasOpenOrder())
+			pIndicators->exitSignal = EXIT_ALL;
+		return SUCCESS;
+	}
+
+	if (timeInfo1.tm_hour < pIndicators->startHour)
+		return SUCCESS;
+
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR = %lf",
+		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR);
+
+
+	//计算日内高低点
+	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
+	if (count > 1)
+	{
+		iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, shift1Index_primary, count, &intradayHigh, &intradayLow);
+	}
+	else
+		return SUCCESS;
+
+	intradayLow = min(close_prev1, intradayLow);
+	intradayHigh = max(close_prev1, intradayHigh);
+	pIndicators->atr0 = fabs(intradayHigh - intradayLow);
+	ATR0 = pIndicators->atr0;
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, ATR0 = %lf,IntraDaily High = %lf, Low=%lf, Close=%lf",
+		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, intradayHigh, intradayLow, intradayClose);
+
+	pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
+	pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
+
+	if ((timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30) || pIndicators->winTimes > 0)
+	{
+		if (hasOpenOrder() == TRUE)
+			pIndicators->exitSignal = EXIT_ALL;
+		return SUCCESS;
+	}
+
+	asia_index_rate = shift1Index_primary - ((timeInfo1.tm_hour - pIndicators->startHour) * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]));
+
+	count = (pIndicators->startHour - 1) * (60 / (int)pParams->settings[TIMEFRAME]) - 1;
+	if (count >= 1)
+		iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, asia_index_rate, count, &(pIndicators->asia_high), &(pIndicators->asia_low));
+	else
+		return FALSE;
+
+	pIndicators->asia_low = min(close_prev1, pIndicators->asia_low);
+	pIndicators->asia_high = max(close_prev1, pIndicators->asia_high);
+	pIndicators->asia_open = close_prev1;
+	pIndicators->asia_close = iClose(B_PRIMARY_RATES, asia_index_rate);
+
+
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf",
+		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low);
+
+	asia_ATR = fabs(pIndicators->asia_high - pIndicators->asia_low);
+
+	hasCurrentDayOrder = hasSameDayOrderEasy(currentTime, &isOpen);
+	if (hasCurrentDayOrder == TRUE && isOpen == FALSE)
+		return SUCCESS;
+
+	//Load MACD
+	iMACDAll(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, startShift, &fast1, &slow1, &preHist1);
+	iMACDAll(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, startShift + 1, &fast2, &slow2, &preHist2);
+
+	pIndicators->fast = fast1;
+	pIndicators->slow = slow1;
+	pIndicators->preFast = fast2;
+	pIndicators->preSlow = slow2;
+
+	if (pIndicators->fast > 0 && pIndicators->fast > pIndicators->preFast && pIndicators->fast > pIndicators->slow)
+		executionTrend = 1;
+	else if (pIndicators->fast < 0 && pIndicators->fast < pIndicators->preFast && pIndicators->fast < pIndicators->slow)
+		executionTrend = -1;
+	else
+		executionTrend = 0;
+
+	if (hasCurrentDayOrder == FALSE)
+	{
+
+		
+		if (
+			pParams->bidAsk.ask[0] - intradayLow >= Range && intradayHigh - pParams->bidAsk.bid[0] < Range && 
+			executionTrend == 1
+			&& pBase_Indicators->maTrend > 0
+			&& timeInfo1.tm_hour <= pIndicators->endHour
+			)
+		{
+			upperBBand = iBBands(B_PRIMARY_RATES, 50, 2, 0, 1);
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, upperBBand = %lf, preCloseBar = %lf",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, upperBBand, iClose(B_PRIMARY_RATES, 1));
+
+
+			if (upperBBand > 0 && iClose(B_PRIMARY_RATES, 1) > upperBBand)
+			{
+				pIndicators->executionTrend = 1;
+				pIndicators->entryPrice = pParams->bidAsk.ask[0];
+				pIndicators->stopLossPrice = intradayLow;
+				pIndicators->entrySignal = 1;
+			}
+		}
+
+		
+		if (
+			intradayHigh - pParams->bidAsk.bid[0] >= Range 	&& pParams->bidAsk.ask[0] - intradayLow < Range	&& 
+			executionTrend == -1 && pBase_Indicators->maTrend < 0
+			&& timeInfo1.tm_hour <= pIndicators->endHour
+			)
+		{
+			lowerBBand = iBBands(B_PRIMARY_RATES, 50, 2, 2, 1);
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, lowerBBand = %lf, preCloseBar = %lf",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, lowerBBand, iClose(B_PRIMARY_RATES, 1));
+
+			if (lowerBBand > 0 && iClose(B_PRIMARY_RATES, 1) < lowerBBand)
+			{
+				pIndicators->executionTrend = -1;
+				pIndicators->entryPrice = pParams->bidAsk.bid[0];
+				pIndicators->stopLossPrice = intradayHigh;
+				pIndicators->entrySignal = -1;
+			}
+		}
+	}
+	
 
 	return SUCCESS;
 }
