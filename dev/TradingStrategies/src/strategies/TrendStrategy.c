@@ -491,7 +491,8 @@ void splitBuyOrders_4HSwing_Shellington(StrategyParams* pParams, Indicators* pIn
 	else
 		lots_singal = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, max(stopLoss,pBase_Indicators->dailyATR*1.5)) * pIndicators->risk;
 
-	takePrice = pIndicators->takePrice;
+	//takePrice = pIndicators->takePrice;
+	takePrice = max(pIndicators->takePrice, pIndicators->riskCap * stopLoss);
 		
 	openSingleLongEasy(takePrice, stopLoss, lots_singal, 0);
 
@@ -521,7 +522,9 @@ void splitSellOrders_4HSwing_Shellington(StrategyParams* pParams, Indicators* pI
 		lots_singal = pIndicators->minLotSize;
 	else
 		lots_singal = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, max(stopLoss, pBase_Indicators->dailyATR*1.5)) * pIndicators->risk;
-	takePrice = pIndicators->takePrice;
+	
+	//takePrice = pIndicators->takePrice;
+	takePrice = max(pIndicators->takePrice, pIndicators->riskCap * stopLoss);
 	
 
 	openSingleShortEasy(takePrice, stopLoss, lots_singal, 0);
@@ -3234,12 +3237,13 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		isEnableCMFVolumeGap = FALSE;
 
 		isEnableMaxLevel = FALSE;
-		isWeeklyBaseLine = TRUE;
+		isWeeklyBaseLine = FALSE;
 
 		fastMAPeriod = 5;
 		slowMAPeriod = 10;
 		signalMAPeriod = 5;
 
+		stopLoss = max(stopLoss, pBase_Indicators->dailyATR * 1.8);
 		//stopLoss = pBase_Indicators->dailyATR * 1.8;
 
 		maxRisk = 1.5;
@@ -3261,7 +3265,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	else if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
 	{
 
-		level = 0.35;
+		level = 0.35;// min(0.35, 0.0053 * pParams->bidAsk.ask[0]);
 		//maxLevel = 0.008;
 		histLevel = 0.01;
 		isVolumeControl = FALSE;
@@ -3299,7 +3303,9 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	else if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{
 		level = 2; // XAUUSD
-		maxLevel = 10;
+		maxLevel = max(10, ((pParams->bidAsk.ask[0] - 1500) / 300) + 10);
+
+
 		isVolumeControl = FALSE;
 		isEnableBeiLi = TRUE;
 		isEnableSlow = TRUE;
@@ -4116,7 +4122,46 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(Strateg
 
 	dailyBaseLine = ma20Daily;
 
-	if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	{
+
+		level = 0.005 * pParams->bidAsk.ask[0];
+		maxLevel = 0.05 * pParams->bidAsk.ask[0];
+		histLevel = 0.01;
+		isVolumeControl = FALSE;
+		isEnableBeiLi = TRUE;
+
+		isEnableSlow = FALSE;
+		isEnableATR = FALSE;
+		isEnableCMFVolume = FALSE;
+		isEnableCMFVolumeGap = FALSE;
+
+		isEnableMaxLevel = FALSE;
+		isWeeklyBaseLine = TRUE;
+
+		fastMAPeriod = 5;
+		slowMAPeriod = 10;
+		signalMAPeriod = 5;
+
+		//stopLoss = pBase_Indicators->dailyATR * 1.8;
+
+		maxRisk = 1.5;
+
+		//isDailyOnly = FALSE;
+
+		//shiftPreDayBar = shift1Index;
+
+		pIndicators->stopMovingBackSL = TRUE;
+
+		//isEnableEntryEOD = TRUE;
+
+		isEnableLate = FALSE;
+
+		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, startShift);
+
+		pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
+	}
+	else if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
 	{
 		level = 0.35; 
 		//maxLevel = 0.008;
@@ -7061,8 +7106,20 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 
 	pIndicators->takePrice = pBase_Indicators->pWeeklyPredictATR / 2;
 	pIndicators->takePrice = min(pIndicators->takePrice, pBase_Indicators->dailyATR);
+	
+	pIndicators->riskCap = 0;
 
-	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		isEnableWeeklyTrend = TRUE;
+		buyWonTimes = 3;
+		sellWonTimes = 1;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 5;
+
+		pIndicators->riskCap = 2;
+	}
+	else if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{
 		isEnableWeeklyATRControl = TRUE;
 		isEnableWeeklyTrend = TRUE;
@@ -7077,6 +7134,8 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 		buyWonTimes = 3;
 		sellWonTimes = 1;
 		pIndicators->takePrice = pBase_Indicators->dailyATR * 4;
+
+		//pIndicators->riskCap = 2;
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
 	{
@@ -7092,6 +7151,8 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 		buyWonTimes = 2;
 		sellWonTimes = 2;
 		pIndicators->takePrice = pBase_Indicators->dailyATR * 3;
+
+		//pIndicators->riskCap = 2;
 	}
 	else if (strstr(pParams->tradeSymbol, "AUDUSD") != NULL)
 	{
