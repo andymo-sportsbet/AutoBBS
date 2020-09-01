@@ -3145,6 +3145,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	//double ma50Daily, preDailyClose;
 	int index1, index2, index3;
 	double level = 0, histLevel = 0, maxLevel = 0;
+	double nextMACDRange = 0;
 	//double volume1,volume2, volume_ma_10;
 
 	double preClose1, preClose2, preClose3, preClose4, preClose5;
@@ -3341,7 +3342,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 		pIndicators->stopMovingBackSL = TRUE;
 
-		isEnableEntryEOD = TRUE;
+		isEnableEntryEOD = FALSE;
 
 		isEnableLate = FALSE;		
 
@@ -3401,6 +3402,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		isEnableEntryEOD = TRUE;
 
 		isEnableLate = FALSE;
+
+		nextMACDRange = 0.2;
 
 		isEnableNextdayBar = TRUE;
 				
@@ -3665,8 +3668,9 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
 		pIndicators->stopLoss = stopLoss;
+				
 
-		if (pIndicators->fast > level
+		if (pIndicators->fast > 0
 			&& (isEnableSlow == FALSE || pIndicators->slow > 0)
 			//&& dailyTrend > 0 			
 			&& preDailyClose > dailyBaseLine
@@ -3704,22 +3708,23 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, entryPrice=%lf, preclose=%lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entryPrice, iClose(B_DAILY_RATES, startShift));
 
+			
 			if (//fast > slow && preFast <= preSlow &&				
 				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
 				&& pIndicators->fast > pIndicators->preFast
-				&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
-				&& (isVolumeControl == FALSE || pIndicators->volume1 > pIndicators->volume2)
-				&& (isEnableCMFVolume == FALSE || pIndicators->cmfVolume > 0)
-				&& (isEnableCMFVolumeGap == FALSE || pIndicators->CMFVolumeGap > 0)
+				//&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
+				//&& (isVolumeControl == FALSE || pIndicators->volume1 > pIndicators->volume2)
+				//&& (isEnableCMFVolume == FALSE || pIndicators->cmfVolume > 0)
+				//&& (isEnableCMFVolumeGap == FALSE || pIndicators->CMFVolumeGap > 0)
 				//&& volume1 > volume_ma_10
-				&& (isWeeklyBaseLine == FALSE ||
-				(preWeeklyClose > weekly_baseline && (weekly_baseline_short > weekly_baseline || pre3KTrend == UP))
-				)
-				&& pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift) <= 0.2 * pBase_Indicators->dailyATR
+				//&& (isWeeklyBaseLine == FALSE ||
+				//(preWeeklyClose > weekly_baseline && (weekly_baseline_short > weekly_baseline || pre3KTrend == UP))
+				//)
+				//&& pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift) <= 0.2 * pBase_Indicators->dailyATR
 				&& (isEnableASI == FALSE|| asiBull > asiBear)				
 				)
 			{
-
+				
 				safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].closeTime);
 
 				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, timeInfo1.tm_mday =%ld, timeInfo2.tm_mday%ld",
@@ -3735,7 +3740,18 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						|| (isAllVolumeRisk == TRUE && pIndicators->CMFVolumeGap > 0 && pIndicators->cmfVolume >  0 && pIndicators->volume1 > pIndicators->volume2)
 						)
 						pIndicators->risk = maxRisk;
+					
 
+					if (pIndicators->entrySignal != 0 &&
+						pIndicators->fast <= level)
+					{
+						sprintf(pIndicators->status, "fast %lf is not greater than level %lf.",
+							pIndicators->fast,level);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
 
 					//如果是在趋势的后端，不做。
 					if (isEnableLate == TRUE && preHist1 > histLevel && preHist2 > histLevel && preHist3 > histLevel && preHist4 > histLevel && preHist5 > histLevel
@@ -3743,9 +3759,73 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						&& orderIndex >= 0  && pParams->orderInfo[orderIndex].type == BUY												
 						)
 					{
-						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, it is late for 5 days",
-							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+						strcpy(pIndicators->status, "it is late for 5 days");
 
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString,pIndicators->status);
+
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isEnableCMFVolumeGap == TRUE && 
+						pIndicators->entrySignal != 0 &&
+						pIndicators->CMFVolumeGap <= 0)
+					{
+						sprintf(pIndicators->status,"CMFVolumeGap %lf is not greater than 0",
+							pIndicators->CMFVolumeGap);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isEnableCMFVolume == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						pIndicators->cmfVolume <= 0)
+					{
+						sprintf(pIndicators->status,"cmfVolume %lf is not greater than 0",
+							pIndicators->cmfVolume);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isVolumeControl == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						pIndicators->volume1 <= pIndicators->volume2)
+					{
+						sprintf(pIndicators->status,"volume1 %lf is not greater than volume2 %lf",
+							pIndicators->volume1, pIndicators->volume2);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isWeeklyBaseLine == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						preWeeklyClose <= weekly_baseline
+						)
+					{
+						sprintf(pIndicators->status, "preWeeklyClose %lf is not greater than weekly baseline %lf.",
+							preWeeklyClose, weekly_baseline);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isWeeklyBaseLine == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						weekly_baseline_short <= weekly_baseline && pre3KTrend != UP
+						)
+					{
+						sprintf(pIndicators->status, "Weekly_baseline_short %lf is less than weekly_baseline %lf and pre3KTrend %lf is not UP.",
+							weekly_baseline_short, weekly_baseline, pre3KTrend);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
 
@@ -3755,8 +3835,12 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						&& pIndicators->fast > maxLevel
 						)
 					{
-						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD exceeds max level",
-							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+
+						sprintf(pIndicators->status,"MACD %lf exceeds max level %lf",
+							pIndicators->fast, maxLevel);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
 					}
@@ -3768,9 +3852,12 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						)
 					{
 						if (minPoint >= level || truningPointIndex - 1 <= range)
+						//if (fabs(turningPoint - minPoint) < maxLevel || truningPointIndex - 1 <= range)
 						{
-							pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD BeiLi",
-								(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+							strcpy(pIndicators->status, "MACD BeiLi");								
+
+							pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+								(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 							pIndicators->entrySignal = 0;
 						}
@@ -3794,7 +3881,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 		}
 
-		if (pIndicators->fast < (level * -1)
+		if (pIndicators->fast < 0
 			&& (isEnableSlow == FALSE || pIndicators->slow < 0)
 			//&& dailyTrend < 0			
 			&& preDailyClose < dailyBaseLine
@@ -3835,15 +3922,15 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			if (//fast < slow && preFast >= preSlow &&
 				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
 				&& pIndicators->fast < pIndicators->preFast
-				&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
-				&& (isVolumeControl == FALSE || pIndicators->volume1 > pIndicators->volume2)
-				&& (isEnableCMFVolume == FALSE || pIndicators->cmfVolume < 0)
-				&& (isEnableCMFVolumeGap == FALSE || pIndicators->CMFVolumeGap < 0)
-				&& (isWeeklyBaseLine == FALSE ||
-				(preWeeklyClose < weekly_baseline
-				&& (weekly_baseline_short < weekly_baseline || pre3KTrend == DOWN))
-				)
-				&& iClose(B_DAILY_RATES, startShift) - pIndicators->entryPrice <= 0.2 * pBase_Indicators->dailyATR
+				//&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
+				//&& (isVolumeControl == FALSE || pIndicators->volume1 > pIndicators->volume2)
+				//&& (isEnableCMFVolume == FALSE || pIndicators->cmfVolume < 0)
+				//&& (isEnableCMFVolumeGap == FALSE || pIndicators->CMFVolumeGap < 0)
+				//&& (isWeeklyBaseLine == FALSE ||
+				//(preWeeklyClose < weekly_baseline
+				//&& (weekly_baseline_short < weekly_baseline || pre3KTrend == DOWN))
+				//)
+				//&& iClose(B_DAILY_RATES, startShift) - pIndicators->entryPrice <= 0.2 * pBase_Indicators->dailyATR
 				&& (isEnableASI == FALSE || asiBull < asiBear)				
 				)
 			{
@@ -3864,14 +3951,90 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						)
 						pIndicators->risk = maxRisk;
 
+					if (pIndicators->entrySignal != 0 &&
+						pIndicators->fast >= -1 * level)
+					{
+						sprintf(pIndicators->status, "fast %lf is not less than level %lf.",
+							pIndicators->fast, -1* level);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
 					//如果是在趋势的后端，不做。
 					if (isEnableLate == TRUE && preHist1 < (histLevel*-1) && preHist2 < (histLevel*-1) && preHist3 < (histLevel*-1) && preHist4 < (histLevel*-1) && preHist5 < (histLevel*-1)
 						&& fast1 < (level*-1) && fast2 < (level*-1) && fast3 < (level*-1) && fast4 < (level*-1) && fast5 < (level*-1)
 						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL						
 						)
 					{
-						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, it is late for 5 days",
-							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+						strcpy(pIndicators->status, "it is late for 5 days");
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isEnableCMFVolumeGap == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						pIndicators->CMFVolumeGap > 0)
+					{
+						sprintf(pIndicators->status,"CMFVolumeGap %lf is not less than 0",
+							pIndicators->CMFVolumeGap);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isEnableCMFVolume == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						pIndicators->cmfVolume > 0)
+					{
+						sprintf(pIndicators->status,"cmfVolume %lf is not less than 0",
+							pIndicators->cmfVolume);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isVolumeControl == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						pIndicators->volume1 <= pIndicators->volume2)
+					{
+						sprintf(pIndicators->status,"volume1 %lf is not greater than volume2 %lf",
+							pIndicators->volume1, pIndicators->volume2);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isWeeklyBaseLine == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						preWeeklyClose >= weekly_baseline
+						)
+					{
+						sprintf(pIndicators->status, "preWeeklyClose %lf is not less than weekly baseline %lf.",
+							preWeeklyClose, weekly_baseline);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+						pIndicators->entrySignal = 0;
+					}
+
+					if (isWeeklyBaseLine == TRUE &&
+						pIndicators->entrySignal != 0 &&
+						weekly_baseline_short >= weekly_baseline && pre3KTrend != DOWN
+						)
+					{
+						sprintf(pIndicators->status, "Weekly_baseline_short %lf is greater than weekly_baseline %lf and pre3KTrend %lf is not DOWN",
+							weekly_baseline_short, weekly_baseline, pre3KTrend);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
 
@@ -3881,8 +4044,12 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						&& pIndicators->fast < (maxLevel*-1)
 						)
 					{
-						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD exceeds max level",
-							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+
+						sprintf(pIndicators->status,"MACD %lf exceeds max level %lf",
+							pIndicators->fast,maxLevel*-1);
+
+						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
 					}
@@ -3895,10 +4062,12 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					{
 
 						if (minPoint <= -1 * level || truningPointIndex - 1 <= range)
+						//if (fabs(turningPoint - minPoint) < maxLevel || truningPointIndex - 1 <= range)
 						{
-							pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD BeiLi",
-								(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+							strcpy(pIndicators->status, "MACD BeiLi");								
 
+							pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+								(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 							pIndicators->entrySignal = 0;
 						}
 					}
@@ -3919,17 +4088,57 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 		}
 
+		if (isEnableATR == TRUE &&
+			pIndicators->entrySignal != 0 &&
+			atr5 <= pIndicators->entryPrice * 0.01 * 0.55)
+		{
+			sprintf(pIndicators->status, "atr5 %lf is not greater than %lf.",
+				atr5, pIndicators->entryPrice * 0.01 * 0.55);
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+			pIndicators->entrySignal = 0;
+		}
+
 		if (
-			pIndicators->entrySignal != 0							
+			pIndicators->entrySignal != 0					
 			&& isEnableNextdayBar == TRUE && isNextdayMACDPostiveBar(startShift) == FALSE
+			&& ( nextMACDRange == 0 || fabs(pIndicators->fast) < nextMACDRange)
 			//orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
 			//&& isEnableNextdayBar == TRUE && isNextdayMACDPostiveBar2(pParams, orderIndex, startShift) == FALSE
 			)
 		{
-			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, Nextday MACD Bar is negative.",
-				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+
+			sprintf(pIndicators->status,"Nextday MACD Bar %lf is negative value %lf.",
+				fabs(pIndicators->fast), nextMACDRange);
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+
 			pIndicators->entrySignal = 0;
 			//pIndicators->exitSignal = EXIT_ALL;
+		}
+
+		if (pIndicators->entrySignal > 0  &&
+			pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift) > 0.2 * pBase_Indicators->dailyATR)
+		{
+			sprintf(pIndicators->status, "Open price gap %lf is not less than %lf",
+				pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift), 0.2 * pBase_Indicators->dailyATR);
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+			pIndicators->entrySignal = 0;
+		}
+
+		if (pIndicators->entrySignal < 0 &&
+			iClose(B_DAILY_RATES, startShift) - pIndicators->entryPrice > 0.2 * pBase_Indicators->dailyATR)
+		{
+			sprintf(pIndicators->status, "Open price gap %lf is not less than %lf",
+				iClose(B_DAILY_RATES, startShift) - pIndicators->entryPrice, 0.2 * pBase_Indicators->dailyATR);
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+			pIndicators->entrySignal = 0;
 		}
 
 		//加入日图的出场信号:进入range

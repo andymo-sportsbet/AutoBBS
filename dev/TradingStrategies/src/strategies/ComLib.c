@@ -495,19 +495,37 @@ BOOL isNextdayMACDPostiveBar2(StrategyParams* pParams, int orderIndex,int startS
 BOOL isNextdayMACDPostiveBar(int startShift)
 {
 	BOOL result = TRUE;
+	trend trend, trend1;
+	//double atr = iAtr(B_DAILY_RATES, 1, startShift), atr1 = iAtr(B_DAILY_RATES, 1, startShift+1);
 	double preDayOpen, preDayOpen1, preDayClose, preDayClose1,preDayRange,preDayRange1;
 	preDayOpen = iOpen(B_DAILY_RATES, startShift);
 	preDayClose = iClose(B_DAILY_RATES, startShift);
 	preDayRange = preDayOpen - preDayClose;
 
+	//if (fabs(preDayRange) < atr* 0.1)
+	//	trend = RANGE;	
+	//else if (preDayRange > 0)
+	//	trend = UP;
+	//else
+	//	trend = DOWN;
+
+
 	preDayOpen1 = iOpen(B_DAILY_RATES, startShift+1);
 	preDayClose1 = iClose(B_DAILY_RATES, startShift+1);
 	preDayRange1 = preDayOpen1 - preDayClose1;
 
+	//if (fabs(preDayRange1) < atr1* 0.1)
+	//	trend1 = RANGE;
+	//else if (preDayRange1 > 0)
+	//	trend1 = UP;
+	//else
+	//	trend1 = DOWN;
+
 	//价格方向相反
 	//必須是下一天
+	//it need to have a range 
 	if (
-		preDayRange * preDayRange1 < 0 
+		preDayRange * preDayRange1 < 0
 		//&& fabs(preDayRange) > fabs(preDayRange1)/4
 		)
 	{

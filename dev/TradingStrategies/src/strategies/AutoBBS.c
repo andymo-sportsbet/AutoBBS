@@ -356,8 +356,8 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("bbsStopPrice_4H", pIndicators->bbsStopPrice_4H);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);		
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
+		//addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		//addValueToUI("riskPNL", pIndicators->riskPNL);
 		break;
 	case 2:
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
@@ -369,9 +369,9 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
 		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
 		addValueToUI("riskPNL", pIndicators->riskPNL);
-		addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
+		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
+		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 		break;
 	case 5:
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
@@ -384,11 +384,11 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("BBSStopPrice_primary", pIndicators->bbsStopPrice_primary);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
-		addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		//addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		//addValueToUI("riskPNL", pIndicators->riskPNL);
+		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
+		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
+		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 	case 6:
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
 		addValueToUI("dailyTrend_Phase", pBase_Indicators->dailyTrend_Phase);
@@ -398,11 +398,11 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("stopLossPrice", pIndicators->stopLossPrice);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
-		addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		//addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		//addValueToUI("riskPNL", pIndicators->riskPNL);
+		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
+		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
+		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 		break;
 	case 10:
 		addValueToUI("weeklyTrend", pBase_Indicators->weeklyTrend);
@@ -416,11 +416,11 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("bbsStopPrice_excution", pIndicators->bbsStopPrice_excution);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
-		addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		//addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		//addValueToUI("riskPNL", pIndicators->riskPNL);
+		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
+		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
+		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 		break;
 	case 15:
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
@@ -437,11 +437,11 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("pDailyLow", pBase_Indicators->pDailyLow);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
-		addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		//addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		//addValueToUI("riskPNL", pIndicators->riskPNL);
+		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
+		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
+		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 		break;
 	case 16:
 	case 19:
@@ -457,11 +457,11 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("pDailyLow", pBase_Indicators->pDailyLow);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
-		addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		//addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		//addValueToUI("riskPNL", pIndicators->riskPNL);
+		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
+		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
+		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 		break;
 	case 17:
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
@@ -490,8 +490,8 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("slow", pIndicators->slow);		
 		addValueToUI("preSlow", pIndicators->preSlow);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
-		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		addValueToUI("strategyRisk", pIndicators->strategyRisk);	
+		addValueToUI(pIndicators->status, 0);
 		break;
 	case 31: //Ichikomo
 		addValueToUI("entrySignal", pIndicators->entrySignal);
@@ -505,7 +505,7 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("slow", pIndicators->slow);		
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+//		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
 		break;
 	default:
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
@@ -522,11 +522,11 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("bbsStopPrice_excution", pIndicators->bbsStopPrice_excution);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
-		addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		//addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
+		//addValueToUI("riskPNL", pIndicators->riskPNL);
+		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
+		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
+		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 		break;
 	}
 
@@ -604,6 +604,10 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 	pIndicators->volumeStep = 0.01;
 	pIndicators->isEnableBuyMinLotSize = FALSE;
 	pIndicators->isEnableSellMinLotSize = FALSE;
+
+	memset(pIndicators->status, '\0', MAX_OUTPUT_ERROR_STRING_SIZE);
+
+	strcpy(pIndicators->status, "No Error");
 
 	workoutExecutionTrend(pParams, pIndicators, pBase_Indicators);
 
@@ -693,7 +697,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "06/03/19 20:00") == 0)
+	if (strcmp(timeString, "18/08/20 23:00") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if (strcmp(timeString, "22/01/20 23:00") == 0)

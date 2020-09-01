@@ -138,6 +138,8 @@ extern "C" {
 		BOOL isEnableBuyMinLotSize;
 		BOOL isEnableSellMinLotSize;
 		
+		char status[MAX_OUTPUT_ERROR_STRING_SIZE];
+
 	} Indicators;
 	
 
