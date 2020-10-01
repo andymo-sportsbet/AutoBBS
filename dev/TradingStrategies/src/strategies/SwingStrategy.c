@@ -3766,7 +3766,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	double daily_baseline = 0.0, dailyHigh = 0.0, dailyLow = 0.0, preDailyClose;	
 	int executionTrend;
 
-	BOOL isSameDayOrder = FALSE;
+	BOOL isSameDayOrder = FALSE, isSameDayClosedOrder = FALSE;
 	BOOL isPreviousDayOrder = FALSE;
 	BOOL shouldFilter = TRUE;
 	int takeProfitMode = 0;
@@ -3847,6 +3847,13 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 		if (timeInfo1.tm_year == timeInfo2.tm_year &&  timeInfo1.tm_mon == timeInfo2.tm_mon && timeInfo1.tm_mday == timeInfo2.tm_mday)
 			isSameDayOrder = TRUE;
+
+		safe_gmtime(&timeInfo2, pParams->orderInfo[latestOrderIndex].closeTime);
+
+		if (timeInfo1.tm_year == timeInfo2.tm_year &&  timeInfo1.tm_mon == timeInfo2.tm_mon && timeInfo1.tm_mday == timeInfo2.tm_mday)
+		{
+			isSameDayClosedOrder = TRUE;			
+		}
 	}
 
 
@@ -4081,8 +4088,8 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 		floatingTP = pIndicators->takePrice;
 
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
-			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->atr_euro_range, pIndicators->stopLoss, pIndicators->takePrice);
+		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,pDailyPredictATR=%lf, pDailyMaxATR= %lf,atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
+			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, pBase_Indicators->pDailyMaxATR,pIndicators->atr_euro_range, pIndicators->stopLoss, pIndicators->takePrice);
 
 		if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min >= 0 && timeInfo1.tm_min <= 15 && pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
 		{
@@ -4321,6 +4328,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 	if (side == NONE)
 	{
+		//if (latestOrderIndex >= 0)
+		//	side = pParams->orderInfo[latestOrderIndex].type;
+
 		if (pBase_Indicators->maTrend > 0 
 			&& pBase_Indicators->dailyTrend >=-1			
 			)
@@ -4336,7 +4346,9 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 				pIndicators->executionTrend = 1;
 				pIndicators->entryPrice = pParams->bidAsk.ask[0];
 				pIndicators->stopLossPrice = pIndicators->entryPrice - pIndicators->stopLoss;
-				if (pIndicators->winTimes == 0 && pIndicators->lossTimes < maxTradeTime && (side == SELL || side == NONE))
+				
+				//if (pIndicators->winTimes == 0 && pIndicators->lossTimes < maxTradeTime && (side == SELL || side == NONE))
+				if (isSameDayClosedOrder == FALSE)
 					pIndicators->entrySignal = 1;
 
 				pIndicators->exitSignal = EXIT_SELL;
@@ -4358,8 +4370,8 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 				pIndicators->executionTrend = -1;
 				pIndicators->entryPrice = pParams->bidAsk.bid[0];
 				pIndicators->stopLossPrice = pIndicators->entryPrice + pIndicators->stopLoss;
-				if (pIndicators->winTimes == 0 && pIndicators->lossTimes < maxTradeTime && (side == BUY || side == NONE))
-
+				//if (pIndicators->winTimes == 0 && pIndicators->lossTimes < maxTradeTime && (side == BUY || side == NONE))				
+				if ( isSameDayClosedOrder == FALSE )
 					pIndicators->entrySignal = -1;
 
 				pIndicators->exitSignal = EXIT_BUY;
@@ -4377,6 +4389,10 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			)
 		{
 			entryPrice = pParams->orderInfo[latestOrderIndex].openPrice;
+
+			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, takeProfitMode =%d, lastClose=%lf, lastOpen=%lf",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, takeProfitMode, iClose(B_PRIMARY_RATES, 1), iOpen(B_PRIMARY_RATES, 1));
+
 			if (side == SELL)
 			{
 				if (entryPrice - openOrderLow > pIndicators->takePrice &&
@@ -4415,7 +4431,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 				//如果过了20点后，出现第一个5M的阴线，离场
 				if (openOrderHigh - entryPrice > pIndicators->takePrice &&
 					pParams->bidAsk.bid[0] - entryPrice < floatingTP 		
-					&& (takeProfitMode == 0 || iClose(B_PRIMARY_RATES, 1) < iOpen(B_PRIMARY_RATES, 1))
+					&& (takeProfitMode == 0 || iClose(B_PRIMARY_RATES, 1) < iOpen(B_PRIMARY_RATES, 1))					
 					)
 				{
 					//closeAllWithNegativeEasy(5, currentTime, 3);//close them intraday on break event

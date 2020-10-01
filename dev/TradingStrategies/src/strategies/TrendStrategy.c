@@ -3144,7 +3144,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	int    shift0Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 1;
 	int    shift1Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 2;
 	int    shiftPreDayBar = shift1Index -1;
-	int   dailyTrend;
+	int   dailyTrend; 
 	time_t currentTime, preBarTime;
 	struct tm timeInfo1, timeInfo2, timeInfoPreBar;
 	char   timeString[MAX_TIME_STRING_SIZE] = "";
@@ -3623,7 +3623,13 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	if (isEnableEntryEOD == TRUE && timeInfo1.tm_hour == 23)
 	{
 		startShift = 0;		
-		macdLimit = level /2 ;
+		macdLimit = level / 2;
+
+		if (timeInfo1.tm_wday == 5)
+		{
+			if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+				macdLimit = 0;
+		}
 
 		if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
 		{
@@ -7545,7 +7551,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 						sameSideWonTradesInCurrentTrend >= buyWonTimes
 						)
 					{
-						sprintf(pIndicators->status, "sameSideWonTradesInCurrentTrend %lf is greater than buyWonTimes %lf",
+						sprintf(pIndicators->status, "sameSideWonTradesInCurrentTrend %d is greater than buyWonTimes %d",
 							sameSideWonTradesInCurrentTrend, buyWonTimes);
 
 						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
@@ -7601,7 +7607,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 						sameSideWonTradesInCurrentTrend >= sellWonTimes
 						)
 					{
-						sprintf(pIndicators->status, "sameSideWonTradesInCurrentTrend %lf is greater than sellWonTimes %lf",
+						sprintf(pIndicators->status, "sameSideWonTradesInCurrentTrend %d is greater than sellWonTimes %d",
 							sameSideWonTradesInCurrentTrend, sellWonTimes);
 
 						pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
