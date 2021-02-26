@@ -754,8 +754,9 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 		isRateCheck = FALSE;
 
 
-	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && (int)pParams->settings[TIMEFRAME] >= 5 &&
-		(
+	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && (int)pParams->settings[TIMEFRAME] >= 5 &&		
+		(strstr(pParams->tradeSymbol, "BTCUSD") == NULL || !isWeekend(pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index])) &&
+		(		
 		validateCurrentTimeEasy(pParams, B_PRIMARY_RATES) > 0 ||
 		validateDailyBarsEasy(pParams, B_PRIMARY_RATES, B_DAILY_RATES) > 0 ||
 		validateHourlyBarsEasy(pParams, B_PRIMARY_RATES, B_HOURLY_RATES) > 0 ||
