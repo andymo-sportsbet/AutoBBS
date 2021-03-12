@@ -4198,7 +4198,12 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	double preHigh = iHigh(B_PRIMARY_RATES, 1);
 	double preLow = iLow(B_PRIMARY_RATES, 1);
 	double preClose = iClose(B_PRIMARY_RATES, 1);
+	double preOpen = iOpen(B_PRIMARY_RATES, 1);
 
+	double ATR20 = iAtr(B_DAILY_RATES, 20, 1);
+	double pMaxATR = max(pBase_Indicators->pDailyATR, ATR20);
+
+	
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
 
@@ -4905,33 +4910,6 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && GBPUSD_MultipleDays_Allow_Trade(pParams, pIndicators, pBase_Indicators) == FALSE)
 			return SUCCESS;
 	}
-
-	//if (timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30 && pParams->orderInfo[latestOrderIndex].isOpen == FALSE && isSameDayOrder == TRUE && pParams->orderInfo[latestOrderIndex].profit > 0)
-	//{
-	//	if (pParams->orderInfo[latestOrderIndex].type == BUY && executionTrend > 0 && intradayClose > pParams->orderInfo[latestOrderIndex].closePrice)
-	//	{
-	//		pIndicators->executionTrend = 1;
-	//		pIndicators->entryPrice = pParams->bidAsk.ask[0];
-	//		pIndicators->stopLossPrice = pIndicators->entryPrice - pIndicators->stopLoss;
-	//		//if (pIndicators->winTimes == 0 && pIndicators->lossTimes < maxTradeTime && (side == SELL || side == NONE))
-	//		pIndicators->entrySignal = 1;
-
-	//		pIndicators->exitSignal = EXIT_SELL;
-	//		return SUCCESS;
-	//	}
-	//	if (pParams->orderInfo[latestOrderIndex].type == SELL && executionTrend < 0 && intradayClose < pParams->orderInfo[latestOrderIndex].closePrice)
-	//	{
-	//		pIndicators->executionTrend = -1;
-	//		pIndicators->entryPrice = pParams->bidAsk.bid[0];
-	//		pIndicators->stopLossPrice = pIndicators->entryPrice + pIndicators->stopLoss;
-	//		//if (pIndicators->winTimes == 0 && pIndicators->lossTimes < maxTradeTime && (side == BUY || side == NONE))
-	//		pIndicators->entrySignal = -1;
-
-	//		pIndicators->exitSignal = EXIT_BUY;
-	//		return SUCCESS;
-	//	}
-
-	//}
 
 	if (side == NONE)
 	{

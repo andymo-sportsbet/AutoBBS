@@ -596,35 +596,34 @@ void splitBuyOrders_MACDDaily(StrategyParams* pParams, Indicators* pIndicators, 
 		takePrice = pIndicators->riskCap * 1.5* pBase_Indicators->dailyATR;
 		lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, 1.5* pBase_Indicators->dailyATR) * pIndicators->risk;
 
-	}
-	else
-	{
-		takePrice = 0;
-		lots = pParams->orderInfo[0].lots;
-		stopLoss = abs(pParams->orderInfo[0].stopLoss - pIndicators->entryPrice);
-	}
+		if (pIndicators->riskCap > 0 && lots >= pIndicators->minLotSize)
+		{
+			lots = roundUp(lots, pIndicators->volumeStep);
+			if (lots / pIndicators->volumeStep > 5)
+			{		
+				//takePrice = 1 * 1.5*  pBase_Indicators->dailyATR;
+				//openSingleLongEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
 
-	if (pIndicators->riskCap > 0 && lots >= pIndicators->minLotSize)
-	{
-		lots = roundUp(lots, pIndicators->volumeStep);
-		if (lots / pIndicators->volumeStep > 5)
-		{		
-			//takePrice = 1 * 1.5*  pBase_Indicators->dailyATR;
-			//openSingleLongEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
+				//takePrice = max(1,pIndicators->riskCap/2) * 1.5* pBase_Indicators->dailyATR;
+				//openSingleLongEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
 
-			//takePrice = max(1,pIndicators->riskCap/2) * 1.5* pBase_Indicators->dailyATR;
-			//openSingleLongEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
+				openSingleLongEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
 
-			openSingleLongEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
-
-			takePrice = 0;
-			openSingleLongEasy(takePrice, stopLoss, pIndicators->minLotSize, 0);
+				takePrice = 0;
+				openSingleLongEasy(takePrice, stopLoss, pIndicators->minLotSize, 0);
+			}
+			else
+				openSingleLongEasy(takePrice, stopLoss, lots, 0);
 		}
 		else
 			openSingleLongEasy(takePrice, stopLoss, lots, 0);
 	}
 	else
-		openSingleLongEasy(takePrice, stopLoss, lots, 0);
+	{
+		takePrice = stopLoss;
+		lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice)* pIndicators->risk;
+		openSingleLongEasy(takePrice, stopLoss, lots, 0);		
+	}
 
 	//openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk);
 }
@@ -637,36 +636,35 @@ void splitSellOrders_MACDDaily(StrategyParams* pParams, Indicators* pIndicators,
 		//takePrice = 0;
 		takePrice = pIndicators->riskCap * 1.5* pBase_Indicators->dailyATR;
 		lots = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, 1.5* pBase_Indicators->dailyATR) * pIndicators->risk;
-	}
-	else
-	{
-		takePrice = 0;
-		lots = pParams->orderInfo[0].lots;
-		stopLoss = abs(pParams->orderInfo[0].stopLoss - pIndicators->entryPrice);
-	}
-	
-	if (pIndicators->riskCap > 0)
-	{
-		lots = roundUp(lots, pIndicators->volumeStep);
-		if (lots / pIndicators->volumeStep > 5)
-		{	
-			//takePrice = 1 * 1.5* pBase_Indicators->dailyATR;;
-			//openSingleShortEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
 
-			//takePrice = max(1,pIndicators->riskCap/2) * 1.5* pBase_Indicators->dailyATR;
-			//openSingleShortEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
 
-			openSingleShortEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
+		if (pIndicators->riskCap > 0)
+		{
+			lots = roundUp(lots, pIndicators->volumeStep);
+			if (lots / pIndicators->volumeStep > 5)
+			{
+				//takePrice = 1 * 1.5* pBase_Indicators->dailyATR;;
+				//openSingleShortEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
 
-			takePrice = 0;
-			openSingleShortEasy(takePrice, stopLoss, pIndicators->minLotSize, 0);
+				//takePrice = max(1,pIndicators->riskCap/2) * 1.5* pBase_Indicators->dailyATR;
+				//openSingleShortEasy(takePrice, stopLoss, (lots - pIndicators->minLotSize)/2, 0);
+
+				openSingleShortEasy(takePrice, stopLoss, lots - pIndicators->minLotSize, 0);
+
+				takePrice = 0;
+				openSingleShortEasy(takePrice, stopLoss, pIndicators->minLotSize, 0);
+			}
+			else
+				openSingleShortEasy(takePrice, stopLoss, lots, 0);
 		}
 		else
 			openSingleShortEasy(takePrice, stopLoss, lots, 0);
 	}
-	else
+	else{
+		takePrice = stopLoss;
+		lots = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, takePrice)* pIndicators->risk;
 		openSingleShortEasy(takePrice, stopLoss, lots, 0);
-
+	}
 	//openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk);
 	
 }
@@ -3173,7 +3171,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	int    shift1Index_Daily = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 2;
 	int    shift0Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 1;
 	int    shift1Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 2;
-	int    shiftPreDayBar = shift1Index -1;
+	int    shiftPreDayBar = shift1Index_Daily - 1;
 	int   dailyTrend; 
 	time_t currentTime, preBarTime;
 	struct tm timeInfo1, timeInfo2, timeInfoPreBar;
@@ -3227,6 +3225,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	BOOL isMACDBeili = FALSE;
 
 	BOOL isEnableMaxLevel = FALSE;
+	
+	//int oldestOpenOrderIndex = -1;
 
 	double preWeeklyClose, preWeeklyClose1;
 	double shortDailyHigh = 0.0, shortDailyLow = 0.0, dailyHigh = 0.0, dailyLow = 0.0, weeklyHigh = 0.0, weeklyLow = 0.0, shortWeeklyHigh = 0.0, shortWeeklyLow = 0.0;
@@ -3805,6 +3805,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		
 
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
+		//oldestOpenOrderIndex = orderIndex;
+		//oldestOpenOrderIndex = getOldestOpenOrderIndexEasy(B_PRIMARY_RATES);
 
 		pIndicators->stopLoss = stopLoss;
 
@@ -3862,6 +3864,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			
 			if (//fast > slow && preFast <= preSlow &&				
 				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
+				//oldestOpenOrderIndex < 0 
 				&& pIndicators->fast > pIndicators->preFast		
 				)
 			{
@@ -3908,7 +3911,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					//如果是在趋势的后端，不做。
 					if (isEnableLate == TRUE && preHist1 > histLevel && preHist2 > histLevel && preHist3 > histLevel && preHist4 > histLevel && preHist5 > histLevel
 						&& fast1 > level && fast2 > level && fast3 > level && fast4 > level && fast5 > level
-						&& orderIndex >= 0  && pParams->orderInfo[orderIndex].type == BUY												
+						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
 						)
 					{
 						strcpy(pIndicators->status, "it is late for 5 days");
@@ -4074,6 +4077,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 			if (//fast < slow && preFast >= preSlow &&
 				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
+				//oldestOpenOrderIndex < 0 
 				&& pIndicators->fast < pIndicators->preFast			
 				)
 			{
@@ -4120,7 +4124,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					//如果是在趋势的后端，不做。
 					if (isEnableLate == TRUE && preHist1 < (histLevel*-1) && preHist2 < (histLevel*-1) && preHist3 < (histLevel*-1) && preHist4 < (histLevel*-1) && preHist5 < (histLevel*-1)
 						&& fast1 < (level*-1) && fast2 < (level*-1) && fast3 < (level*-1) && fast4 < (level*-1) && fast5 < (level*-1)
-						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL						
+						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL
 						)
 					{
 						strcpy(pIndicators->status, "it is late for 5 days");
@@ -4337,8 +4341,34 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 	//If average = 2.3, max = 3
 
-	//If the open order number is 2, and try to keep adding position.
+	//If the long term order move to break event, and try to keep adding position.	
 
+	//if (oldestOpenOrderIndex >= 0 &&
+	//	pIndicators->executionTrend != 0 &&
+	//	(pIndicators->exitSignal != EXIT_BUY || pIndicators->exitSignal != EXIT_SELL || pIndicators->exitSignal != EXIT_ALL) &&
+	//	(pIndicators->entrySignal != 1 || pIndicators->entrySignal != -1))
+	//{
+	//	//Modify MACD orders.
+	//	stopLoss = fabs(pIndicators->entryPrice - pIndicators->stopLossPrice) + pIndicators->adjust;
+	//	modifyAllOrdersOnSameDateEasy(oldestOpenOrderIndex, stopLoss, -1, pIndicators->stopMovingBackSL);
+
+	//	//Remove modify signal
+	//	pIndicators->executionTrend = 0;
+
+	//	if ((pParams->orderInfo[oldestOpenOrderIndex].type == BUY && pParams->orderInfo[oldestOpenOrderIndex].stopLoss - pParams->orderInfo[oldestOpenOrderIndex].openPrice >= -2 * pIndicators->adjust) ||
+	//		(pParams->orderInfo[oldestOpenOrderIndex].type == SELL &&  pParams->orderInfo[oldestOpenOrderIndex].openPrice - pParams->orderInfo[oldestOpenOrderIndex].stopLoss >= -2 * pIndicators->adjust))
+	//	{
+	//		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,stopLoss =%lf. it is ok to add new positions in a long term trend now.",
+	//			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pParams->orderInfo[oldestOpenOrderIndex].stopLoss);
+
+	//		pIndicators->tradeMode = 2;
+	//		pIndicators->risk = 0.5;
+	//		pIndicators->executionTrend = 0;
+
+	//		addMoreOrdersOnLongTermTrend(pParams, pIndicators, pBase_Indicators, oldestOpenOrderIndex);
+	//	}
+	//	
+	//}
 
 	return SUCCESS;
 }
@@ -5302,6 +5332,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily(StrategyParams* pParams,
 
 	double targetPNL = parameter(AUTOBBS_MAX_STRATEGY_RISK) * 1.5;
 	double strategyMarketVolRisk = 0.0;
+	
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_gmtime(&timeInfo1, currentTime);

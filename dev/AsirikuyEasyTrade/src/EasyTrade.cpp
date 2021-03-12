@@ -4216,6 +4216,63 @@ double EasyTrade::caculateStrategyRisk(BOOL isIgnoredLockedProfit)
 	return risk;
 }
 
+AsirikuyReturnCode EasyTrade::modifyAllOrdersOnSameDate(int orderIndex,double stopLoss, double takePrice, BOOL stopMovingbackSL)
+{
+	int i;
+	struct tm timeInfo1, timeInfo2;
+	double entryPrice;
+
+	double newTP = takePrice;
+	double newSL = stopLoss;
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		newTP = takePrice;
+		newSL = stopLoss;
+
+		safe_gmtime(&timeInfo1, pParams->orderInfo[orderIndex].openTime);
+		safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+
+		if (pParams->orderInfo[i].type == pParams->orderInfo[orderIndex].type 
+			&& pParams->orderInfo[i].ticket != 0 
+			&& pParams->orderInfo[i].isOpen == TRUE
+			&& timeInfo1.tm_mday == timeInfo2.tm_mday)
+		{
+			if (pParams->orderInfo[i].type == BUY)
+				entryPrice = pParams->bidAsk.ask[0];
+			else
+				entryPrice = pParams->bidAsk.bid[0];
+
+			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"ModifyAllLongs type = %d, ticket = %d,stopLoss=%lf, takePrice=%lf", 
+				(int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket,newSL,newTP );
+
+			if (newTP == -1) // No change
+			{
+				if (pParams->orderInfo[i].takeProfit == 0)
+					newTP = 0;
+				else
+					newTP = fabs(pParams->orderInfo[i].takeProfit - entryPrice);
+			}
+
+			if (newSL == -1)
+			{
+				if (pParams->orderInfo[i].stopLoss == 0)
+					newSL = 0;
+				else
+					newSL = fabs(entryPrice - pParams->orderInfo[i].stopLoss);
+			}
+
+
+			//不允许止损往回移动
+			if (stopMovingbackSL == TRUE && newSL > fabs(entryPrice - pParams->orderInfo[i].stopLoss))
+				newSL = fabs(entryPrice - pParams->orderInfo[i].stopLoss);
+
+			modifyTradeEasy(pParams->orderInfo[i].type, pParams->orderInfo[i].ticket, newSL, newTP);
+		}
+	}
+
+	return SUCCESS;
+}
+
 AsirikuyReturnCode EasyTrade::modifyAllLongs_DayTrading(double stopLoss1, double stopLossPrice2, double takePrice, int tpMode, time_t currentTime, double adjust, BOOL stopMovingbackSL)
 {
 	int i;	
@@ -4967,6 +5024,10 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	char  hourlyTimeString[MAX_TIME_STRING_SIZE] = "";
 	int   shift0Index = pParams->ratesBuffers->rates[primary_rate].info.arraySize - 1;
 	int   shiftDaily0Index = pParams->ratesBuffers->rates[hourly_rate].info.arraySize - 1;
+	int   offset_min = 3;
+
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+		offset_min = 7;
 
 	//Validate daily bars first
 	currentHourlyTime = pParams->ratesBuffers->rates[hourly_rate].time[shiftDaily0Index];
@@ -4979,7 +5040,7 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 
 	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"checking missing bars: Current hourly bar matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
 	printBarInfo(pParams, hourly_rate, timeString);
-	if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour && hourlyTimeInfo.tm_min <=3)
+	if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour && hourlyTimeInfo.tm_min <=offset_min)
 	{		
 		return SUCCESS;
 	}
@@ -4997,7 +5058,10 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 	char  secondaryTimeString[MAX_TIME_STRING_SIZE] = "";	
 	int diff = 0;
 	int closeMin = 60 - secondary_tf;
-	
+	int   offset_min = 3;
+
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+		offset_min = 7;
 
 
 	safe_gmtime(&timeInfo, currentTime);
@@ -5015,7 +5079,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 	{
 		if (secondaryTimeInfo.tm_yday == timeInfo.tm_yday && secondaryTimeInfo.tm_hour == timeInfo.tm_hour)
 		{
-			if (secondaryTimeInfo.tm_min % secondary_tf >= 3)
+			if (secondaryTimeInfo.tm_min % secondary_tf >= offset_min)
 			{
 				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
@@ -5147,7 +5211,12 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 			return ERROR_IN_RATES_RETRIEVAL;
 		
 		safe_gmtime(&secondaryTimeInfo, currentSeondaryTime);
-		checkedBarNum = (int)(MINUTES_PER_DAY + secondaryTimeInfo.tm_hour * MINUTES_PER_HOUR + secondaryTimeInfo.tm_min) / secondary_tf;
+		if (secondary_rate < MINUTES_PER_HOUR) //只測試當日
+		{
+			checkedBarNum = (int)((secondaryTimeInfo.tm_hour-startHour) * MINUTES_PER_HOUR + secondaryTimeInfo.tm_min) / secondary_tf;
+		}
+		else
+			checkedBarNum = (int)(MINUTES_PER_DAY + (secondaryTimeInfo.tm_hour-startHour) * MINUTES_PER_HOUR + secondaryTimeInfo.tm_min) / secondary_tf;
 		
 		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"Checking %d history secondary bars: current time = %s, current secondary time =%s", checkedBarNum, timeString, secondaryTimeString);
 

@@ -533,6 +533,11 @@ AsirikuyReturnCode modifyTradeEasy_new(int orderType, int orderTicket, double st
 		return easyTradePtr->modifyTradeEasy(orderType, orderTicket, stopLoss, takeProfit);
 }
 
+AsirikuyReturnCode modifyAllOrdersOnSameDateEasy(int orderIndex, double stopLoss, double takePrice, BOOL stopMovingbackSL)
+{
+	return easyTradePtr->modifyAllOrdersOnSameDate(orderIndex, stopLoss, takePrice, stopMovingbackSL);
+}
+
 AsirikuyReturnCode modifyTradeEasy(int orderType, int orderTicket, double stopLoss, double takeProfit)
 {
 	if (orderTicket == -1 && orderType == BUY) // All tickets

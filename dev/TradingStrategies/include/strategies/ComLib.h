@@ -168,6 +168,8 @@ extern "C" {
 
 	AsirikuyReturnCode getHighestCloseHourlyPrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int orderIndex,int * highPrice, int * lowPrice);
 
+	AsirikuyReturnCode addMoreOrdersOnLongTermTrend(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int oldestOpenOrderIndex);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

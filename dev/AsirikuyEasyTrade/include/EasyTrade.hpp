@@ -928,6 +928,8 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
   AsirikuyReturnCode modifyAllShorts_DayTrading(double stopLoss1, double stopLoss2, double takePrice, int tpMode, time_t currentTime, double adjust, BOOL stopMovingbackSL);
   AsirikuyReturnCode modifyAllLongs_DayTrading(double stopLoss1, double stopLoss2, double takePrice, int tpMode, time_t currentTime, double adjust, BOOL stopMovingbackSL);
 
+  AsirikuyReturnCode modifyAllOrdersOnSameDate(int orderIndex, double stopLoss, double takePrice, BOOL stopMovingbackSL);
+  
   AsirikuyReturnCode closeAllCurrentDayShortTermOrders(int tradeMode, time_t currentTime);
   
   BOOL closeBiggestWinningPosition(double * closeRisk, int * riskIndex);

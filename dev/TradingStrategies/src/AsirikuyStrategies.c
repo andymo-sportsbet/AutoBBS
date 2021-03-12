@@ -405,7 +405,8 @@ AsirikuyReturnCode runStrategy(StrategyParams* pParams)
   
   if (!isValidTradingTime(pParams,pParams->currentBrokerTime))
   {
-    return SUCCESS;
+	pantheios_logputs(PANTHEIOS_SEV_CRITICAL, (PAN_CHAR_T*)"runStrategy() failed. Invalid trading time.");
+	return SUCCESS;
   }
     
   /* Save tick data */
@@ -426,7 +427,7 @@ AsirikuyReturnCode runStrategy(StrategyParams* pParams)
   if(!pParams->settings[RUN_EVERY_TICK] 
     && areOrdersCorrect(pParams, pParams->settings[USE_SL], pParams->settings[USE_TP]) 
     && hasInstanceRunOnCurrentBar((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[PRIMARY_RATES_INDEX].time[pParams->ratesBuffers->rates[PRIMARY_RATES_INDEX].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]))
-  {
+  {	  
     return SUCCESS;
   }
 

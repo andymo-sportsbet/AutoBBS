@@ -714,3 +714,56 @@ AsirikuyReturnCode getHighestCloseHourlyPrice(StrategyParams* pParams, Indicator
 
 	return TRUE;
 }
+
+
+AsirikuyReturnCode addMoreOrdersOnLongTermTrend(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int oldestOpenOrderIndex)
+{
+
+	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
+	int    shift0Index_secondary = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 1, shift1Index_secondary = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
+	int    shift1Index_Daily = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 2;
+	time_t currentTime;
+	struct tm timeInfo1;
+	char       timeString[MAX_TIME_STRING_SIZE] = "";
+
+	double preHigh = iHigh(B_PRIMARY_RATES, 1);
+	double preLow = iLow(B_PRIMARY_RATES, 1);
+	double preClose = iClose(B_PRIMARY_RATES, 1);
+
+	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
+	safe_gmtime(&timeInfo1, currentTime);
+	safe_timeString(timeString, currentTime);
+
+	if (pParams->orderInfo[oldestOpenOrderIndex].type == BUY){
+
+		pIndicators->entryPrice = pParams->bidAsk.ask[0];
+
+		if (
+			(preLow < pBase_Indicators->dailyPivot && preClose >  pBase_Indicators->dailyPivot ||
+			(timeInfo1.tm_hour == 1 && timeInfo1.tm_min < 5)) &&
+			pIndicators->entryPrice - pIndicators->stopLoss > pParams->orderInfo[oldestOpenOrderIndex].stopLoss &&
+			!isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3)){
+			pIndicators->executionTrend = 1;
+			pIndicators->stopLossPrice = pIndicators->entryPrice - pIndicators->stopLoss;
+			pIndicators->entrySignal = 1;
+			return SUCCESS;
+		}
+	}
+
+	if (pParams->orderInfo[oldestOpenOrderIndex].type == SELL
+		){
+
+		pIndicators->entryPrice = pParams->bidAsk.bid[0];		
+		if ((preHigh > pBase_Indicators->dailyPivot && preClose < pBase_Indicators->dailyPivot ||
+			(timeInfo1.tm_hour == 1 && timeInfo1.tm_min < 5)) &&
+			pIndicators->entryPrice + pIndicators->stopLoss < pParams->orderInfo[oldestOpenOrderIndex].stopLoss &&
+			!isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3)){
+			pIndicators->executionTrend = -1;
+			pIndicators->stopLossPrice = pIndicators->entryPrice + pIndicators->stopLoss;
+			pIndicators->entrySignal = -1;
+			return SUCCESS;
+		}
+	}
+
+	return SUCCESS;
+}

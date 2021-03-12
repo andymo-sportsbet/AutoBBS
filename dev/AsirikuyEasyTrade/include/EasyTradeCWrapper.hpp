@@ -920,6 +920,8 @@ AsirikuyReturnCode modifyTradeEasy_DayTrading(int orderType, int orderTicket, do
 
 AsirikuyReturnCode modifyTradeEasy_new(int orderType, int orderTicket, double stopLoss, double takeProfit, int tpMode, BOOL stopMovingbackSL);
 
+AsirikuyReturnCode modifyAllOrdersOnSameDateEasy(int orderIndex, double stopLoss, double takePrice, BOOL stopMovingbackSL);
+
 AsirikuyReturnCode closeWinningPositionsEasy(double total, double target);
 AsirikuyReturnCode closeAllCurrentDayShortTermOrdersEasy(int tradeMode, time_t currentTime);
 

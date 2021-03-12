@@ -745,7 +745,6 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 	else
 		base_Indicators.strategy_mode = 1;
 
-
 	// Read rateError.txt file to get validateSecondaryBarsGap error times. 
 	// If more than 3 times, skip checking. 
 	rateErrorTimes = readRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], (BOOL)pParams->settings[IS_BACKTESTING]);
@@ -764,7 +763,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 		)
 		)
 	{
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"validate time failure.");
+		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d,BarTime = %s: validate time failure.", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 		return SUCCESS;
 	}
 
