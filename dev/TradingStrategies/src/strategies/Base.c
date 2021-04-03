@@ -1295,7 +1295,6 @@ void closeAllLimitPreviousDayOrders(StrategyParams* pParams)
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	closeAllBuyLimitOrders(currentTime);
 	closeAllSellLimitOrders(currentTime);
-
 }
 
 BOOL isNewDay(StrategyParams* pParams, time_t currentTime)

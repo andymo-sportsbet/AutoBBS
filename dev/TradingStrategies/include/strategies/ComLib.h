@@ -106,7 +106,7 @@ extern "C" {
 		double atr0;
 
 		double atr_euro_range;
-		double takePrice;
+		double takePrice;		
 		double takeprice2;
 		double stopLoss;
 		int startHour;

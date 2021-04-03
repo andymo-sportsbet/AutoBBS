@@ -402,6 +402,11 @@ AsirikuyReturnCode closeAllBuyLimitOrders(time_t currentTime)
 	return easyTradePtr->closeAllBuyLimitOrders(currentTime);
 }
 
+AsirikuyReturnCode closeAllLimitAndStopOrdersEasy(time_t currentTime)
+{
+	return easyTradePtr->closeAllLimitAndStopOrders(currentTime);
+}
+
 AsirikuyReturnCode closeAllSellLimitOrders(time_t currentTime)
 {
 	return easyTradePtr->closeAllSellLimitOrders(currentTime);
@@ -499,14 +504,24 @@ double isSameWeekSamePricePendingOrderEasy(double entryPrice, double limit, time
 	return easyTradePtr->isSameWeekSamePricePendingOrder(entryPrice, limit, currentTime);
 }
 
-double isSameDaySamePriceBuyLimitOrderEasy(double entryPrice, time_t currentTime)
+double isSamePriceBuyLimitOrderEasy(double entryPrice, time_t currentTime,double gap)
 {
-	return easyTradePtr->isSameDaySamePriceBuyLimitOrder(entryPrice, currentTime);
+	return easyTradePtr->isSamePriceBuyLimitOrder(entryPrice, currentTime,gap);
 }
 
-double isSameDaySamePriceSellLimitOrderEasy(double entryPrice, time_t currentTime)
+double isSamePriceSellLimitOrderEasy(double entryPrice, time_t currentTime,double gap)
 {
-	return easyTradePtr->isSameDaySamePriceSellLimitOrder(entryPrice, currentTime);
+	return easyTradePtr->isSamePriceSellLimitOrder(entryPrice, currentTime,gap);
+}
+
+double isSamePriceBuyStopOrderEasy(double entryPrice, time_t currentTime, double gap)
+{
+	return easyTradePtr->isSamePriceBuyStopOrder(entryPrice, currentTime, gap);
+}
+
+double isSamePriceSellStopOrderEasy(double entryPrice, time_t currentTime, double gap)
+{
+	return easyTradePtr->isSamePriceSellStopOrder(entryPrice, currentTime, gap);
 }
 
 AsirikuyReturnCode modifyTradeEasy_DayTrading(int orderType, int orderTicket, double stopLoss1, double stopLoss2, double takeProfit, int tpMode, time_t currentTime, double adjust, BOOL stopMovingbackSL)
@@ -576,10 +591,10 @@ AsirikuyReturnCode validateDailyBarsEasy(StrategyParams* pParams, int primary_ra
 	return easyTradePtr->validateDailyBars(pParams, primary_rate, daily_rate);
 }
 
-AsirikuyReturnCode validateSecondaryBarsEasy(StrategyParams* pParams, int primary_rate, int daily_rate, int secondary_tf, BOOL isCheckHistoricalBars)
+AsirikuyReturnCode validateSecondaryBarsEasy(StrategyParams* pParams, int primary_rate, int daily_rate, int secondary_tf, int rateErrorTimes)
 {
 
-	return easyTradePtr->validateSecondaryBars(pParams, primary_rate, daily_rate, secondary_tf, isCheckHistoricalBars);
+	return easyTradePtr->validateSecondaryBars(pParams, primary_rate, daily_rate, secondary_tf, rateErrorTimes);
 }
 
 AsirikuyReturnCode validateCurrentTimeEasy(StrategyParams* pParams, int primary_rate)
@@ -674,6 +689,11 @@ int getSameSideTradesInCurrentTrendEasy(int rateIndex, OrderType type)
 int getSameSideWonTradesInCurrentTrendEasy(int rateIndex, OrderType type)
 {
 	return easyTradePtr->getSameSideWonTradesInCurrentTrend(rateIndex, type);
+}
+
+int getWinTimesInDaywithSamePriceEasy(time_t currentTime, double openPrice, double limit)
+{
+	return easyTradePtr->getWinTimesInDaywithSamePrice(currentTime, openPrice,limit);
 }
 
 OrderType getLastestOrderTypeEasy(int rateIndex, double *pHigh, double *pLow, BOOL * pIsOpen)

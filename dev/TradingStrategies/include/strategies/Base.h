@@ -63,6 +63,9 @@ typedef struct base_Indicators_t
 	int maTrend;
 	int ma_Signal;
 
+	int mACDInTrend;
+	int shellingtonInTrend;
+
 	int dailyTrend;
 	int dailyTrend_Phase;	
 	int daily3RulesTrend;

@@ -98,6 +98,9 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 		case 29:
 			splitBuyOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
+		case 30:
+			splitBuyOrders_MultiDays_Swing_V2(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+			break;
 
 	}
 	
@@ -185,6 +188,9 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 	case 29:
 		splitSellOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
+	case 30:
+		splitSellOrders_MultiDays_Swing_V2(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		break;
 	}
 }
 
@@ -253,7 +259,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_MultipleDay(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 22:		
-		workoutExecutionTrend_MultipleDay(pParams, pIndicators, pBase_Indicators);
+		workoutExecutionTrend_MultipleDay_V2(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 23:
 		workoutExecutionTrend_MACD_Daily(pParams, pIndicators, pBase_Indicators);
@@ -360,18 +366,19 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		//addValueToUI("riskPNL", pIndicators->riskPNL);
 		break;
 	case 2:
+		addValueToUI("MacdTrend", pBase_Indicators->mACDInTrend);
+		addValueToUI("ShellingtonTrend", pBase_Indicators->shellingtonInTrend);
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
 		addValueToUI("dailyTrend_Phase", pBase_Indicators->dailyTrend_Phase);
+		addValueToUI("dailyPivot", pBase_Indicators->dailyPivot);
+		addValueToUI("DailyS1", pBase_Indicators->dailyS1);
+		addValueToUI("DailyR1", pBase_Indicators->dailyR1);
 		addValueToUI("DailyS", pBase_Indicators->dailyS);
 		addValueToUI("stopLossPrice", pIndicators->stopLossPrice);
 		addValueToUI("ExecutionTrend", pIndicators->executionTrend);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
-		addValueToUI("strategyRiskNLP", pIndicators->strategyRiskWithoutLockedProfit);
-		addValueToUI("riskPNL", pIndicators->riskPNL);
-		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
-		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
-		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+
 		break;
 	case 5:
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
@@ -673,7 +680,8 @@ static AsirikuyReturnCode handleTradeEntries(StrategyParams* pParams, Indicators
 	if ((hour() == 23 && minute() > 40) || (hour() == 00 && minute() < 20))
 		pIndicators->adjust = 3 * pIndicators->adjust;
 
-	stopLoss = fabs(pIndicators->entryPrice - pIndicators->stopLossPrice) + pIndicators->adjust;
+	//stopLoss = fabs(pIndicators->entryPrice - pIndicators->stopLossPrice) + pIndicators->adjust;
+	stopLoss = fabs(pIndicators->entryPrice - pIndicators->stopLossPrice);
 
 	switch (pIndicators->tpMode) {
 	case 0:
@@ -737,7 +745,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 	if (strcmp(timeString, "07/09/15 18:25") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
-	if (strcmp(timeString, "22/01/20 23:00") == 0)
+	if (strcmp(timeString, "26/03/21 02:00") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if ((int)parameter(AUTOBBS_TREND_MODE) == 16) // GBPJPY Daily Swing strategy, 这策略只需要日内的指标	
@@ -749,9 +757,6 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 	// If more than 3 times, skip checking. 
 	rateErrorTimes = readRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], (BOOL)pParams->settings[IS_BACKTESTING]);
 
-	if (rateErrorTimes >= 2)
-		isRateCheck = FALSE;
-
 
 	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && (int)pParams->settings[TIMEFRAME] >= 5 &&		
 		(strstr(pParams->tradeSymbol, "BTCUSD") == NULL || !isWeekend(pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index])) &&
@@ -759,7 +764,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 		validateCurrentTimeEasy(pParams, B_PRIMARY_RATES) > 0 ||
 		validateDailyBarsEasy(pParams, B_PRIMARY_RATES, B_DAILY_RATES) > 0 ||
 		validateHourlyBarsEasy(pParams, B_PRIMARY_RATES, B_HOURLY_RATES) > 0 ||
-		validateSecondaryBarsEasy(pParams, B_PRIMARY_RATES, B_SECONDARY_RATES, (int)parameter(AUTOBBS_EXECUTION_RATES), isRateCheck) > 0
+		validateSecondaryBarsEasy(pParams, B_PRIMARY_RATES, B_SECONDARY_RATES, (int)parameter(AUTOBBS_EXECUTION_RATES), rateErrorTimes) > 0
 		)
 		)
 	{
@@ -767,9 +772,9 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 		return SUCCESS;
 	}
 
-	// if passed, reset number to 0. 
-	if (isRateCheck == TRUE)
-		resetRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], (BOOL)pParams->settings[IS_BACKTESTING]);
+	//if passed, reset back to 0
+	if (rateErrorTimes >= 10)
+		saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 
 	if ((int)parameter(AUTOBBS_MACRO_TREND) * (int)parameter(AUTOBBS_ONE_SIDE) < 0)
 	{

@@ -2370,6 +2370,90 @@ AsirikuyReturnCode EasyTrade::openOrUpdateShortEasy(double takeProfit, double st
   return openOrUpdateShortTrade(pParams, 0, 0, stopLoss, takeProfit, risk,FALSE, FALSE);
 }
 
+AsirikuyReturnCode EasyTrade::closeAllLimitAndStopOrders(time_t currentTime)
+{
+	int i;
+	struct tm timeInfo1, timeInfo2;
+	safe_gmtime(&timeInfo1, currentTime);
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+		if (timeInfo1.tm_mday == timeInfo2.tm_mday && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
+		{
+			if (pParams->orderInfo[i].type == BUYSTOP)
+			{
+				pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Close buy stop orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				closeBuyStopEasy(pParams->orderInfo[i].ticket);
+			}
+
+			if (pParams->orderInfo[i].type == SELLSTOP)
+			{
+				pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Close sell stop orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				closeSellStopEasy(pParams->orderInfo[i].ticket);
+			}
+
+			if (pParams->orderInfo[i].type == BUYLIMIT)
+			{
+				pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Close buy Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				closeBuyLimitEasy(pParams->orderInfo[i].ticket);
+			}
+
+			if (pParams->orderInfo[i].type == SELLLIMIT)
+			{
+				pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Close sell Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				closeSellLimitEasy(pParams->orderInfo[i].ticket);
+			}
+		}
+	}
+	
+	return SUCCESS;
+}
+
+AsirikuyReturnCode EasyTrade::closeAllBuyStopOrders(time_t currentTime)
+{
+	int i;
+
+	struct tm timeInfo1, timeInfo2;
+	safe_gmtime(&timeInfo1, currentTime);
+
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+
+		if (pParams->orderInfo[i].type == BUYSTOP && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
+		{
+			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
+			{
+				pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				closeBuyStopEasy(pParams->orderInfo[i].ticket);
+			}
+		}
+	}
+	return SUCCESS;
+}
+
+AsirikuyReturnCode EasyTrade::closeAllSellStopOrders(time_t currentTime)
+{
+	int i;
+	struct tm timeInfo1, timeInfo2;
+	safe_gmtime(&timeInfo1, currentTime);
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+
+		if (pParams->orderInfo[i].type == SELLSTOP && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
+		{
+			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
+			{
+				pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				closeSellStopEasy(pParams->orderInfo[i].ticket);
+			}
+		}
+	}
+	return SUCCESS;
+}
+
+
 AsirikuyReturnCode EasyTrade::closeAllBuyLimitOrders(time_t currentTime)
 {
 	int i;
@@ -2380,7 +2464,7 @@ AsirikuyReturnCode EasyTrade::closeAllBuyLimitOrders(time_t currentTime)
 	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
 	{
 
-		if (pParams->orderInfo[i].type == BUYLIMIT && pParams->orderInfo[i].ticket != 0 && !pParams->orderInfo[i].isOpen)
+		if (pParams->orderInfo[i].type == BUYLIMIT && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
 		{
 			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
 			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
@@ -2401,7 +2485,7 @@ AsirikuyReturnCode EasyTrade::closeAllSellLimitOrders(time_t currentTime)
 	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
 	{
 
-		if (pParams->orderInfo[i].type == SELLLIMIT && pParams->orderInfo[i].ticket != 0 && !pParams->orderInfo[i].isOpen)
+		if (pParams->orderInfo[i].type == SELLLIMIT && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
 		{
 			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
 			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
@@ -2556,19 +2640,15 @@ AsirikuyReturnCode EasyTrade::modifyAllShorts(double stopLoss,double takePrice,i
 	return SUCCESS;
 }
 
-double EasyTrade::isSameDaySamePriceBuyLimitOrder(double entryPrice, time_t currentTime)
+double EasyTrade::isSamePriceBuyStopOrder(double entryPrice, time_t currentTime,double gap)
 {
 	int i;
-	struct tm timeInfo1, timeInfo2;
-	safe_gmtime(&timeInfo1, currentTime);
-
 
 	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
 	{
-		if (pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].type == BUYLIMIT)
-		{
-			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
-			if (fabs(entryPrice - pParams->orderInfo[i].openPrice) <= 0.001 && timeInfo1.tm_mday == timeInfo2.tm_mday)
+		if (pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].type == BUYSTOP && pParams->orderInfo[i].isOpen)
+		{			
+			if (fabs(entryPrice - pParams->orderInfo[i].openPrice) <= gap)
 			{
 				return TRUE;
 			}
@@ -2578,19 +2658,50 @@ double EasyTrade::isSameDaySamePriceBuyLimitOrder(double entryPrice, time_t curr
 	return FALSE;
 }
 
-double EasyTrade::isSameDaySamePriceSellLimitOrder(double entryPrice, time_t currentTime)
+double EasyTrade::isSamePriceSellStopOrder(double entryPrice, time_t currentTime, double gap)
 {
 	int i;
-	struct tm timeInfo1, timeInfo2;
-	safe_gmtime(&timeInfo1, currentTime);
-
-
+	
 	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
 	{
-		if (pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].type == SELLLIMIT)
-		{
-			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
-			if (fabs(entryPrice - pParams->orderInfo[i].openPrice) <= 0.001 && timeInfo1.tm_mday == timeInfo2.tm_mday)
+		if (pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].type == SELLSTOP && pParams->orderInfo[i].isOpen)
+		{			
+			if (fabs(entryPrice - pParams->orderInfo[i].openPrice) <= gap)
+			{
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
+double EasyTrade::isSamePriceBuyLimitOrder(double entryPrice, time_t currentTime, double gap)
+{
+	int i;
+	
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		if (pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].type == BUYLIMIT && pParams->orderInfo[i].isOpen)
+		{			
+			if (fabs(entryPrice - pParams->orderInfo[i].openPrice) <= gap)
+			{
+				return TRUE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
+double EasyTrade::isSamePriceSellLimitOrder(double entryPrice, time_t currentTime,double gap)
+{
+	int i;
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		if (pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].type == SELLLIMIT && pParams->orderInfo[i].isOpen)
+		{			
+			if (fabs(entryPrice - pParams->orderInfo[i].openPrice) <= gap)
 			{
 				return TRUE;
 			}
@@ -3826,6 +3937,42 @@ int EasyTrade::getLossTimesInDay(time_t currentTime,double * total_lost_pips)
 	return lossTimes;
 }
 
+int EasyTrade::getWinTimesInDaywithSamePrice(time_t currentTime,double openPrice,double limit)
+{
+	int i;
+	int winningTimes = 0;
+	struct tm timeInfo1, timeInfo2;
+
+	safe_gmtime(&timeInfo1, currentTime);
+
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		// Close winning trades.
+		if (pParams->orderInfo[i].ticket != 0)
+		{
+			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
+			if (timeInfo1.tm_year == timeInfo2.tm_year && timeInfo1.tm_yday == timeInfo2.tm_yday && fabs(pParams->orderInfo[i].openPrice- openPrice) < limit )
+			{
+
+				if (pParams->orderInfo[i].isOpen == FALSE && pParams->orderInfo[i].profit > 0)
+					winningTimes++;
+
+				if (pParams->orderInfo[i].isOpen == TRUE && pParams->orderInfo[i].takeProfit > 0)
+				{
+					if (pParams->orderInfo[i].type == BUY && pParams->bidAsk.ask[0] > pParams->orderInfo[i].takeProfit)
+						winningTimes++;
+
+					if (pParams->orderInfo[i].type == SELL && pParams->bidAsk.bid[0] < pParams->orderInfo[i].takeProfit)
+						winningTimes++;
+				}
+			}
+		}
+
+	}
+
+	return winningTimes;
+}
+
 int EasyTrade::getWinTimesInDay(time_t currentTime)
 {
 	int i;
@@ -3984,7 +4131,7 @@ double EasyTrade::caculateStrategyPNLOrder(OrderType type, double openPrice, dou
 	}
 
 	
-	if (type == BUY)
+	if (type == BUY || type == BUYLIMIT || type == BUYSTOP)
 	{
 		currentPrice = pParams->bidAsk.ask[0];
 		if (openPrice - currentPrice > 0)
@@ -3992,7 +4139,7 @@ double EasyTrade::caculateStrategyPNLOrder(OrderType type, double openPrice, dou
 		else if (!isIgnoredLockedProfit)
 			adjust = 1;
 	}
-	if (type == SELL)
+	if (type == SELL || type == SELLLIMIT || type == SELLSTOP)
 	{
 		currentPrice = pParams->bidAsk.bid[0];
 		if (openPrice - currentPrice < 0)
@@ -4734,6 +4881,70 @@ AsirikuyReturnCode EasyTrade::closeSellLimitEasy(int orderTicket)
 	return SUCCESS;
 }
 
+AsirikuyReturnCode EasyTrade::closeBuyStopEasy(int orderTicket)
+{
+	int tradingSignals, i, resultIndex;
+
+	resultIndex = -1;
+
+	for (i = 0; i < (int)pParams->settings[MAX_OPEN_ORDERS]; i++)
+	{
+		if (pParams->results[i].tradingSignals == SIGNAL_NONE)
+		{
+			resultIndex = i;
+			break;
+		}
+	}
+
+	if (resultIndex == -1)
+	{
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Results array assignations already full");
+		return SUCCESS;
+	}
+
+	tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
+
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+	addTradingSignal(SIGNAL_CLOSE_BUYSTOP, &tradingSignals);
+
+	pParams->results[resultIndex].ticketNumber = orderTicket;
+	pParams->results[resultIndex].tradingSignals = tradingSignals;
+
+	return SUCCESS;
+}
+
+AsirikuyReturnCode EasyTrade::closeSellStopEasy(int orderTicket)
+{
+	int tradingSignals, i, resultIndex;
+
+	resultIndex = -1;
+
+	for (i = 0; i < (int)pParams->settings[MAX_OPEN_ORDERS]; i++)
+	{
+		if (pParams->results[i].tradingSignals == SIGNAL_NONE)
+		{
+			resultIndex = i;
+			break;
+		}
+	}
+
+	if (resultIndex == -1)
+	{
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Results array assignations already full");
+		return SUCCESS;
+	}
+
+	tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
+
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+	addTradingSignal(SIGNAL_CLOSE_SELLSTOP, &tradingSignals);
+
+	pParams->results[resultIndex].ticketNumber = orderTicket;
+	pParams->results[resultIndex].tradingSignals = tradingSignals;
+
+	return SUCCESS;
+}
+
 AsirikuyReturnCode EasyTrade::closeBuyLimitEasy(int orderTicket)
 {
 	int tradingSignals, i, resultIndex;
@@ -5051,7 +5262,7 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	}
 
 }
-BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t currentTime, time_t currentSeondaryTime, int secondary_tf, int primary_tf, bool isWithPrimary, int startHour,BOOL isCheckHistoricalBars)
+BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t currentTime, time_t currentSeondaryTime, int secondary_tf, int primary_tf, bool isWithPrimary, int startHour, int rateErrorTimes)
 {	
 	struct tm timeInfo, secondaryTimeInfo;
 	char  timeString[MAX_TIME_STRING_SIZE] = "";
@@ -5059,6 +5270,10 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 	int diff = 0;
 	int closeMin = 60 - secondary_tf;
 	int   offset_min = 3;
+	
+	BOOL isCheckHistoricalBars = TRUE;
+	if (rateErrorTimes > 2)
+		isCheckHistoricalBars = FALSE;
 
 	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
 		offset_min = 7;
@@ -5137,6 +5352,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 				{
 					pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 						timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+					saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes+1, (BOOL)pParams->settings[IS_BACKTESTING]);
 					return FALSE;
 				}
 			}
@@ -5148,6 +5364,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 			{
 				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+				saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes+1, (BOOL)pParams->settings[IS_BACKTESTING]);
 				return FALSE;
 			}
 		}
@@ -5155,6 +5372,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 		{
 			pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 				timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+			saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes+1, (BOOL)pParams->settings[IS_BACKTESTING]);
 			return FALSE;
 		}
 	}
@@ -5163,7 +5381,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 	return TRUE;
 }
 
-AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int primary_rate,int secondary_rate,int secondary_tf,BOOL isCheckHistoricalBars)
+AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int primary_rate, int secondary_rate, int secondary_tf, int rateErrorTimes)
 {
 	time_t currentTime, currentSeondaryTime;	
 	struct tm secondaryTimeInfo;
@@ -5207,7 +5425,7 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 			pParams->ratesBuffers->rates[secondary_rate].open[shiftSecondary0Index],
 			pParams->ratesBuffers->rates[secondary_rate].close[shiftSecondary0Index]);
 
-		if (!validateSecondaryBarsGap(pParams, currentTime, currentSeondaryTime, secondary_tf, primary_tf, true, startHour, isCheckHistoricalBars))
+		if (!validateSecondaryBarsGap(pParams, currentTime, currentSeondaryTime, secondary_tf, primary_tf, true, startHour, rateErrorTimes))
 			return ERROR_IN_RATES_RETRIEVAL;
 		
 		safe_gmtime(&secondaryTimeInfo, currentSeondaryTime);
@@ -5234,7 +5452,7 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 				pParams->ratesBuffers->rates[secondary_rate].open[shiftSecondary0Index - 1],
 				pParams->ratesBuffers->rates[secondary_rate].close[shiftSecondary0Index - 1]);
 
-			if (!validateSecondaryBarsGap(pParams, currentTime, currentSeondaryTime, secondary_tf, primary_tf, false, startHour, isCheckHistoricalBars))
+			if (!validateSecondaryBarsGap(pParams, currentTime, currentSeondaryTime, secondary_tf, primary_tf, false, startHour, rateErrorTimes))
 				return ERROR_IN_RATES_RETRIEVAL;
 
 			shiftSecondary0Index--;

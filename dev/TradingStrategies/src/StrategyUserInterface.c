@@ -185,13 +185,14 @@ AsirikuyReturnCode savePredicatedWeeklyATR(char * pName, double predicatedWeekly
 
 	return SUCCESS;
 }
-AsirikuyReturnCode resetRateFile(int instanceID, BOOL isBackTesting)
+
+AsirikuyReturnCode saveRateFile(int instanceID, int rate,BOOL isBackTesting)
 {
 	char instanceIDName[TOTAL_UI_VALUES];
 	char buffer[MAX_FILE_PATH_CHARS] = "";
-	char extension[] = "_rate.txt";	
+	char extension[] = "_rate.txt";
 	FILE *fp;
-	
+
 	/* This function is in the StrategyUserInterface.c file because
 	it's information is used to draw a part of the UI
 	(top right corner --  update time) */
@@ -207,15 +208,15 @@ AsirikuyReturnCode resetRateFile(int instanceID, BOOL isBackTesting)
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"resetRateFile() %s", buffer);
+	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"saveRateFile() %s", buffer);
 
 	fp = fopen(buffer, "w");
 	if (fp == NULL)
-	{		
+	{
 		return SUCCESS;
 	}
 
-	fprintf(fp, "%d\n", 0);	
+	fprintf(fp, "%d\n", rate);
 
 	fclose(fp);
 

@@ -935,12 +935,15 @@ double isSameDaySamePricePendingOrderEasy(double entryPrice, double limit, time_
 double isSameWeekSamePricePendingOrderEasy(double entryPrice, double limit, time_t currentTime);
 double isSameDaySamePricePendingOrderEasy_with_TP(double entryPrice, double limit, time_t currentTime);
 
-double isSameDaySamePriceBuyLimitOrderEasy(double entryPrice, time_t currentTime);
-double isSameDaySamePriceSellLimitOrderEasy(double entryPrice, time_t currentTime);
+double isSamePriceBuyLimitOrderEasy(double entryPrice, time_t currentTime,double gap);
+double isSamePriceSellLimitOrderEasy(double entryPrice, time_t currentTime,double gap);
+double isSamePriceBuyStopOrderEasy(double entryPrice, time_t currentTime,double gap);
+double isSamePriceSellStopOrderEasy(double entryPrice, time_t currentTime,double gap);
+
 int getSamePricePendingNoTPOrdersEasy(double entryPrice, double limit);
 AsirikuyReturnCode validateHourlyBarsEasy(StrategyParams* pParams, int primary_rate, int hourly_rate);
 AsirikuyReturnCode validateDailyBarsEasy(StrategyParams* pParams, int primary_rate, int daily_rate);
-AsirikuyReturnCode validateSecondaryBarsEasy(StrategyParams* pParams, int primary_rate, int daily_rate, int secondary_tf, BOOL isCheckHistoricalBars);
+AsirikuyReturnCode validateSecondaryBarsEasy(StrategyParams* pParams, int primary_rate, int daily_rate, int secondary_tf, int rateErrorTimes);
 AsirikuyReturnCode validateCurrentTimeEasy(StrategyParams* pParams, int primary_rate);
 
 int getLossTimesInWeekEasy(time_t currentTime, double * total_lost_pips);
@@ -1014,6 +1017,9 @@ AsirikuyReturnCode openSingleLongEasy(double takeProfit, double stopLoss, double
 AsirikuyReturnCode closeAllBuyLimitOrders(time_t currentTime);
 AsirikuyReturnCode closeAllSellLimitOrders(time_t currentTime);
 AsirikuyReturnCode closeAllWithNegativeEasy(int tradeMode, time_t currentTime,int days);
+AsirikuyReturnCode closeAllLimitAndStopOrdersEasy(time_t currentTime);
+
+int getWinTimesInDaywithSamePriceEasy(time_t currentTime, double openPrice, double limit);
 
 /**
 * Closes all active long trades.

@@ -344,7 +344,7 @@ AsirikuyReturnCode handleTradeExits(StrategyParams* pParams, Indicators* pIndica
 
 
 	// alwasy close all pre day limit orders.
-	closeAllLimitPreviousDayOrders(pParams);
+	//closeAllLimitPreviousDayOrders(pParams);
 
 	switch (pIndicators->exitSignal)
 	{
@@ -623,11 +623,12 @@ AsirikuyReturnCode modifyOrders(StrategyParams* pParams, Indicators* pIndicators
 	shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 
-	if ((int)parameter(AUTOBBS_TREND_MODE) == 33) //MACD BEILI, need to move take profit price
+	if ((int)parameter(AUTOBBS_TREND_MODE) == 33 || (int)parameter(AUTOBBS_TREND_MODE) == 2) //MACD BEILI, need to move take profit price
 	{
 		takePrice = fabs(pIndicators->entryPrice - pIndicators->takeProfitPrice);
 	}
 	
+
 	if ((int)parameter(AUTOBBS_TREND_MODE) == 15 )
 	{
 

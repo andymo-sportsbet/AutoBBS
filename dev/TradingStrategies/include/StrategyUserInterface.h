@@ -79,11 +79,11 @@ AsirikuyReturnCode saveUserHeartBeat(int instanceID, BOOL isBackTesting);
 int readRateFile(int instanceID, BOOL isBackTesting);
 int readXAUUSDKeyNewsDateFile(time_t *pKeyDates);
 
-AsirikuyReturnCode resetRateFile(int instanceID, BOOL isBackTesting);
 AsirikuyReturnCode savePredicatedWeeklyATR(char * pName, double predicatedWeeklyATR, double predicatedMaxWeeklyATR, BOOL isBackTesting);
 
 int readWeeklyATRFile(char * pName, double *pPredictWeeklyATR, double *pPredictWeeklyMaxATR, BOOL isBackTesting);
 
+AsirikuyReturnCode saveRateFile(int instanceID, int rate, BOOL isBackTesting);
 
 AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo, BOOL isBackTesting);
 int readTradingInfo(int instanceID, Order_Info *pOrderInfo);

@@ -37,6 +37,8 @@ void splitSellOrders_Daily_XAUUSD_Swing(StrategyParams* pParams, Indicators* pIn
 void splitBuyOrders_MultiDays_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
 void splitSellOrders_MultiDays_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
 
+void splitBuyOrders_MultiDays_Swing_V2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
+void splitSellOrders_MultiDays_Swing_V2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
 
 void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
 void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss);
@@ -85,6 +87,8 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI_Daily_Regression(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
+
+AsirikuyReturnCode workoutExecutionTrend_MultipleDay_V2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 
 #ifdef __cplusplus

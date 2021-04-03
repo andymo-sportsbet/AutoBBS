@@ -950,8 +950,11 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
   double isSameWeekSamePricePendingOrder(double entryPrice, double limit, time_t currentTime);
   double isSameDaySamePricePendingOrder_with_TP(double entryPrice, double limit, time_t currentTime);
 
-  double isSameDaySamePriceBuyLimitOrder(double entryPrice, time_t currentTime);
-  double isSameDaySamePriceSellLimitOrder(double entryPrice, time_t currentTime);
+  double isSamePriceBuyLimitOrder(double entryPrice, time_t currentTime,double gap);
+  double isSamePriceSellLimitOrder(double entryPrice, time_t currentTime,double gap);
+  double isSamePriceBuyStopOrder(double entryPrice, time_t currentTime, double gap);
+  double isSamePriceSellStopOrder(double entryPrice, time_t currentTime, double gap);
+
   int getSamePricePendingNoTPOrders(double entryPrice, double limit);
 
   int getLossTimesInWeek(time_t currentTime, double * total_lost_pips);
@@ -960,6 +963,7 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
   int getLossTimesInDayExcludeBreakeventOrders(time_t currentTime, double * total_lost_pips, double points);
   int getLossTimesInDay(time_t currentTime, double * total_lost_pips);
   int getWinTimesInDay(time_t currentTime);
+  int getWinTimesInDaywithSamePrice(time_t currentTime, double openPrice, double limit);
 
   int getLossTimesInPreviousDays(time_t currentTime, double *pTotal_Lost_Pips);
 
@@ -975,7 +979,6 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
   int getOrderCount();
   double getLastestOrderPrice(int rateIndex, BOOL * pIsOpen);
 
-
   int hasOpenOrder();
   int hasSameDayOrderExcludeBreakeventOrders(time_t currentTime, BOOL *pIsOpen, double points);
   int hasSameDayOrder(time_t currentTime, BOOL *pIsOpen);
@@ -988,8 +991,8 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
 
   AsirikuyReturnCode validateDailyBars(StrategyParams* pParams, int primary_rate, int daily_rate);
   AsirikuyReturnCode validateHourlyBars(StrategyParams* pParams, int primary_rate, int hourly_rate);
-  AsirikuyReturnCode validateSecondaryBars(StrategyParams* pParams, int primary_rate, int secondary_rate, int secondary_tf, BOOL isCheckHistoricalBars);
-  BOOL validateSecondaryBarsGap(StrategyParams* pParams, time_t currentTime, time_t currentSeondaryTime, int secondary_tf, int primary_tf, bool isWithPrimary, int startHour,BOOL isCheckHistoricalBars);
+  AsirikuyReturnCode validateSecondaryBars(StrategyParams* pParams, int primary_rate, int secondary_rate, int secondary_tf,int rateErrorTimes);
+  BOOL validateSecondaryBarsGap(StrategyParams* pParams, time_t currentTime, time_t currentSeondaryTime, int secondary_tf, int primary_tf, bool isWithPrimary, int startHour,int rateErrorTimes);
   OrderType getLastestOpenOrderType(int rateIndex, double *pHigh, double *pLow);
   OrderType getLastestOrderType(int rateIndex, double *pHigh, double *pLow, BOOL * pIsOpen);
   OrderType getLastestOrderType_XAUUSD(int rateIndex, double *pHigh, double *pLow, BOOL * pIsOpen);
@@ -1043,9 +1046,16 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
 
   AsirikuyReturnCode closeAllBuyLimitOrders(time_t currentTime);
   AsirikuyReturnCode closeAllSellLimitOrders(time_t currentTime);
+  AsirikuyReturnCode closeAllBuyStopOrders(time_t currentTime);
+  AsirikuyReturnCode closeAllSellStopOrders(time_t currentTime);
+
+  AsirikuyReturnCode closeAllLimitAndStopOrders(time_t currentTime);
 
   AsirikuyReturnCode closeBuyLimitEasy(int orderTicket);
   AsirikuyReturnCode closeSellLimitEasy(int orderTicket);
+
+  AsirikuyReturnCode closeBuyStopEasy(int orderTicket);
+  AsirikuyReturnCode closeSellStopEasy(int orderTicket);
 
   AsirikuyReturnCode closeAllLongTermLongs();
   AsirikuyReturnCode closeAllLongTermShorts();
