@@ -41,8 +41,8 @@ int filterExcutionTF(StrategyParams* pParams, Indicators* pIndicators, Base_Indi
 		pIndicators->bbsStopPrice_excution = pIndicators->bbsStopPrice_secondary;
 		shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
 
-		if (timeInfo1.tm_min % pIndicators->executionRateTF >= 3)
-			return SUCCESS;
+		//if (timeInfo1.tm_min % pIndicators->executionRateTF >= 3)
+		//	return SUCCESS;
 	}
 	else
 	{
@@ -623,7 +623,7 @@ AsirikuyReturnCode modifyOrders(StrategyParams* pParams, Indicators* pIndicators
 	shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 
-	if ((int)parameter(AUTOBBS_TREND_MODE) == 33 || (int)parameter(AUTOBBS_TREND_MODE) == 2) //MACD BEILI, need to move take profit price
+	if ((int)parameter(AUTOBBS_TREND_MODE) == 33 || (int)parameter(AUTOBBS_TREND_MODE) == 2 || (int)parameter(AUTOBBS_TREND_MODE) == 34) //MACD BEILI, need to move take profit price
 	{
 		takePrice = fabs(pIndicators->entryPrice - pIndicators->takeProfitPrice);
 	}
@@ -682,7 +682,7 @@ AsirikuyReturnCode modifyOrders(StrategyParams* pParams, Indicators* pIndicators
 
 }
 
-AsirikuyReturnCode getHighestClosePrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index, int orderIndex, double * highPrice, double * lowPrice)
+AsirikuyReturnCode getHighestHourlyClosePrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index, int orderIndex, double * highPrice, double * lowPrice)
 {
 	
 	int  shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -691,6 +691,7 @@ AsirikuyReturnCode getHighestClosePrice(StrategyParams* pParams, Indicators* pIn
 	time_t currentTime;
 	struct tm timeInfo1; 
 	char   timeString[MAX_TIME_STRING_SIZE] = "";
+	int seconds;
 	
 	*highPrice = -999999.0;
 	*lowPrice = 999999.0;
@@ -716,7 +717,7 @@ AsirikuyReturnCode getHighestClosePrice(StrategyParams* pParams, Indicators* pIn
 	return TRUE;
 }
 
-AsirikuyReturnCode getHighLowPrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index, int orderIndex, double * highPrice, double * lowPrice)
+AsirikuyReturnCode getHighLowPrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index, int timeFrame,int orderIndex, double * highPrice, double * lowPrice)
 {
 
 	int  shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -735,12 +736,12 @@ AsirikuyReturnCode getHighLowPrice(StrategyParams* pParams, Indicators* pIndicat
 
 	if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
 	{
-		count = (int)difftime(currentTime, pParams->orderInfo[orderIndex].openTime) / (60 * 60);
+		count = (int)difftime(currentTime, pParams->orderInfo[orderIndex].openTime) / timeFrame;
 
 		openBar = shift1Index - count;
 
 		if (count >= 1)
-			iSRLevels(pParams, pBase_Indicators, rate_index, shift1Index, 2 * count, highPrice, lowPrice);
+			iSRLevels(pParams, pBase_Indicators, rate_index, shift1Index, count, highPrice, lowPrice);
 		else
 			return FALSE;
 	}

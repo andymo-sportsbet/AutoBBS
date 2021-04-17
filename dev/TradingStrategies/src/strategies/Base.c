@@ -647,58 +647,67 @@ AsirikuyReturnCode iTrend_HL(int ratesArrayIndex,int *trend,int index)
 	return SUCCESS;
 }
 
-int getMATrend_Signal(int ratesArrayIndex)
+int getMATrend_SignalBase(int rateShort,int rateLong,int ratesArrayIndex,int maxBars)
 {
-	int i = 0, j, maTrend,maTrend_Prev;
+	int i = 0, j, maTrend, maTrend_Prev;
 	double adjust = iAtr(ratesArrayIndex, 20, 1);
-	
-	maTrend = getMATrend(adjust, ratesArrayIndex, 1);	
+
+	maTrend = getMATrendBase(rateShort,rateLong,adjust, ratesArrayIndex, 1);
 	if (maTrend == 0)
-	//if (fabs(maTrend) < 2)
+		//if (fabs(maTrend) < 2)
 		return 0;
 
-	for (i = 1; i < 240; i++)
+	for (i = 1; i < maxBars; i++)
 	{
-		maTrend_Prev = getMATrend(adjust, ratesArrayIndex, i + 1);
-		if (maTrend_Prev!= 0) // need to keep looking back
+		maTrend_Prev = getMATrendBase(rateShort,rateLong,adjust, ratesArrayIndex, i + 1);
+		
+		if (maTrend > 0 && maTrend_Prev < 0)
+		{			
+			return 1;
+		}
+
+		if (maTrend < 0 && maTrend_Prev > 0)
 		{
-			j = i + 1;
-			break;
+			return -1;
 		}
 	}
-
-	if (maTrend > 0 && maTrend_Prev < 0)
-		return 1;
-
-	if (maTrend < 0 && maTrend_Prev > 0)
-		return -1;
-
+		
 	return 0;
 }
 
-int getMATrend(double iATR, int ratesArrayIndex, int index)
+int getMATrend_Signal(int ratesArrayIndex)
 {
-	double ma50M, ma200M;
+	return getMATrend_SignalBase(50, 200, ratesArrayIndex,24);
+}
+
+int getMATrendBase(int rateShort,int rateLong,double iATR, int ratesArrayIndex, int index)
+{
+	double maShort, maLong;
 	int trend;
 
-	ma50M = iMA(3, ratesArrayIndex, 50, index);
-	ma200M = iMA(3, ratesArrayIndex, 200, index);
+	maShort = iMA(3, ratesArrayIndex, rateShort, index);
+	maLong = iMA(3, ratesArrayIndex, rateLong, index);
 
-	if (ma50M > ma200M)
+	if (maShort > maLong)
 	{
 		trend = 1;
-		if (ma50M - ma200M >= iATR)
+		if (maShort - maLong >= iATR)
 			trend = 2;
 	}
-	else if (ma50M < ma200M)
+	else if (maShort < maLong)
 	{
 		trend = -1;
-		if (ma200M - ma50M >= iATR)
+		if (maLong - maShort >= iATR)
 			trend = -2;
 	}
 	else
 		trend = 0;
 	return trend;
+}
+
+int getMATrend(double iATR, int ratesArrayIndex, int index)
+{
+	return getMATrendBase(50, 200, iATR, ratesArrayIndex, index);
 }
 
 // Daily: 1H 200M , 50M

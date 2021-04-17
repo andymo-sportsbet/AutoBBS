@@ -5236,9 +5236,8 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	int   shift0Index = pParams->ratesBuffers->rates[primary_rate].info.arraySize - 1;
 	int   shiftDaily0Index = pParams->ratesBuffers->rates[hourly_rate].info.arraySize - 1;
 	int   offset_min = 3;
+	int   offset_hour = 0;
 
-	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
-		offset_min = 7;
 
 	//Validate daily bars first
 	currentHourlyTime = pParams->ratesBuffers->rates[hourly_rate].time[shiftDaily0Index];
@@ -5249,9 +5248,34 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	safe_gmtime(&timeInfo, currentTime);
 	safe_timeString(timeString, currentTime);
 
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	{
+		offset_min = 7;
+		if (timeInfo.tm_min == 0)
+			offset_hour = 1;
+		else
+			offset_hour = 0;
+	}
+
 	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"checking missing bars: Current hourly bar matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
 	printBarInfo(pParams, hourly_rate, timeString);
-	if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour && hourlyTimeInfo.tm_min <=offset_min)
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	{
+		if (timeInfo.tm_hour == 0 && timeInfo.tm_min == 0
+			&& hourlyTimeInfo.tm_yday == timeInfo.tm_yday - 1 && hourlyTimeInfo.tm_hour == 23 && hourlyTimeInfo.tm_min == 5)
+		{			
+			return SUCCESS;
+		}
+		else if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour - offset_hour && hourlyTimeInfo.tm_min == 5)
+		{
+			return SUCCESS;
+		}
+		
+
+		pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
+		return ERROR_IN_RATES_RETRIEVAL;
+	}
+	else if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour && hourlyTimeInfo.tm_min <=offset_min)
 	{		
 		return SUCCESS;
 	}
@@ -5276,7 +5300,9 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 		isCheckHistoricalBars = FALSE;
 
 	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	{
 		offset_min = 7;
+	}
 
 
 	safe_gmtime(&timeInfo, currentTime);
@@ -5301,7 +5327,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 				return FALSE;
 			}
 
-			if (diff > (secondary_tf - primary_tf))
+			if (diff > (secondary_tf - primary_tf) && diff >= primary_tf)
 			{
 				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
@@ -5357,7 +5383,11 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 				}
 			}
 			
-			if (secondaryTimeInfo.tm_hour == 23 && secondaryTimeInfo.tm_min == closeMin &&
+			//Only BTCUSD will miss 00:00 on 5m chart
+			if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL && secondary_tf == 5 && secondaryTimeInfo.tm_hour == 23 && secondaryTimeInfo.tm_min == closeMin
+				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == secondary_tf)
+				return TRUE;
+			else if (secondaryTimeInfo.tm_hour == 23 && secondaryTimeInfo.tm_min == closeMin &&
 				timeInfo.tm_hour == startHour && timeInfo.tm_min <= 1)
 				return TRUE;
 			else

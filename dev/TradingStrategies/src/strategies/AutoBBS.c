@@ -101,6 +101,12 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 		case 30:
 			splitBuyOrders_MultiDays_Swing_V2(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
+		case 31:
+			splitBuyOrders_ShortTerm_New(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+			break;
+		case 32:
+			splitBuyRangeOrders(pParams, pIndicators, pBase_Indicators);
+			break;
 
 	}
 	
@@ -191,6 +197,12 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 	case 30:
 		splitSellOrders_MultiDays_Swing_V2(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
+	case 31:
+		splitSellOrders_ShortTerm_New(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		break;
+	case 32:
+		splitSellRangeOrders(pParams, pIndicators, pBase_Indicators);
+		break;
 	}
 }
 
@@ -223,9 +235,8 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	case 2:
 		workoutExecutionTrend_Limit(pParams, pIndicators, pBase_Indicators);			
 		break;
-	case 9:
-		pIndicators->tradeMode = 1;
-		workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
+	case 9:		
+		workoutExecutionTrend_Limit_BBS(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 10:
 		workoutExecutionTrend_WeeklyAuto(pParams, pIndicators, pBase_Indicators);
@@ -272,8 +283,9 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 26: // 只负责长单
-		pIndicators->tradeMode = 0;
-		workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
+		//pIndicators->tradeMode = 0;
+		//workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
+		workoutExecutionTrend_Limit_BBS_LongTerm(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 27:
 		workoutExecutionTrend_Ichimoko_Daily_V2(pParams, pIndicators, pBase_Indicators);
@@ -299,6 +311,9 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		break;
 	case 33:
 		workoutExecutionTrend_MACD_BEILI(pParams, pIndicators, pBase_Indicators);
+		break;
+	case 34:
+		workoutExecutionTrend_ShortTerm(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 100:
 		workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(pParams, pIndicators, pBase_Indicators);
@@ -373,8 +388,10 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("dailyPivot", pBase_Indicators->dailyPivot);
 		addValueToUI("DailyS1", pBase_Indicators->dailyS1);
 		addValueToUI("DailyR1", pBase_Indicators->dailyR1);
-		addValueToUI("DailyS", pBase_Indicators->dailyS);
-		addValueToUI("stopLossPrice", pIndicators->stopLossPrice);
+		addValueToUI("DailyS", pBase_Indicators->dailyS);		
+		addValueToUI("maxATR", pBase_Indicators->pDailyMaxATR);
+		addValueToUI("takeProfit", pIndicators->takePrice);
+		addValueToUI("stopLoss", pIndicators->stopLoss);
 		addValueToUI("ExecutionTrend", pIndicators->executionTrend);
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);
@@ -410,6 +427,24 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		//addValueToUI("riskPNLNLP", pIndicators->riskPNLWithoutLockedProfit);
 		//addValueToUI("StrategyVolRisk", pIndicators->riskPNL - pIndicators->strategyRisk);
 		//addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
+		break;
+	case 9:
+		addValueToUI("MacdTrend", pBase_Indicators->mACDInTrend);
+		addValueToUI("ShellingtonTrend", pBase_Indicators->shellingtonInTrend);
+		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
+		addValueToUI("dailyTrend_Phase", pBase_Indicators->dailyTrend_Phase);
+		addValueToUI("dailyPivot", pBase_Indicators->dailyPivot);
+		addValueToUI("DailyS1", pBase_Indicators->dailyS1);
+		addValueToUI("DailyR1", pBase_Indicators->dailyR1);
+		addValueToUI("DailyS", pBase_Indicators->dailyS);
+		addValueToUI("maxATR", pBase_Indicators->pDailyMaxATR);
+		addValueToUI("takeProfit", pIndicators->takePrice);
+		addValueToUI("stopLoss", pIndicators->stopLoss);
+		addValueToUI("macdMaxLevel", (double)parameter(AUTOBBS_IS_ATREURO_RANGE));
+		addValueToUI("ExecutionTrend", pIndicators->executionTrend);
+		addValueToUI("bbsStopPrice_excution", pIndicators->bbsStopPrice_excution);
+		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
+		addValueToUI("strategyRisk", pIndicators->strategyRisk);
 		break;
 	case 10:
 		addValueToUI("weeklyTrend", pBase_Indicators->weeklyTrend);
@@ -527,6 +562,20 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
 		addValueToUI("strategyRisk", pIndicators->strategyRisk);	
 		addValueToUI(pIndicators->status, 0);
+		break;
+	case 26:
+		addValueToUI("MacdTrend", pBase_Indicators->mACDInTrend);
+		addValueToUI("ShellingtonTrend", pBase_Indicators->shellingtonInTrend);
+		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
+		addValueToUI("dailyTrend_Phase", pBase_Indicators->dailyTrend_Phase);
+		addValueToUI("DailyS", pBase_Indicators->dailyS);
+		addValueToUI("maxATR", pBase_Indicators->pDailyMaxATR);		
+		addValueToUI("stopLossPrice", pIndicators->stopLossPrice);
+		addValueToUI("ExecutionTrend", pIndicators->executionTrend);
+		addValueToUI("bbsStopPrice_excution", pIndicators->bbsStopPrice_excution);
+		addValueToUI("AccountRisk", pParams->accountInfo.totalOpenTradeRiskPercent);
+		addValueToUI("strategyRisk", pIndicators->strategyRisk);
+
 		break;
 	case 30: //Shellington low risk	
 		addValueToUI("entrySignal", pIndicators->entrySignal);
@@ -688,7 +737,7 @@ static AsirikuyReturnCode handleTradeEntries(StrategyParams* pParams, Indicators
 		takePrice_primary = stopLoss;
 		break;
 	case 1:
-		takePrice_primary = fabs(pIndicators->entryPrice - pIndicators->bbsStopPrice_secondary) + pIndicators->adjust;
+		takePrice_primary = fabs(pIndicators->entryPrice - pIndicators->bbsStopPrice_secondary) + pIndicators->adjust;		
 		pIndicators->risk = pIndicators->risk * min(stopLoss / takePrice_primary, riskcap);
 		break;
 	case 2:
@@ -696,6 +745,9 @@ static AsirikuyReturnCode handleTradeEntries(StrategyParams* pParams, Indicators
 		break;
 	case 3:
 		takePrice_primary = pBase_Indicators->dailyATR;
+		break;
+	case 4:
+		takePrice_primary = fabs(pIndicators->entryPrice - pIndicators->takeProfitPrice);
 		break;
 	default:
 		takePrice_primary = stopLoss;
@@ -742,10 +794,10 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "07/09/15 18:25") == 0)
+	if (strcmp(timeString, "08/03/21 01:00") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
-	if (strcmp(timeString, "04/04/21 01:05") == 0)
+	if (strcmp(timeString, "04/01/21 12:15") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if ((int)parameter(AUTOBBS_TREND_MODE) == 16) // GBPJPY Daily Swing strategy, 这策略只需要日内的指标	

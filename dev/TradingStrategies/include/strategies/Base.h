@@ -66,7 +66,7 @@ typedef struct base_Indicators_t
 
 	int mACDInTrend;
 	int shellingtonInTrend;
-
+	
 	int dailyTrend;
 	int dailyTrend_Phase;	
 	int daily3RulesTrend;
@@ -182,6 +182,7 @@ typedef struct order_info_t
 AsirikuyReturnCode runBase(StrategyParams* pParams, Base_Indicators * pIndicators);
 AsirikuyReturnCode base_ModifyOrders(StrategyParams* pParams, OrderType orderType, double stopLoss, double takePrice);
 int getMATrend(double iATR, int ratesArrayIndex, int index);
+int getMATrendBase(int rateShort,int rateLong,double iATR, int ratesArrayIndex, int index);
 AsirikuyReturnCode iSRLevels(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shfitIndex, int shift, double *pHigh, double *pLow);
 AsirikuyReturnCode iSRLevels_close(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shfitIndex, int shift, double *pHigh, double *pLow);
 AsirikuyReturnCode iSRLevels_WithIndex(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shfitIndex, int shift, double *pHigh, double *pLow, int *pHighIndex, int *pLowIndex);
@@ -209,6 +210,7 @@ AsirikuyReturnCode workoutWeeklyTrend(StrategyParams* pParams, Base_Indicators* 
 AsirikuyReturnCode workoutDailyTrend(StrategyParams* pParams, Base_Indicators* pIndicators);
 
 int getMATrend_Signal(int ratesArrayIndex);
+int getMATrend_SignalBase(int rateShort, int rateLong, int ratesArrayIndex);
 
 #ifdef __cplusplus
 } /* extern "C" */
