@@ -233,7 +233,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_4HBBS_Swing(pParams, pIndicators, pBase_Indicators);
 		break;	
 	case 2:
-		workoutExecutionTrend_Limit(pParams, pIndicators, pBase_Indicators);			
+		workoutExecutionTrend_Limit(pParams, pIndicators, pBase_Indicators);	
 		break;
 	case 9:		
 		workoutExecutionTrend_Limit_BBS(pParams, pIndicators, pBase_Indicators);
@@ -433,6 +433,7 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		addValueToUI("ShellingtonTrend", pBase_Indicators->shellingtonInTrend);
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
 		addValueToUI("dailyTrend_Phase", pBase_Indicators->dailyTrend_Phase);
+		addValueToUI("flatTrend", pBase_Indicators->flatTrend);
 		addValueToUI("dailyPivot", pBase_Indicators->dailyPivot);
 		addValueToUI("DailyS1", pBase_Indicators->dailyS1);
 		addValueToUI("DailyR1", pBase_Indicators->dailyR1);
@@ -794,7 +795,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "06/06/14 01:00") == 0)
+	if (strcmp(timeString, "27/08/13 03:05") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if (strcmp(timeString, "04/01/21 12:15") == 0)

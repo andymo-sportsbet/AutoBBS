@@ -66,6 +66,7 @@ typedef struct base_Indicators_t
 
 	int mACDInTrend;
 	int shellingtonInTrend;
+	int flatTrend;
 	
 	int dailyTrend;
 	int dailyTrend_Phase;	

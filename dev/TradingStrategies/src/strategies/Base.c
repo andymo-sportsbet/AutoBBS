@@ -630,9 +630,7 @@ AsirikuyReturnCode iTrend_HL(int ratesArrayIndex,int *trend,int index)
 	preLow1 = iLow(ratesArrayIndex, 1 - index);
 	preLow2 = iLow(ratesArrayIndex, 2 - index);
 	
-	if (preHigh1 > preHigh2 &&
-		//preLow1 > preLow2 &&
-		preClose1 > preClose2 )		
+  
 	{
 		*trend = UP_WEAK;
 	}
@@ -1308,8 +1306,8 @@ void closeAllLimitPreviousDayOrders(StrategyParams* pParams)
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	time_t currentTime;
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
-	closeAllBuyLimitOrders(currentTime);
-	closeAllSellLimitOrders(currentTime);
+	closeAllBuyLimitOrdersEasy(currentTime);
+	closeAllSellLimitOrdersEasy(currentTime);
 }
 
 BOOL isNewDay(StrategyParams* pParams, time_t currentTime)

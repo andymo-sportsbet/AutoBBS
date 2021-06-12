@@ -397,9 +397,14 @@ AsirikuyReturnCode openOrUpdateShortEasy(double takeProfit, double stopLoss,doub
 	return easyTradePtr->openOrUpdateShortEasy(takeProfit, stopLoss, risk);
 }
 
-AsirikuyReturnCode closeAllBuyLimitOrders(time_t currentTime)
+AsirikuyReturnCode closeAllBuyLimitOrdersEasy(time_t currentTime)
 {
 	return easyTradePtr->closeAllBuyLimitOrders(currentTime);
+}
+
+AsirikuyReturnCode closeAllBuyStopOrdersEasy(time_t currentTime)
+{
+	return easyTradePtr->closeAllBuyStopOrders(currentTime);
 }
 
 AsirikuyReturnCode closeAllLimitAndStopOrdersEasy(time_t currentTime)
@@ -407,10 +412,16 @@ AsirikuyReturnCode closeAllLimitAndStopOrdersEasy(time_t currentTime)
 	return easyTradePtr->closeAllLimitAndStopOrders(currentTime);
 }
 
-AsirikuyReturnCode closeAllSellLimitOrders(time_t currentTime)
+AsirikuyReturnCode closeAllSellLimitOrdersEasy(time_t currentTime)
 {
 	return easyTradePtr->closeAllSellLimitOrders(currentTime);
 }
+
+AsirikuyReturnCode closeAllSellStopOrdersEasy(time_t currentTime)
+{
+	return easyTradePtr->closeAllSellStopOrders(currentTime);
+}
+
 
 AsirikuyReturnCode closeAllWithNegativeEasy(int tradeMode, time_t currentTime,int days)
 {

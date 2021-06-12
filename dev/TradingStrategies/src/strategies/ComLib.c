@@ -737,8 +737,9 @@ AsirikuyReturnCode getHighLowPrice(StrategyParams* pParams, Indicators* pIndicat
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
-	{
+	if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
+		&& (pParams->orderInfo[orderIndex].type == BUY || pParams->orderInfo[orderIndex].type == SELL))
+	{		
 		count = (int)difftime(currentTime, pParams->orderInfo[orderIndex].openTime) / timeFrame;
 
 		openBar = shift1Index - count;

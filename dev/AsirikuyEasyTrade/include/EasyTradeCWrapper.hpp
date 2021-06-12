@@ -1015,8 +1015,11 @@ AsirikuyReturnCode openSingleShortEasy(double takeProfit, double stopLoss, doubl
 */
 AsirikuyReturnCode openSingleLongEasy(double takeProfit, double stopLoss, double lotSize,double risk);
 
-AsirikuyReturnCode closeAllBuyLimitOrders(time_t currentTime);
-AsirikuyReturnCode closeAllSellLimitOrders(time_t currentTime);
+AsirikuyReturnCode closeAllBuyLimitOrdersEasy(time_t currentTime);
+AsirikuyReturnCode closeAllSellLimitOrdersEasy(time_t currentTime);
+AsirikuyReturnCode closeAllBuyStopOrdersEasy(time_t currentTime);
+AsirikuyReturnCode closeAllSellStopOrdersEasy(time_t currentTime);
+
 AsirikuyReturnCode closeAllWithNegativeEasy(int tradeMode, time_t currentTime,int days);
 AsirikuyReturnCode closeAllLimitAndStopOrdersEasy(time_t currentTime);
 
