@@ -102,8 +102,8 @@ static AsirikuyReturnCode loadIntradayKeyKIndicators(StrategyParams* pParams, Ba
 			
 
 		primaryMovement = fabs(prePrimaryHigh - prePrimaryLow);
-		// 如果离两天高低点很近，例如<=0.5 daily ATR，就是好的入场信号，仓位不变。
-		// 如果离两天的高低点远，例如> 0.5 daily ATR, 就不是很好的入场信号，仓位减半。
+		// 锟斤拷锟斤拷锟斤拷锟斤拷锟竭低碉拷芙锟斤拷锟斤拷锟斤拷锟?=0.5 daily ATR锟斤拷锟斤拷锟角好碉拷锟诫场锟脚号ｏ拷锟斤拷位锟斤拷锟戒。
+		// 锟斤拷锟斤拷锟斤拷锟斤拷锟侥高低碉拷远锟斤拷锟斤拷锟斤拷> 0.5 daily ATR, 锟酵诧拷锟角很好碉拷锟诫场锟脚号ｏ拷锟斤拷位锟斤拷锟诫。
 		// No entry signals here
 		if (primaryMovement >= 0.5 * pIndicators->dailyATR)
 		{
@@ -153,7 +153,7 @@ static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Base_Indi
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, daily3RulesTrend = %ld,dailyHigh=%lf, dailyLow = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->daily3RulesTrend, pIndicators->dailyHigh, pIndicators->dailyLow);
 
-	// 修正3K趋势，合并K,在巨大的K线后的孕线。	
+	// 锟斤拷锟斤拷3K锟斤拷锟狡ｏ拷锟较诧拷K,锟节巨达拷锟終锟竭猴拷锟斤拷锟斤拷摺锟?
 	if (pIndicators->dailyHLTrend == 1 && pIndicators->daily3RulesTrend == 0)
 	{
 		iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 1,index);
@@ -189,7 +189,7 @@ static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Base_Indi
 	}
 
 	workoutDailyTrend(pParams, pIndicators);
-	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, dailyTrend=%ld, dailySupport = %lf,dailyResistance = %lf，dailyTP=%lf",
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, dailyTrend=%ld, dailySupport = %lf,dailyResistance = %lf锟斤拷dailyTP=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->dailyTrend, pIndicators->dailyS, pIndicators->dailyR, pIndicators->dailyTP);
 
 	predictDailyATR(pParams, pIndicators);
@@ -310,7 +310,7 @@ AsirikuyReturnCode workoutDailyTrend(StrategyParams* pParams, Base_Indicators* p
 	else
 		pIndicators->dailyTrend_Phase = RANGE_PHASE;
 
-	// 最后，修正趋势 和支撑阻力位置。
+	// 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟?锟斤拷支锟斤拷锟斤拷锟斤拷位锟矫★拷
 	if (pIndicators->dailyTrend_Phase == RANGE_PHASE || pIndicators->dailyTrend == RANGE)
 	{
 		// Support
@@ -418,7 +418,7 @@ AsirikuyReturnCode workoutWeeklyTrend(StrategyParams* pParams, Base_Indicators* 
 	else
 		pIndicators->weeklyTrend_Phase = RANGE_PHASE;
 
-	// 最后，修正趋势 和支撑阻力位置。
+	// 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟?锟斤拷支锟斤拷锟斤拷锟斤拷位锟矫★拷
 	pIndicators->weeklyTrend = pIndicators->weekly3RulesTrend + pIndicators->weeklyHLTrend + pIndicators->weeklyMATrend;
 
 	if (pIndicators->weeklyTrend_Phase == RANGE_PHASE || pIndicators->weeklyTrend == RANGE)
@@ -613,7 +613,7 @@ AsirikuyReturnCode iTrend_HL_preDays(int ratesArrayIndex, int *trend,int preDays
 If index = 1 -> current day (EOD)
 If index == 0 -> previous day (SOD)
 */
-//检查是否满足高点更高，低点更高，并且收盘也是更高，那就是UP
+//锟斤拷锟斤拷欠锟斤拷锟斤拷锟竭碉拷锟斤拷撸锟斤拷偷锟斤拷锟竭ｏ拷锟斤拷锟斤拷锟斤拷锟斤拷也锟角革拷锟竭ｏ拷锟角撅拷锟斤拷UP
 AsirikuyReturnCode iTrend_HL(int ratesArrayIndex,int *trend,int index)
 {
 	double preHigh1, preHigh2;
@@ -630,7 +630,9 @@ AsirikuyReturnCode iTrend_HL(int ratesArrayIndex,int *trend,int index)
 	preLow1 = iLow(ratesArrayIndex, 1 - index);
 	preLow2 = iLow(ratesArrayIndex, 2 - index);
 	
-  
+	if (preHigh1 > preHigh2 &&
+		//preLow1 > preLow2 &&
+		preClose1 > preClose2 )
 	{
 		*trend = UP_WEAK;
 	}
@@ -814,10 +816,10 @@ AsirikuyReturnCode iTrend3Rules_LookBack(StrategyParams* pParams, Base_Indicator
 		if (boxHigh[i] == 0 || boxLow[i] == 0)
 			break;
 
-		if (iClose(ratesArrayIndex, shift1Index - (i + outBegIdx)) > boxHigh[i]) //周规则，向上。 c3 > max(h1,h2) or c3 > max(c1,c2) && h3>max(h1,h2) && l3>max(l1,l2)
+		if (iClose(ratesArrayIndex, shift1Index - (i + outBegIdx)) > boxHigh[i]) //锟杰癸拷锟斤拷锟斤拷锟较★拷 c3 > max(h1,h2) or c3 > max(c1,c2) && h3>max(h1,h2) && l3>max(l1,l2)
 			trend[i] = UP_NORMAL;
 
-		if (iClose(ratesArrayIndex, shift1Index - (i + outBegIdx)) < boxLow[i]) //周规则，向上。
+		if (iClose(ratesArrayIndex, shift1Index - (i + outBegIdx)) < boxLow[i]) //锟杰癸拷锟斤拷锟斤拷锟较★拷
 			trend[i] = DOWN_NORMAL;
 
 		if (i - 1 >= 0 && trend[i - 1] == UP && trend[i] == RANGE)
@@ -858,10 +860,10 @@ AsirikuyReturnCode iTrend3Rules_preDays(StrategyParams* pParams, Base_Indicators
 	}
 
 	*pTrend = RANGE;
-	if (iClose(ratesArrayIndex, 1 - index) > boxHigh) //周规则，向上。 c3 > max(h1,h2)
+	if (iClose(ratesArrayIndex, 1 - index) > boxHigh) //锟杰癸拷锟斤拷锟斤拷锟较★拷 c3 > max(h1,h2)
 		*pTrend = UP;
 
-	if (iClose(ratesArrayIndex, 1 - index) < boxLow) //周规则，向上。
+	if (iClose(ratesArrayIndex, 1 - index) < boxLow) //锟杰癸拷锟斤拷锟斤拷锟较★拷
 		*pTrend = DOWN;
 
 	return SUCCESS;
@@ -893,10 +895,10 @@ AsirikuyReturnCode iTrend3Rules(StrategyParams* pParams, Base_Indicators* pIndic
 	}
 
 	*pTrend = RANGE;
-	if (iClose(ratesArrayIndex, 1 - index) > boxHigh) //周规则，向上。 c3 > max(h1,h2)
+	if (iClose(ratesArrayIndex, 1 - index) > boxHigh) //锟杰癸拷锟斤拷锟斤拷锟较★拷 c3 > max(h1,h2)
 			*pTrend = UP;
 
-	if (iClose(ratesArrayIndex, 1 - index) < boxLow) //周规则，向上。
+	if (iClose(ratesArrayIndex, 1 - index) < boxLow) //锟杰癸拷锟斤拷锟斤拷锟较★拷
 			*pTrend = DOWN;
 
 	return SUCCESS;
@@ -967,7 +969,7 @@ void predictDailyATR(StrategyParams* pParams, Base_Indicators* pIndicators)
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, ATR0 = %f,ATR1=%f,ATR2=%f,ATR3=%f,ATR4=%f",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, ATR1, ATR2, ATR3, ATR4);
 
-	// 1. 使用平均5天波幅
+	// 1. 使锟斤拷平锟斤拷5锟届波锟斤拷
 	pMinATR = minATR * 5 - ATR1 - ATR2 - ATR3 - ATR4;
 	pMaxATR = maxATR * 5 - ATR1 - ATR2 - ATR3 - ATR4;
 
@@ -1000,12 +1002,12 @@ void predictDailyATR(StrategyParams* pParams, Base_Indicators* pIndicators)
 
 	//pATR = max(ATR0, pATR);
 
-	//2. 使用周波幅，进行限制。
+	//2. 使锟斤拷锟杰诧拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟狡★拷
 
 	//remainingATRInWeek = pIndicators->weeklyATR - iAtr(B_WEEKLY_RATES, 1, 0);
 
 
-	//3. 使用pivot，最多3档，对上下，进行分类处理
+	//3. 使锟斤拷pivot锟斤拷锟斤拷锟?锟斤拷锟斤拷锟斤拷锟斤拷锟铰ｏ拷锟斤拷锟叫凤拷锟洁处锟斤拷
 	
 	//pUpATR = (pIndicators->dailyR2 - min(lastDailyClose, intradayLow));
 	//pDownATR = (max(lastDailyClose, intradayHigh) - pIndicators->dailyR2);
@@ -1103,7 +1105,7 @@ void predictWeeklyATR(StrategyParams* pParams, Base_Indicators* pIndicators)
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, ATR0 = %f,ATR1=%f,ATR2=%f,ATR3=%f",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, ATR1, ATR2, ATR3);
 
-	// 1. 使用平均4周波幅
+	// 1. 使锟斤拷平锟斤拷4锟杰诧拷锟斤拷
 	pMinATR = minATR * 4 - ATR1 - ATR2 - ATR3;
 	pMaxATR = maxATR * 4 - ATR1 - ATR2 - ATR3;
 
@@ -1135,7 +1137,7 @@ void predictWeeklyATR(StrategyParams* pParams, Base_Indicators* pIndicators)
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,pATR=%f,pATRSameMonthWeek=%f,ATR0=%f ",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pATR, pATRSameMonthWeek, ATR0);
 	
-	//3. 使用pivot，最多3档，对上下，进行分类处理
+	//3. 使锟斤拷pivot锟斤拷锟斤拷锟?锟斤拷锟斤拷锟斤拷锟斤拷锟铰ｏ拷锟斤拷锟叫凤拷锟洁处锟斤拷
 
 	//4. Cap weekly ATR within 300
 
@@ -1223,7 +1225,7 @@ void predictWeeklyATR_LongerTerm(StrategyParams* pParams, Base_Indicators* pIndi
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, ATR0 = %f,ATR1=%f,ATR2=%f,ATR3=%f",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, ATR1, ATR2, ATR3);
 
-	// 1. 使用平均4周波幅
+	// 1. 使锟斤拷平锟斤拷4锟杰诧拷锟斤拷
 	pMinATR = minATR * 4 - ATR1 - ATR2 - ATR3;
 	pMaxATR = maxATR * 4 - ATR1 - ATR2 - ATR3;
 
@@ -1254,7 +1256,7 @@ void predictWeeklyATR_LongerTerm(StrategyParams* pParams, Base_Indicators* pIndi
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,pATR=%f,pATRSameMonthWeek=%f,ATR0=%f ",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pATR, pATRSameMonthWeek, ATR0);
 
-	//3. 使用pivot，最多3档，对上下，进行分类处理
+	//3. 使锟斤拷pivot锟斤拷锟斤拷锟?锟斤拷锟斤拷锟斤拷锟斤拷锟铰ｏ拷锟斤拷锟叫凤拷锟洁处锟斤拷
 
 	//4. Cap weekly ATR within 300
 

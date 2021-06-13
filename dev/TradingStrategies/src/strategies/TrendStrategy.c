@@ -2885,8 +2885,6 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			pIndicators->risk = 0.6;
 
 		startHour = 3;
-
-		isEnableMACDSlow = FALSE;
 	}
 	else if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{		
@@ -2924,9 +2922,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 			return SUCCESS;
 		}
-
-		//isEnableShellingtonTrend = TRUE;
-		
+	
 	}
 	else if (strstr(pParams->tradeSymbol, "EURGBP") != NULL)
 	{
