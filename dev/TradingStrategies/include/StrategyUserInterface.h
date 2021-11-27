@@ -85,8 +85,9 @@ int readWeeklyATRFile(char * pName, double *pPredictWeeklyATR, double *pPredictW
 
 AsirikuyReturnCode saveRateFile(int instanceID, int rate, BOOL isBackTesting);
 
-AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo, BOOL isBackTesting);
+AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo);
 int readTradingInfo(int instanceID, Order_Info *pOrderInfo);
+AsirikuyReturnCode resetTradingInfo(int instanceID);
 
 #ifdef __cplusplus
 } /* extern "C" */

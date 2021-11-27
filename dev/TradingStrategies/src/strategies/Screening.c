@@ -196,7 +196,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MA1H200M = %lf,MA4H200M=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->ma1H200M, pIndicators->ma4H200M);
 
-	iPivot(S_DAILY_RATES, &(pIndicators->dailyPivot),
+	iPivot(S_DAILY_RATES, 1, &(pIndicators->dailyPivot),
 		&(pIndicators->dailyS1), &(pIndicators->dailyR1),
 		&(pIndicators->dailyS2), &(pIndicators->dailyR2),
 		&(pIndicators->dailyS3), &(pIndicators->dailyR3));
@@ -205,7 +205,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, dailyPivot = %lf,dailyS1=%lf, dailyR1 = %lf,dailyS2=%lf, dailyR2 = %lf,dailyS3=%lf, dailyR3 = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->dailyPivot, pIndicators->dailyS1, pIndicators->dailyR1, pIndicators->dailyS2, pIndicators->dailyR2, pIndicators->dailyS3, pIndicators->dailyR3);
 
-	iPivot(S_WEEKLY_RATES, &(pIndicators->weeklyPivot),
+	iPivot(S_WEEKLY_RATES, 1, &(pIndicators->weeklyPivot),
 		&(pIndicators->weeklyS1), &(pIndicators->weeklyR1),
 		&(pIndicators->weeklyS2), &(pIndicators->weeklyR2),
 		&(pIndicators->weeklyS3), &(pIndicators->weeklyR3));

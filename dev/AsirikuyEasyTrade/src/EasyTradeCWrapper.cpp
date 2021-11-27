@@ -585,9 +585,9 @@ AsirikuyReturnCode addNewConstantVolumeRates(int originalRatesIndex, int ratesIn
   return easyTradePtr->addNewConstantVolumeRates(originalRatesIndex, ratesIndex, volumeRequired);
 }
 
-AsirikuyReturnCode iPivot(int ratesArrayIndex, double *pPivot, double *pS1, double *pR1, double *pS2, double * pR2, double *pS3, double *pR3)
+AsirikuyReturnCode iPivot(int ratesArrayIndex, int shift,double *pPivot, double *pS1, double *pR1, double *pS2, double * pR2, double *pS3, double *pR3)
 {
-	return easyTradePtr->iPivot(ratesArrayIndex, pPivot, pS1, pR1,pS2,pR2,pS3,pR3);
+	return easyTradePtr->iPivot(ratesArrayIndex, shift, pPivot, pS1, pR1,pS2,pR2,pS3,pR3);
 }
 
 AsirikuyReturnCode validateHourlyBarsEasy(StrategyParams* pParams, int primary_rate, int hourly_bar)

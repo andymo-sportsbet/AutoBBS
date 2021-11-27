@@ -801,10 +801,10 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "07/09/20 01:00") == 0)
+	if (strcmp(timeString, "22/11/21 15:35") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
-	if (strcmp(timeString, "04/01/21 12:15") == 0)
+	if (strcmp(timeString, "22/11/21 15:00") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if ((int)parameter(AUTOBBS_TREND_MODE) == 16) // GBPJPY Daily Swing strategy, �����ֻ��Ҫ���ڵ�ָ��?

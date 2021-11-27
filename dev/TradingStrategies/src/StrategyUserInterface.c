@@ -354,20 +354,27 @@ int readXAUUSDKeyNewsDateFile(time_t *pKeyDates)
 	return 0;
 }
 
+AsirikuyReturnCode resetTradingInfo(int instanceID)
+{
+	Order_Info orderInfo;
+	orderInfo.orderNumber = 0;
+	orderInfo.type = 0;
+	orderInfo.orderStatus = RESET;
+	orderInfo.openPrice = 0;
+	orderInfo.stopLossPrice = 0;
+	orderInfo.takeProfitPrice = 0;
+	orderInfo.timeStamp = 0;
 
-AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo,BOOL isBackTesting)
+	return saveTradingInfo(instanceID, &orderInfo);
+}
+
+AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo)
 {
 	char instanceIDName[TOTAL_UI_VALUES];
 	char buffer[MAX_FILE_PATH_CHARS] = "";
 	char extension[] = "_OrderInfo.txt";
 	char timeString[MAX_TIME_STRING_SIZE] = "";		
 	FILE *fp;
-
-	if (isBackTesting)
-	{
-		return SUCCESS;
-	}
-
 
 	sprintf(instanceIDName, "%d", instanceID);
 	strcat(buffer, tempFilePath);
@@ -383,13 +390,14 @@ AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo,BOOL 
 		return NULL_POINTER;
 	}
 
-	fprintf(fp, "%f\n", pOrderInfo->high);
-	fprintf(fp, "%f\n", pOrderInfo->low);
 	fprintf(fp, "%d\n", pOrderInfo->orderNumber);
-	fprintf(fp, "%d\n", pOrderInfo->isRetreat);
-	fprintf(fp, "%d\n", pOrderInfo->side);
-	fprintf(fp, "%d\n", pOrderInfo->exitSignal);
-	fprintf(fp, "%f", pOrderInfo->risk);
+	fprintf(fp, "%d\n", pOrderInfo->type);
+	fprintf(fp, "%d\n", pOrderInfo->orderStatus);
+	fprintf(fp, "%f\n", pOrderInfo->openPrice);
+	fprintf(fp, "%f\n", pOrderInfo->stopLossPrice);
+	fprintf(fp, "%f\n", pOrderInfo->takeProfitPrice);
+	fprintf(fp, "%d\n", pOrderInfo->timeStamp);
+	
 
 	fclose(fp);
 
@@ -425,13 +433,19 @@ int readTradingInfo(int instanceID, Order_Info *pOrderInfo)
 	now = time(NULL);
 
 	fgets(line, 1024, fp);
-	pOrderInfo->high= atof(line);
-	pOrderInfo->low = atof(line);
-	pOrderInfo->orderNumber = atoi(line);
-	pOrderInfo->isRetreat = atoi(line);
-	pOrderInfo->side = atoi(line);
-	pOrderInfo->exitSignal = atoi(line);
-	pOrderInfo->risk = atof(line);
+	pOrderInfo->orderNumber= atoi(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->type = atoi(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->orderStatus = atoi(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->openPrice = atof(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->stopLossPrice = atof(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->takeProfitPrice = atof(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->timeStamp = atoi(line);
 	
 	fclose(fp);
 

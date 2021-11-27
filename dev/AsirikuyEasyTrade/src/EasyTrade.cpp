@@ -5209,13 +5209,13 @@ AsirikuyReturnCode EasyTrade::modifyTradeEasy(int orderType, int orderTicket, do
   return SUCCESS;
 }
 
-AsirikuyReturnCode EasyTrade::iPivot(int ratesArrayIndex, double *pPivot, double *pS1, double *pR1, double *pS2, double * pR2, double *pS3, double *pR3)
+AsirikuyReturnCode EasyTrade::iPivot(int ratesArrayIndex, int shift, double *pPivot, double *pS1, double *pR1, double *pS2, double * pR2, double *pS3, double *pR3)
 {
 	double preHigh, preLow, preClose;
 
-	preHigh = iHigh(ratesArrayIndex, 1);
-	preLow = iLow(ratesArrayIndex, 1);
-	preClose = iClose(ratesArrayIndex, 1);
+	preHigh = iHigh(ratesArrayIndex, shift);
+	preLow = iLow(ratesArrayIndex, shift);
+	preClose = iClose(ratesArrayIndex, shift);
 
 	*pPivot = (preHigh + preLow + preClose) / 3;
 	*pS1 = 2 * (*pPivot) - preHigh;
@@ -5323,6 +5323,7 @@ AsirikuyReturnCode EasyTrade::validateDailyBars(StrategyParams* pParams, int pri
 		|| strstr(pParams->tradeSymbol, "XPD") != NULL
 		|| strstr(pParams->tradeSymbol, "XTI") != NULL
 		|| (strstr(pParams->tradeSymbol, "BTC") != NULL && timeInfo.tm_wday == 6)
+		|| (strstr(pParams->tradeSymbol, "ETH") != NULL && timeInfo.tm_wday == 6)
 		|| strstr(pParams->tradeSymbol, "US500USD") != NULL
 		|| strstr(pParams->tradeSymbol, "USTECUSD") != NULL
 		)
@@ -5364,7 +5365,7 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	safe_gmtime(&timeInfo, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
 		offset_min = 7;
 		if (timeInfo.tm_min == 0)
@@ -5375,7 +5376,7 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 
 	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"checking missing bars: Current hourly bar matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
 	printBarInfo(pParams, hourly_rate, timeString);
-	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
 		if (timeInfo.tm_hour == 0 && timeInfo.tm_min == 0
 			&& hourlyTimeInfo.tm_yday == timeInfo.tm_yday - 1 && hourlyTimeInfo.tm_hour == 23 && hourlyTimeInfo.tm_min == 5)
@@ -5427,7 +5428,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 
 	diff = (int)(difftime(currentTime,currentSeondaryTime) / 60);
 
-	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
 		offset_min = 7;
 		if (timeInfo.tm_wday == 0)
@@ -5515,14 +5516,14 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 			// XTI: 19:55, US500: 19:55
 			
 			//Only BTCUSD will miss 00:00 on 5m chart, in the weekend,it can be more than 5 mins....
-			if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL && secondary_tf == 5 
+			if ((strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL) && secondary_tf == 5
 				&& secondaryTimeInfo.tm_hour == closeHour 
 				&& ( (!isWeekend(currentTime) && secondaryTimeInfo.tm_min == closeMin)
 				|| (isWeekend(currentTime) && secondaryTimeInfo.tm_min >= closeMin-30)
 				)
 				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin)
 				return TRUE;
-			else if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL && secondary_tf == 60
+			else if ((strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL) && secondary_tf == 60
 				&& secondaryTimeInfo.tm_hour == closeHour && timeInfo.tm_wday == 0 //Sunday
 				&&  secondaryTimeInfo.tm_min == closeMin
 				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin)
@@ -5583,6 +5584,7 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 		|| strstr(pParams->tradeSymbol, "XPD") != NULL
 		|| strstr(pParams->tradeSymbol, "XTI") != NULL
 		|| (strstr(pParams->tradeSymbol, "BTC") != NULL && timInfo.tm_wday == 6)
+		|| (strstr(pParams->tradeSymbol, "ETH") != NULL && timInfo.tm_wday == 6)
 		|| strstr(pParams->tradeSymbol, "US500USD") != NULL 
 		|| strstr(pParams->tradeSymbol, "USTECUSD") != NULL
 		)

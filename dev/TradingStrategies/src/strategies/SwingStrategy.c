@@ -2130,6 +2130,83 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pPara
 	return SUCCESS;
 }
 
+static BOOL XAUUSD_not_full_trading_day(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
+{
+	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
+	time_t currentTime,adjustTime;
+	struct tm timeInfo1,adjustTimeInfo;
+	char       timeString[MAX_TIME_STRING_SIZE] = "";
+	int secondsPerWeek = 7 * 24 * 60 * 60;
+	BOOL isFilter = FALSE;
+
+	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
+	safe_gmtime(&timeInfo1, currentTime);
+	safe_timeString(timeString, currentTime);
+
+	
+	//Martin holiday 3st week Monday on Jan
+	if (timeInfo1.tm_mon == 0 && timeInfo1.tm_wday == 1
+		&& timeInfo1.tm_mday >= 2 * 7 && timeInfo1.tm_mday <= 3 * 7)
+	{
+		//adjustTime = currentTime - 3 * secondsPerWeek;
+		//safe_gmtime(&adjustTimeInfo, adjustTime);
+		//if (adjustTimeInfo.tm_mon == 11)
+		{
+			strcpy(pIndicators->status, "Filter Martin holiday.");
+			isFilter = TRUE;
+		}
+		
+	}
+	//Washington holiday 3st Monday
+	if (timeInfo1.tm_mon == 1 && timeInfo1.tm_wday == 1
+		&& timeInfo1.tm_mday >= 2 * 7 && timeInfo1.tm_mday <= 3 * 7)
+	{
+		strcpy(pIndicators->status, "Filter Washington holiday.");
+		isFilter = TRUE;
+	}
+	//Good Friday holiday from KeyDate file
+	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators))
+	{
+		strcpy(pIndicators->status, "Filter GoodFriday holiday or adjusted US Independent day.");
+		isFilter = TRUE;
+	}
+	//Memorial holiday Last Monday
+	if (timeInfo1.tm_mon == 4 && timeInfo1.tm_wday == 1
+		&& timeInfo1.tm_mday >= 31 - 7 && timeInfo1.tm_mday <= 31)
+	{
+		strcpy(pIndicators->status, "Filter Memorial holiday.");
+		isFilter = TRUE;
+	}
+	//US Independent day holiday on 04/07
+	if (timeInfo1.tm_mon == 6 && timeInfo1.tm_mday == 4)
+	{
+		strcpy(pIndicators->status, "Filter US Independent day .");
+		isFilter = TRUE;
+	}
+	//Labour holiday 1st Monday
+	if (timeInfo1.tm_mon == 8 && timeInfo1.tm_wday == 1
+		&& timeInfo1.tm_mday >= 1 && timeInfo1.tm_mday <= 7)
+	{
+		strcpy(pIndicators->status, "Filter Labour holiday.");
+		isFilter = TRUE;
+	}
+	//Thanksgiving holiday 4st Thursday on NOV
+	if (timeInfo1.tm_mon == 10 && timeInfo1.tm_wday == 4
+		&& timeInfo1.tm_mday >= 3 * 7 && timeInfo1.tm_mday <= 4 * 7)
+	{
+		strcpy(pIndicators->status, "Filter thanksgiving holiday.");
+		isFilter = TRUE;
+	}
+	//filter christmas eve and new year eve
+	if (timeInfo1.tm_mon == 11 && (timeInfo1.tm_mday == 24 || timeInfo1.tm_mday == 31))
+	{
+		strcpy(pIndicators->status, "Filter Christmas and New Year Eve.");
+		isFilter = TRUE;
+	}
+
+	return isFilter;
+}
+
 /*
 不交易的情况：
 1.前一天的ATR > 20
@@ -2172,14 +2249,11 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		return FALSE;	
 	}
 
-	//filter christmas eve and new year eve
-	if (timeInfo1.tm_mon == 11 && (timeInfo1.tm_mday == 24 || timeInfo1.tm_mday == 31))
-	{
-		strcpy(pIndicators->status, "Filter Christmas and New Year Eve.");
-
+	
+	if (XAUUSD_not_full_trading_day(pParams, pIndicators, pBase_Indicators) == TRUE)
+	{		
 		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
-
 		return FALSE;
 	}
 
@@ -2224,7 +2298,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
-	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictMaxATR=%lf,pWeeklyPredictATR=%lf",
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictMaxATR=%lf,pWeeklyPredictATR=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, ATRWeekly0, pBase_Indicators->pWeeklyPredictMaxATR, pBase_Indicators->pWeeklyPredictATR);
 
 	if (pBase_Indicators->pDailyPredictATR < pIndicators->atr_euro_range)
@@ -2232,7 +2306,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		sprintf(pIndicators->status, "pDailyPredictATR %lf is less than atr_euro_range %lf",
 			pBase_Indicators->pDailyPredictATR, pIndicators->atr_euro_range);
 
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 		return FALSE;
@@ -2243,7 +2317,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		sprintf(pIndicators->status, "ATRWeekly0 %lf is greater than pWeeklyPredictMaxATR %lf and pDailyPredictATR > 10",
 			ATRWeekly0, pBase_Indicators->pWeeklyPredictMaxATR, pBase_Indicators->pDailyPredictATR);
 
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 		return FALSE;
@@ -2254,7 +2328,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		sprintf(pIndicators->status, "ATR1 %lf is greater than half of pWeeklyPredictATR %lf",
 			iAtr(B_DAILY_RATES, 1, 1), max(20, pBase_Indicators->pWeeklyPredictATR / 2));
 
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 		return FALSE;
@@ -2265,7 +2339,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		sprintf(pIndicators->status, "Previous close gap %lf is greater than third of pWeeklyPredictATR %lf",
 			fabs(close_prev1 - close_prev2), max(10, pBase_Indicators->pWeeklyPredictATR / 3));
 
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 		return FALSE;
@@ -3163,7 +3237,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay(StrategyParams* pPar
 		{
 			upperBBand = iBBands(B_PRIMARY_RATES, 50, 2, 0, 1);
 
-			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, upperBBand = %lf, preCloseBar = %lf",
+			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, upperBBand = %lf, preCloseBar = %lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, upperBBand, iClose(B_PRIMARY_RATES, 1));
 
 
@@ -3184,7 +3258,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay(StrategyParams* pPar
 		{
 			lowerBBand = iBBands(B_PRIMARY_RATES, 50, 2, 2, 1);
 
-			pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, lowerBBand = %lf, preCloseBar = %lf",
+			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, lowerBBand = %lf, preCloseBar = %lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, lowerBBand, iClose(B_PRIMARY_RATES, 1));
 
 			if (lowerBBand > 0 && iClose(B_PRIMARY_RATES, 1) < lowerBBand)
@@ -3215,7 +3289,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay(StrategyParams* pPar
 				{
 					//closeAllWithNegativeEasy(5, currentTime, 3); //close them intraday on break event
 					closeShortEasy(pParams->orderInfo[latestOrderIndex].ticket);
-					pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, closing sell order: entryPrice =%lf, openOrderLow=%lf",
+					pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, closing sell order: entryPrice =%lf, openOrderLow=%lf",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, entryPrice, openOrderLow);
 					return SUCCESS;
 				}
@@ -3238,7 +3312,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay(StrategyParams* pPar
 				{
 					//closeAllWithNegativeEasy(5, currentTime, 3);//close them intraday on break event
 					closeLongEasy(pParams->orderInfo[latestOrderIndex].ticket);
-					pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, closing buy order: entryPrice =%lf, openOrderHigh=%lf",
+					pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, closing buy order: entryPrice =%lf, openOrderHigh=%lf",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, entryPrice, openOrderHigh);
 					return SUCCESS;
 				}
@@ -4395,7 +4469,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		((pParams->orderInfo[oldestOpenOrderIndex].type == BUY && pParams->orderInfo[oldestOpenOrderIndex].stopLoss - pParams->orderInfo[oldestOpenOrderIndex].openPrice >= -2 * pIndicators->adjust) ||
 		(pParams->orderInfo[oldestOpenOrderIndex].type == SELL &&  pParams->orderInfo[oldestOpenOrderIndex].openPrice - pParams->orderInfo[oldestOpenOrderIndex].stopLoss >= -2 * pIndicators->adjust))
 		){
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,stopLoss =%lf. it is ok to add new positions in a long term trend now.",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,stopLoss =%lf. it is ok to add new positions in a long term trend now.",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pParams->orderInfo[oldestOpenOrderIndex].stopLoss);
 		isAddPosition = TRUE;
 	}
@@ -4408,7 +4482,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		pIndicators->takePrice = pIndicators->stopLoss * 0.4;
 
 		floatingTP = pIndicators->takePrice;
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->atr_euro_range, pIndicators->stopLoss, pIndicators->takePrice);
 
 		if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min >= 0 && timeInfo1.tm_min <= 15 && pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
@@ -4471,7 +4545,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		pIndicators->takePrice = max(3, pIndicators->stopLoss * 0.4);
 
 		floatingTP = pIndicators->takePrice;
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, atr_euro_range = %lf, stopLoss = %lf, takePrice =%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->atr_euro_range, pIndicators->stopLoss, pIndicators->takePrice);
 
 		if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min >= 0 && timeInfo1.tm_min <= 15 && oldestOpenOrderIndex>= 0)
@@ -4604,7 +4678,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		//riskCapSell = 0;
 
 	}
-	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
+	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
 
 		pIndicators->atr_euro_range = (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 3;

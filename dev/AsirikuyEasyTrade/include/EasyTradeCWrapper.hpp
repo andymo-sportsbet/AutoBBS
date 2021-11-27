@@ -1080,7 +1080,7 @@ int barsCount(int ratesArrayIndex);
 */
 StrategyParams* getParams();
 
-AsirikuyReturnCode iPivot(int ratesArrayIndex, double *pPivot, double *pS1, double *pR1, double *pS2, double * pR2, double *pS3, double *pR3);
+AsirikuyReturnCode iPivot(int ratesArrayIndex, int shift, double *pPivot, double *pS1, double *pR1, double *pS2, double * pR2, double *pS3, double *pR3);
 
 AsirikuyReturnCode addDistortedArray(int sourceRateIndex, int ratesIndex, double maxDistorsion);
 AsirikuyReturnCode freeRates(int ratesIndex);

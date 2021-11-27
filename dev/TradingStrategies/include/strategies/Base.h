@@ -11,6 +11,15 @@
 extern "C" {
 #endif
 
+typedef enum bar_t
+{
+	BAR_UNKNOWN = 0,
+	BULL = 1,
+	BEAR = 2,
+	STAR = 3
+	
+}bar;
+
 typedef enum trend_t
 {
 	UP = 3,
@@ -168,15 +177,24 @@ typedef enum exitSignal_t
 	EXIT_NONE = 3
 }ExitSignal;
 
+typedef enum orderStatus_t
+{
+	RESET = 0,
+	PENDING = 1,
+	DONE = 2,
+	PILOTING = 3,
+	CANCELLED = 4
+}OrderStatus;
+
 typedef struct order_info_t
 {
-	double high;
-	double low;
-	int orderNumber;
-	int isRetreat;
-	double risk;
-	int side;
-	ExitSignal exitSignal;
+	int orderNumber;	
+	OrderType type;
+	double openPrice;
+	double stopLossPrice;
+	double takeProfitPrice;
+	OrderStatus orderStatus;
+	time_t timeStamp;
 
 } Order_Info;
 

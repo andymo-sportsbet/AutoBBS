@@ -231,7 +231,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Base_Indicator
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MA1H200M = %lf,MA4H200M=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->ma1H200M, pIndicators->ma4H200M);
 
-	iPivot(B_DAILY_RATES, &(pIndicators->dailyPivot),
+	iPivot(B_DAILY_RATES,1, &(pIndicators->dailyPivot),
 		&(pIndicators->dailyS1), &(pIndicators->dailyR1),
 		&(pIndicators->dailyS2), &(pIndicators->dailyR2),
 		&(pIndicators->dailyS3), &(pIndicators->dailyR3));
@@ -242,7 +242,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Base_Indicator
 
 	if (pIndicators->strategy_mode > 0)
 	{
-		iPivot(B_WEEKLY_RATES, &(pIndicators->weeklyPivot),
+		iPivot(B_WEEKLY_RATES, 1, &(pIndicators->weeklyPivot),
 			&(pIndicators->weeklyS1), &(pIndicators->weeklyR1),
 			&(pIndicators->weeklyS2), &(pIndicators->weeklyR2),
 			&(pIndicators->weeklyS3), &(pIndicators->weeklyR3));
