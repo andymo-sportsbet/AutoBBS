@@ -89,6 +89,13 @@ AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo);
 int readTradingInfo(int instanceID, Order_Info *pOrderInfo);
 AsirikuyReturnCode resetTradingInfo(int instanceID);
 
+AsirikuyReturnCode saveTurningPoint(int instanceID, BOOL isTurning);
+BOOL readTurningPoint(int instanceID);
+
+int readVirtualOrderInfo(int instanceID, OrderInfo *pOrderInfo);
+AsirikuyReturnCode resetVirtualOrderInfo(int instanceID);
+AsirikuyReturnCode saveVirutalOrdergInfo(int instanceID, OrderInfo orderInfo);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

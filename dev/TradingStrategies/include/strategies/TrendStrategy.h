@@ -87,6 +87,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_New(StrategyParams* pParams
 AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
+AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);

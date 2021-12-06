@@ -2802,6 +2802,38 @@ int EasyTrade::getOldestOpenOrderIndex(int rateIndex)
 	return index;
 }
 
+int EasyTrade::getLastestOrderIndexExceptLimitAndStopOrders(int rateIndex,BOOL isClosedOnly)
+{
+	int i;
+	int    shift0Index = pParams->ratesBuffers->rates[rateIndex].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[rateIndex].info.arraySize - 2;
+	time_t openTime, maxTime = 0;
+	struct tm timeInfo1;
+	int  execution_tf = (int)pParams->settings[TIMEFRAME];
+	int index = -1;
+
+	time_t currentTime = pParams->ratesBuffers->rates[rateIndex].time[shift0Index];
+	safe_gmtime(&timeInfo1, currentTime);
+
+	for (i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
+	{
+		if (pParams->orderInfo[i].ticket != 0 
+			&& (pParams->orderInfo[i].type == BUY || pParams->orderInfo[i].type == SELL)
+			&& (isClosedOnly == FALSE || pParams->orderInfo[i].isOpen == FALSE)
+			)
+		{
+			openTime = pParams->orderInfo[i].openTime;
+
+			if (openTime > maxTime)
+			{
+				maxTime = openTime;
+				index = i;
+			}
+		}
+	}
+
+	return index;
+}
+
 int EasyTrade::getLastestOrderIndex(int rateIndex)
 {
 	int i;

@@ -238,6 +238,9 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	case 2:
 		workoutExecutionTrend_Limit(pParams, pIndicators, pBase_Indicators);	
 		break;
+	case 3:
+		workoutExecutionTrend_Limit_BreakOutOnPivot(pParams, pIndicators, pBase_Indicators);
+		break;
 	case 9:		
 		workoutExecutionTrend_Limit_BBS(pParams, pIndicators, pBase_Indicators);
 		break;
@@ -281,11 +284,11 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	case 24:
 		workoutExecutionTrend_MACD_Weekly(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 25: // ֻ�������ڶ��ߴ�
+	case 25: // 
 		pIndicators->tradeMode = 1;
 		workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 26: // ֻ���𳤵�
+	case 26: 
 		//pIndicators->tradeMode = 0;
 		//workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
 		workoutExecutionTrend_Limit_BBS_LongTerm(pParams, pIndicators, pBase_Indicators);
@@ -387,6 +390,7 @@ static AsirikuyReturnCode setUIValues(StrategyParams* pParams, Indicators* pIndi
 		//addValueToUI("riskPNL", pIndicators->riskPNL);
 		break;
 	case 2:
+	case 3:
 		addValueToUI("MacdTrend", pBase_Indicators->mACDInTrend);
 		addValueToUI("ShellingtonTrend", pBase_Indicators->shellingtonInTrend);
 		addValueToUI("DailyTrend", pBase_Indicators->dailyTrend);
@@ -801,7 +805,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "22/11/21 15:35") == 0)
+	if (strcmp(timeString, "30/01/21 18:30") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, "hit a point");
 
 	if (strcmp(timeString, "22/11/21 15:00") == 0)

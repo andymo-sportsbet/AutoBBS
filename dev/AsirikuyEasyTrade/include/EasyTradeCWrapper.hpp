@@ -1113,6 +1113,8 @@ double iASIEasy(int ratesArrayIndex, int mode, int length, int smooth, double * 
 
 int getOldestOpenOrderIndexEasy(int rateIndex);
 
+int getLastestOrderIndexExceptLimitAndStopOrdersEasy(int rateIndex, BOOL isClosedOnly);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

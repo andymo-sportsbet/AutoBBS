@@ -198,6 +198,13 @@ typedef struct order_info_t
 
 } Order_Info;
 
+typedef struct order_turning_info_t
+{	
+	OrderType type;
+	BOOL isTurning;
+
+} Order_Turning_Info;
+
 AsirikuyReturnCode runBase(StrategyParams* pParams, Base_Indicators * pIndicators);
 AsirikuyReturnCode base_ModifyOrders(StrategyParams* pParams, OrderType orderType, double stopLoss, double takePrice);
 int getMATrend(double iATR, int ratesArrayIndex, int index);

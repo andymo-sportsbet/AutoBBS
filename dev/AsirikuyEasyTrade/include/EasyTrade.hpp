@@ -1118,6 +1118,8 @@ AsirikuyReturnCode openSingleSellLimitEasy(double entryPrice, double takeProfit,
 
   int getOldestOpenOrderIndex(int rateIndex);
 
+  int getLastestOrderIndexExceptLimitAndStopOrders(int rateIndex, BOOL isClosedOnly);
+
 protected:
 
 private:

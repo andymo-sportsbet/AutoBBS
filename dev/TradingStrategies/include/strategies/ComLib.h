@@ -142,6 +142,7 @@ extern "C" {
 		
 		char status[MAX_OUTPUT_ERROR_STRING_SIZE];
 
+		double takePriceLevel;
 
 	} Indicators;
 	
@@ -172,6 +173,8 @@ extern "C" {
 	AsirikuyReturnCode getHighestHourlyClosePrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index, int orderIndex, int * highPrice, int * lowPrice);
 	AsirikuyReturnCode getHighLowPrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index,int timeFrame, int orderIndex, double * highPrice, double * lowPrice);
 	AsirikuyReturnCode addMoreOrdersOnLongTermTrend(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int oldestOpenOrderIndex);
+
+	BOOL XAUUSD_not_full_trading_day(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 #ifdef __cplusplus
 } /* extern "C" */

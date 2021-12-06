@@ -2130,83 +2130,6 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pPara
 	return SUCCESS;
 }
 
-static BOOL XAUUSD_not_full_trading_day(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
-{
-	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	time_t currentTime,adjustTime;
-	struct tm timeInfo1,adjustTimeInfo;
-	char       timeString[MAX_TIME_STRING_SIZE] = "";
-	int secondsPerWeek = 7 * 24 * 60 * 60;
-	BOOL isFilter = FALSE;
-
-	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-	safe_gmtime(&timeInfo1, currentTime);
-	safe_timeString(timeString, currentTime);
-
-	
-	//Martin holiday 3st week Monday on Jan
-	if (timeInfo1.tm_mon == 0 && timeInfo1.tm_wday == 1
-		&& timeInfo1.tm_mday >= 2 * 7 && timeInfo1.tm_mday <= 3 * 7)
-	{
-		//adjustTime = currentTime - 3 * secondsPerWeek;
-		//safe_gmtime(&adjustTimeInfo, adjustTime);
-		//if (adjustTimeInfo.tm_mon == 11)
-		{
-			strcpy(pIndicators->status, "Filter Martin holiday.");
-			isFilter = TRUE;
-		}
-		
-	}
-	//Washington holiday 3st Monday
-	if (timeInfo1.tm_mon == 1 && timeInfo1.tm_wday == 1
-		&& timeInfo1.tm_mday >= 2 * 7 && timeInfo1.tm_mday <= 3 * 7)
-	{
-		strcpy(pIndicators->status, "Filter Washington holiday.");
-		isFilter = TRUE;
-	}
-	//Good Friday holiday from KeyDate file
-	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators))
-	{
-		strcpy(pIndicators->status, "Filter GoodFriday holiday or adjusted US Independent day.");
-		isFilter = TRUE;
-	}
-	//Memorial holiday Last Monday
-	if (timeInfo1.tm_mon == 4 && timeInfo1.tm_wday == 1
-		&& timeInfo1.tm_mday >= 31 - 7 && timeInfo1.tm_mday <= 31)
-	{
-		strcpy(pIndicators->status, "Filter Memorial holiday.");
-		isFilter = TRUE;
-	}
-	//US Independent day holiday on 04/07
-	if (timeInfo1.tm_mon == 6 && timeInfo1.tm_mday == 4)
-	{
-		strcpy(pIndicators->status, "Filter US Independent day .");
-		isFilter = TRUE;
-	}
-	//Labour holiday 1st Monday
-	if (timeInfo1.tm_mon == 8 && timeInfo1.tm_wday == 1
-		&& timeInfo1.tm_mday >= 1 && timeInfo1.tm_mday <= 7)
-	{
-		strcpy(pIndicators->status, "Filter Labour holiday.");
-		isFilter = TRUE;
-	}
-	//Thanksgiving holiday 4st Thursday on NOV
-	if (timeInfo1.tm_mon == 10 && timeInfo1.tm_wday == 4
-		&& timeInfo1.tm_mday >= 3 * 7 && timeInfo1.tm_mday <= 4 * 7)
-	{
-		strcpy(pIndicators->status, "Filter thanksgiving holiday.");
-		isFilter = TRUE;
-	}
-	//filter christmas eve and new year eve
-	if (timeInfo1.tm_mon == 11 && (timeInfo1.tm_mday == 24 || timeInfo1.tm_mday == 31))
-	{
-		strcpy(pIndicators->status, "Filter Christmas and New Year Eve.");
-		isFilter = TRUE;
-	}
-
-	return isFilter;
-}
-
 /*
 不交易的情况：
 1.前一天的ATR > 20
@@ -2227,7 +2150,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 	double close_prev1 = iClose(B_DAILY_RATES, 1), close_prev2 = iClose(B_DAILY_RATES, 2);
 	int startTradingTime = pIndicators->startHour;
 	//int startTradingTime = 2;
-	double ATRWeekly0;
+	double ATRWeekly0,ATRDaily0;
 	double weeklyATR = (pBase_Indicators->pWeeklyPredictMaxATR + pBase_Indicators->pWeeklyPredictATR) / 2;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
@@ -2236,6 +2159,16 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 	
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 
+	ATRDaily0 = iAtr(B_DAILY_RATES, 1, 0);
+	if (timeInfo1.tm_hour < startTradingTime || 
+		(timeInfo1.tm_hour >= pIndicators->endHour 
+		//&& ATRDaily0 > pBase_Indicators->pDailyMaxATR
+		)
+	  )
+	{
+		
+		return FALSE;
+	}
 
 	// filter 非农
 	if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
@@ -2257,19 +2190,6 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		return FALSE;
 	}
 
-	////filter US rate day
-	//if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators))
-	//{
-	//	strcpy(pIndicators->status, "Filter out US market close ealier.");
-
-	//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
-	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
-
-	//	return FALSE;
-	//}
-
-	if (timeInfo1.tm_hour < startTradingTime)
-		return FALSE;
 
 	//asia_index_rate = shift1Index - ((timeInfo1.tm_hour - startTradingTime) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
 
@@ -4660,7 +4580,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		}
 
 
-
+		pIndicators->endHour = 23;
 		//如果是当天的单子，入场后，不需要过滤。		
 		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1
 			&& isSameDayOrder == FALSE

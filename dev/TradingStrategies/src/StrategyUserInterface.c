@@ -451,3 +451,158 @@ int readTradingInfo(int instanceID, Order_Info *pOrderInfo)
 
 	return 0;
 }
+
+AsirikuyReturnCode saveTurningPoint(int instanceID, Order_Turning_Info *pOrderTurning)
+{
+	char instanceIDName[TOTAL_UI_VALUES];
+	char buffer[MAX_FILE_PATH_CHARS] = "";
+	char extension[] = "_turningPoint.txt";
+	FILE *fp;
+
+	sprintf(instanceIDName, "%d", instanceID);
+	strcat(buffer, tempFilePath);
+	strcat(buffer, instanceIDName);
+	strcat(buffer, extension);
+
+	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"saveTurningPoint() %s", buffer);
+
+	fp = fopen(buffer, "w");
+	if (fp == NULL)
+	{
+		return SUCCESS;
+	}
+		
+	fprintf(fp, "%d\n", pOrderTurning->type);
+	fprintf(fp, "%d\n", pOrderTurning->isTurning);
+
+	fclose(fp);
+
+	return SUCCESS;
+}
+
+int readTurningPoint(int instanceID, Order_Turning_Info *pOrderTurning)
+{
+	char instanceIDName[TOTAL_UI_VALUES];
+	char buffer[MAX_FILE_PATH_CHARS] = "";
+	char extension[] = "_turningPoint.txt";
+	char line[1024] = "";
+	FILE *fp;	
+	BOOL isTurningPoint = FALSE;
+	
+	sprintf(instanceIDName, "%d", instanceID);
+	strcat(buffer, tempFilePath);
+	strcat(buffer, instanceIDName);
+	strcat(buffer, extension);
+	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"readTurningPoint() %s", buffer);
+
+	fp = fopen(buffer, "r");
+	if (fp == NULL)
+	{
+		//pOrderTurning->isTurning = TRUE;
+		return -1;
+	}
+
+	fgets(line, 1024, fp);
+	pOrderTurning->type = atoi(line);
+	fgets(line, 1024, fp);
+	pOrderTurning->isTurning = atoi(line);
+	
+	fclose(fp);
+
+	return 0;
+}
+
+AsirikuyReturnCode saveVirutalOrdergInfo(int instanceID, OrderInfo orderInfo)
+{
+	char instanceIDName[TOTAL_UI_VALUES];
+	char buffer[MAX_FILE_PATH_CHARS] = "";
+	char extension[] = "_VirutalOrderInfo.txt";
+	char timeString[MAX_TIME_STRING_SIZE] = "";
+	FILE *fp;
+
+	sprintf(instanceIDName, "%d", instanceID);
+	strcat(buffer, tempFilePath);
+	strcat(buffer, instanceIDName);
+	strcat(buffer, extension);
+
+	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"saveTradingInfo() Saving virual order info to : %s", buffer);
+
+	fp = fopen(buffer, "w");
+	if (fp == NULL)
+	{
+		pantheios_logputs(PANTHEIOS_SEV_CRITICAL, (PAN_CHAR_T*)"saveTradingInfo() Failed to open virual order info file.");
+		return NULL_POINTER;
+	}
+
+	fprintf(fp, "%d\n", orderInfo.ticket);
+	fprintf(fp, "%d\n", orderInfo.type);
+	fprintf(fp, "%d\n", orderInfo.isOpen);
+	fprintf(fp, "%f\n", orderInfo.openPrice);
+	fprintf(fp, "%f\n", orderInfo.stopLoss);
+	fprintf(fp, "%f\n", orderInfo.takeProfit);
+	fprintf(fp, "%d\n", orderInfo.openTime);
+
+
+	fclose(fp);
+
+	return SUCCESS;
+}
+
+int readVirtualOrderInfo(int instanceID, OrderInfo *pOrderInfo)
+{
+	char instanceIDName[TOTAL_UI_VALUES];
+	char buffer[MAX_FILE_PATH_CHARS] = "";
+	char extension[] = "_VirutalOrderInfo.txt";
+	char line[1024] = "";
+	FILE *fp;
+	time_t now;
+	int i = 0;
+	char       timeString[MAX_TIME_STRING_SIZE] = "";
+
+	sprintf(instanceIDName, "%d", instanceID);
+	strcat(buffer, tempFilePath);
+	strcat(buffer, instanceIDName);
+	strcat(buffer, extension);
+	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"readTradingInfo() %s", buffer);
+
+	fp = fopen(buffer, "r");
+	if (fp == NULL)
+	{
+		return -1;
+	}
+
+	now = time(NULL);
+
+	fgets(line, 1024, fp);
+	pOrderInfo->ticket= atoi(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->type = atoi(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->isOpen = atoi(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->openPrice = atof(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->stopLoss = atof(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->takeProfit = atof(line);
+	fgets(line, 1024, fp);
+	pOrderInfo->openTime = atoi(line);
+
+	fclose(fp);
+
+	return 0;
+}
+
+AsirikuyReturnCode resetVirtualOrderInfo(int instanceID)
+{
+	OrderInfo orderInfo;
+	orderInfo.ticket = 0;
+	orderInfo.type = 0;
+	orderInfo.isOpen = FALSE;
+	orderInfo.openPrice = 0;
+	orderInfo.stopLoss = 0;
+	orderInfo.takeProfit = 0;
+	orderInfo.openTime = 0;
+
+	return saveVirutalOrdergInfo(instanceID, orderInfo);
+}

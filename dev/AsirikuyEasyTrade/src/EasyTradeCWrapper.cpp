@@ -742,6 +742,11 @@ int getLastestOrderIndexEasy(int rateIndex)
 	return easyTradePtr->getLastestOrderIndex(rateIndex);
 }
 
+int getLastestOrderIndexExceptLimitAndStopOrdersEasy(int rateIndex, BOOL isClosedOnly)
+{
+	return easyTradePtr->getLastestOrderIndexExceptLimitAndStopOrders(rateIndex, isClosedOnly);
+}
+
 int getOldestOpenOrderIndexEasy(int rateIndex)
 {
 	return easyTradePtr->getOldestOpenOrderIndex(rateIndex);

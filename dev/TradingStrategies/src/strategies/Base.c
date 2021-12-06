@@ -153,7 +153,7 @@ static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Base_Indi
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, daily3RulesTrend = %ld,dailyHigh=%lf, dailyLow = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->daily3RulesTrend, pIndicators->dailyHigh, pIndicators->dailyLow);
 
-	// ����3K���ƣ��ϲ�K,�ھ޴��K�ߺ�����ߡ�?
+	
 	if (pIndicators->dailyHLTrend == 1 && pIndicators->daily3RulesTrend == 0)
 	{
 		iTrend3Rules_preDays(pParams, pIndicators, B_DAILY_RATES, 2, &pre3KTrend, 1,index);
