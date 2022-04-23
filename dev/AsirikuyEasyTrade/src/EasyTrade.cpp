@@ -5408,7 +5408,8 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 
 		if (timeInfo.tm_wday == 6)
 		{
-			offset_hour = 1;
+			if (timeInfo.tm_min < 45)
+				offset_hour = 1;
 			start_min = 45;
 		}
 	}
@@ -5475,6 +5476,9 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 		specialCloseHour = 16;
 
 		startMin = 5;
+		if (timeInfo.tm_wday == 6)
+			startMin = 45;
+
 		if (secondary_tf >= 60)
 			closeMin = 5;
 	}
@@ -5622,8 +5626,8 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 		|| strstr(pParams->tradeSymbol, "XAG") != NULL
 		|| strstr(pParams->tradeSymbol, "XPD") != NULL
 		|| strstr(pParams->tradeSymbol, "XTI") != NULL
-		|| (strstr(pParams->tradeSymbol, "BTC") != NULL && timInfo.tm_wday == 6)
-		|| (strstr(pParams->tradeSymbol, "ETH") != NULL && timInfo.tm_wday == 6)
+		//|| (strstr(pParams->tradeSymbol, "BTC") != NULL && timInfo.tm_wday == 6)
+		//|| (strstr(pParams->tradeSymbol, "ETH") != NULL && timInfo.tm_wday == 6)
 		|| strstr(pParams->tradeSymbol, "US500USD") != NULL 
 		|| strstr(pParams->tradeSymbol, "USTECUSD") != NULL
 		)
