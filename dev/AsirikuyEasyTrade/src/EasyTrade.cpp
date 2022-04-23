@@ -5407,7 +5407,10 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 			offset_hour = 0;
 
 		if (timeInfo.tm_wday == 6)
+		{
+			offset_hour = 1;
 			start_min = 45;
+		}
 	}
 
 	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"checking missing bars: Current hourly bar matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
