@@ -1,0 +1,24 @@
+# Root .gitignore for AutoBBS
+
+# Ignore backup folder that contains large historical source copies
+/backup/
+
+# Common build and IDE files
+/bin/
+/build/
+/*.sdf
+*.suo
+*.user
+*.VC.db
+.vs/
+.idea/
+
+# Vendor dependencies (kept in vendor/ but often should be tracked) - uncomment if you vendor libs and don't want them in repo
+#/vendor/
+
+# Temporary files
+ /tmp/
+*.tmp
+*.log
+*.swp
+~*
