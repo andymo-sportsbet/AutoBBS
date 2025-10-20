@@ -308,6 +308,45 @@ int readRateFile(int instanceID, BOOL isBackTesting)
 	return rateErrorTimes;
 }
 
+double readRiskFile(BOOL isBackTesting)
+{
+	char buffer[MAX_FILE_PATH_CHARS] = "";
+	char extension[] = "risk.txt";
+	char line[1024] = "";
+	FILE* fp;
+	double risk = 1.0;
+
+	/* This function is in the StrategyUserInterface.c file because
+	it's information is used to draw a part of the UI
+	(top right corner --  update time) */
+
+	if (isBackTesting)
+	{
+		/* Don't save this file while testing because it's not necessary. */
+		return risk;
+	}
+
+	strcat(buffer, tempFilePath);
+	strcat(buffer, extension);
+
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"readRiskFile() %s", buffer);
+
+	fp = fopen(buffer, "r");
+	if (fp == NULL)
+	{
+		return risk;
+	}
+
+	while (fgets(line, 1024, fp)) {
+		risk = atof(line);
+	}
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"readRiskFile() risk= %f", risk);
+
+	fclose(fp);
+
+	return risk;
+}
+
 //这里包括非农，和美联储议息会议的时间
 //这里只有日期，没有时间。
 int readXAUUSDKeyNewsDateFile(time_t *pKeyDates)

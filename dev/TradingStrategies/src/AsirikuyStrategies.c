@@ -419,7 +419,9 @@ AsirikuyReturnCode runStrategy(StrategyParams* pParams)
 
   if (!isValidTradingTime(pParams,pParams->currentBrokerTime))
   {
-	pantheios_logputs(PANTHEIOS_SEV_CRITICAL, (PAN_CHAR_T*)"runStrategy() failed. Invalid trading time.");
+
+    safe_timeString(timeString, pParams->currentBrokerTime);
+    pantheios_logprintf(PANTHEIOS_SEV_CRITICAL, (PAN_CHAR_T*)"runStrategy() failed. Invalid trading time: %s", timeString);
 	return SUCCESS;
   }
     

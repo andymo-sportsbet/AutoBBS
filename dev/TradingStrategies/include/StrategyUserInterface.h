@@ -76,6 +76,7 @@ AsirikuyReturnCode requestTempFileFolderPath(char* tempPath);
  */
 AsirikuyReturnCode saveUserHeartBeat(int instanceID, BOOL isBackTesting);
 
+double readRiskFile(BOOL isBackTesting);
 int readRateFile(int instanceID, BOOL isBackTesting);
 int readXAUUSDKeyNewsDateFile(time_t *pKeyDates);
 
@@ -90,7 +91,7 @@ int readTradingInfo(int instanceID, Order_Info *pOrderInfo);
 AsirikuyReturnCode resetTradingInfo(int instanceID);
 
 AsirikuyReturnCode saveTurningPoint(int instanceID, BOOL isTurning);
-BOOL readTurningPoint(int instanceID);
+int readTurningPoint(int instanceID);
 
 int readVirtualOrderInfo(int instanceID, OrderInfo *pOrderInfo);
 AsirikuyReturnCode resetVirtualOrderInfo(int instanceID);

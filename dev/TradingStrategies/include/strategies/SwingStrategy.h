@@ -59,6 +59,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 //´¿¿Õ¼ä
 AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
+AsirikuyReturnCode workoutExecutionTrend_BTCUSD_DayTrading_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators* pBase_Indicators);
 //5M MA+ BBand
 //¿çÈÕ
 AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);

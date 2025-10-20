@@ -216,7 +216,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	int        shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	int   startHour = 0;
 
-	if (strstr(pParams->tradeSymbol, "XAU") != NULL || strstr(pParams->tradeSymbol, "XTI") != NULL || strstr(pParams->tradeSymbol, "XAG") != NULL || strstr(pParams->tradeSymbol, "XPD") != NULL)
+	if (strstr(pParams->tradeSymbol, "XAU") != NULL || strstr(pParams->tradeSymbol, "XTI") != NULL || strstr(pParams->tradeSymbol, "SpotCrude") != NULL || strstr(pParams->tradeSymbol, "XAG") != NULL || strstr(pParams->tradeSymbol, "XPD") != NULL)
 		startHour = 1;
 
 	safe_gmtime(&timeInfo, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
@@ -323,6 +323,9 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		break;
 	case 35:
 		workoutExecutionTrend_Ichimoko_Weekly_Index(pParams, pIndicators, pBase_Indicators);
+		break;
+	case 36:
+		//workoutExecutionTrend_BTCUSD_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 100:
 		workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(pParams, pIndicators, pBase_Indicators);
@@ -641,6 +644,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 {
 	AsirikuyReturnCode returnCode = SUCCESS;
 	double originEquity = 0.0;
+	double risk = 1.0;
 
 	pIndicators->primaryATR = iAtr(B_PRIMARY_RATES, (int)parameter(ATR_AVERAGING_PERIOD), 1);
 
@@ -698,6 +702,9 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 		//update totalOpenTradeRiskPercent
 		originEquity = pParams->accountInfo.equity;
 		pParams->accountInfo.equity += pIndicators->virtualBalanceTopup;
+
+		risk = readRiskFile((BOOL)pParams->settings[IS_BACKTESTING]);
+		pParams->accountInfo.equity = pParams->accountInfo.equity * risk;
 
 		pParams->accountInfo.totalOpenTradeRiskPercent = pParams->accountInfo.totalOpenTradeRiskPercent / (pParams->accountInfo.equity / originEquity);
 
@@ -805,7 +812,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	if (strcmp(timeString, "30/01/21 18:30") == 0)
+	if (strcmp(timeString, "09/03/23 01:00") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_DEBUG, "hit a point");
 
 	if (strcmp(timeString, "22/11/21 15:00") == 0)
@@ -835,8 +842,8 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 	}
 
 	//if passed, reset back to 0
-	if (rateErrorTimes >= 10)
-		saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
+	//if (rateErrorTimes >= 10)
+	//	saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 
 	if ((int)parameter(AUTOBBS_MACRO_TREND) * (int)parameter(AUTOBBS_ONE_SIDE) < 0)
 	{

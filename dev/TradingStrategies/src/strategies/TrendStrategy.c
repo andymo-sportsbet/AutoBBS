@@ -2921,7 +2921,9 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	int rangeType = 0;
 	OrderInfo orderInfo;
 	int atrTimes = 20;
-	
+	BOOL isEnableTooBigSpread = FALSE;
+	double ma960M = 0.0;
+	int count = 0;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
@@ -2943,9 +2945,17 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	getHighLowPrice(pParams, pIndicators, pBase_Indicators, B_PRIMARY_RATES, 5 * 60, orderIndex, &highPrice, &lowPrice);
 
 	pIndicators->adjust = fabs(pParams->bidAsk.bid[0] - pParams->bidAsk.ask[0]);	
+
+	count = timeInfo1.tm_hour * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
+
+	ma960M = iMA(3, B_PRIMARY_RATES, 960, 1+ count);
 	
 	if (timeInfo1.tm_wday == 0)
 		atrTimes = 50;
+
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,ask=%lf,bid=%lf,adjsut=%lf",
+		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString,pParams->bidAsk.ask[0], pParams->bidAsk.bid[0], pIndicators->adjust);
+
 
 	if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
 	{
@@ -3086,6 +3096,14 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		if (timeInfo1.tm_wday == 2 || timeInfo1.tm_wday == 3 || timeInfo1.tm_wday == 4)
 			pIndicators->risk = 0.5;
 
+		if (timeInfo1.tm_wday == 0 || timeInfo1.tm_wday == 1)
+		{
+			if (fabs(pBase_Indicators->dailyTrend) >= 6
+				&& iAtr(B_DAILY_RATES, 1, 1) < 0.7 * pBase_Indicators->pDailyATR
+				)
+				pIndicators->risk = 0.5;
+		}
+
 		//if (timeInfo1.tm_wday == 6 && timeInfo1.tm_hour == 16 && timeInfo1.tm_min >= 50)
 		//{
 		//	closeAllLimitAndStopOrdersEasy(currentTime);			
@@ -3130,6 +3148,8 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 		isEnableDoubleEntry = TRUE;
 
+		isEnableTooFar = TRUE;
+
 		fastMAPeriod = 7;
 		slowMAPeriod = 14;
 		signalMAPeriod = 7;
@@ -3138,6 +3158,11 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	}
 	else if (strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
+		if (fabs(pParams->bidAsk.ask[0] - pParams->bidAsk.bid[0]) > pIndicators->adjust * 1.5){
+
+			isEnableTooBigSpread = TRUE;
+		}
+		
 		pIndicators->adjust = pBase_Indicators->dailyATR * 0.01;
 
 		startHour = 0;
@@ -3154,6 +3179,14 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		if (timeInfo1.tm_wday == 2 || timeInfo1.tm_wday == 4)
 			pIndicators->risk = 0.5;
 
+		if (timeInfo1.tm_wday == 0 || timeInfo1.tm_wday == 1)
+		{
+			if (fabs(pBase_Indicators->dailyTrend) >= 6
+				&& iAtr(B_DAILY_RATES, 1, 1) < 0.7 * pBase_Indicators->pDailyATR
+				)
+				pIndicators->risk = 0.5;
+		}
+
 		//if (timeInfo1.tm_wday == 6 && timeInfo1.tm_hour == 16 && timeInfo1.tm_min >= 50)
 		//{
 		//	closeAllLimitAndStopOrdersEasy(currentTime);			
@@ -3198,11 +3231,17 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 		isEnableDoubleEntry = TRUE;
 
+		isEnableTooFar = TRUE;
+
 		fastMAPeriod = 7;
 		slowMAPeriod = 14;
 		signalMAPeriod = 7;
 
 		tradingDays = 14;
+
+
+	
+
 	}
 	else if (strstr(pParams->tradeSymbol, "AUDUSD") != NULL)
 	{		
@@ -3216,7 +3255,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 		isEnableMACDSlow = FALSE;
 		isEnableFlatTrend = TRUE;
-
+		isEnableTooFar = TRUE;
 		//isEnableRangeTrade = TRUE;
 		pIndicators->startHourOnLimt = pIndicators->startHour;
 	}
@@ -3403,6 +3442,14 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 	}
 
+	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && isEnableTooBigSpread == TRUE)
+	{
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,isEnableTooBigSpread=%d",
+			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, isEnableTooBigSpread);
+		
+		closeAllLimitAndStopOrdersEasy(currentTime);
+		return SUCCESS;
+	}
 	///////////////////
 
 	if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 3 || timeInfo1.tm_hour >= stopHour)
@@ -3490,8 +3537,18 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 		if (trend == UP)
 		{
-			//if (pIndicators->bbsTrend_secondary < 0)
-			//	pIndicators->risk = 0.5;
+			//TODO: check if run too far and have reverse daily bar.
+			if (isEnableTooFar == TRUE && (ma960M < pBase_Indicators->dailyS2 || preDailyClose - ma960M > 0.9 * pBase_Indicators->dailyATR))
+			{
+				if (preDailyClose < preDailyOpen) // Bear bar
+				{
+					pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,ma960M=%lf, dailyS2=%lf run too far and reduce risk to 0.5.",
+						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ma960M, pBase_Indicators->dailyS2);
+
+					//pIndicators->risk = 0.5;
+					return SUCCESS;
+				}
+			}
 
 			if(isEnableDoubleEntry == TRUE && rangeType == 1
 				&& pIndicators->bbsTrend_primary == 1
@@ -3553,8 +3610,18 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		}
 		else if (trend == DOWN)
 		{
-			//if (pIndicators->bbsTrend_secondary > 0)
-			//	pIndicators->risk = 0.5;
+			//TODO: check if run too far and have reverse daily bar.
+			if (isEnableTooFar == TRUE &&(ma960M > pBase_Indicators->dailyR2 || ma960M - preDailyClose > 0.9* pBase_Indicators->dailyATR))
+			{
+				if (preDailyClose > preDailyOpen) // Bull bar
+				{
+					pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s,ma960M= %lf,dailyR2=%lf run too far and reduce risk to 0.5.",
+						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ma960M, pBase_Indicators->dailyR2);
+
+					//pIndicators->risk = 0.5;
+					return SUCCESS;
+				}
+			}
 
 			if (isEnableDoubleEntry == TRUE && rangeType == -1
 				&& pIndicators->bbsTrend_primary == -1
@@ -4147,8 +4214,12 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 		orderTurningInfo.isTurning = TRUE;
 		saveTurningPoint((int)pParams->settings[STRATEGY_INSTANCE_ID], &orderTurningInfo);
 	}
-
-	readTurningPoint((int)pParams->settings[STRATEGY_INSTANCE_ID], &orderTurningInfo);
+	
+	if (readTurningPoint((int)pParams->settings[STRATEGY_INSTANCE_ID], &orderTurningInfo) == -1)
+	{
+		orderTurningInfo.isTurning = TRUE;
+		saveTurningPoint((int)pParams->settings[STRATEGY_INSTANCE_ID], &orderTurningInfo);
+	}
 	
 	if (orderTurningInfo.isTurning == TRUE
 		//&& orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE
@@ -6051,7 +6122,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	int    shift1Index_Daily = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 2;
 	int    shift0Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 1;
 	int    shift1Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 2;
-	int    shiftPreDayBar = shift1Index_Daily - 1;
+	int    shiftPreDayBar = shift1Index_Daily - 2;
 	int   dailyTrend; 
 	time_t currentTime, preBarTime;
 	struct tm timeInfo1, timeInfo2, timeInfoPreBar;
@@ -6232,6 +6303,49 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		isEnableMaxLevelRiskControl = FALSE;
 		
 	}
+	else if (strstr(pParams->tradeSymbol, "SpotCrudeUSD") != NULL)
+	{
+		level = 0.35;// min(0.35, 0.0053 * pParams->bidAsk.ask[0]);
+		maxLevel = 0.01 * pParams->bidAsk.ask[0];
+		histLevel = 0.01;
+		isVolumeControl = FALSE;
+		isEnableBeiLi = TRUE;
+
+		isEnableSlow = FALSE;
+		isEnableATR = FALSE;
+		isEnableCMFVolume = FALSE;
+		isEnableCMFVolumeGap = FALSE;
+
+		isEnableMaxLevelBuy = TRUE;
+		isEnableMaxLevelSell = FALSE;
+		isEnableMaxLevel = TRUE;
+
+		isWeeklyBaseLine = TRUE;
+
+		fastMAPeriod = 5;
+		slowMAPeriod = 10;
+		signalMAPeriod = 5;
+
+		stopLoss = pBase_Indicators->dailyATR * 1.8;
+
+		maxRisk = 1.5;
+
+		isDailyOnly = TRUE;
+
+		shiftPreDayBar = shift1Index;
+
+		pIndicators->stopMovingBackSL = FALSE;
+
+		isEnableEntryEOD = TRUE;
+
+		pIndicators->minLotSize = 0.01;
+		pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
+
+		pIndicators->volumeStep = 0.01;
+
+
+		range = 10;
+	}
 	else if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
 	{		
 		level = 0.35;// min(0.35, 0.0053 * pParams->bidAsk.ask[0]);
@@ -6268,9 +6382,13 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		isEnableEntryEOD = TRUE;
 
 		pIndicators->minLotSize = 0.5;
-		pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
-
 		pIndicators->volumeStep = 0.5;
+
+		//pIndicators->minLotSize = 0.01;
+		//pIndicators->volumeStep = 0.01;
+
+		pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
+		
 
 		range = 10;
 	}
@@ -6634,7 +6752,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		//		macdLimit = 0;
 		//}
 
-		if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
+		if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL || strstr(pParams->tradeSymbol, "SpotCrudeUSD") != NULL)
 		{
 			isDailyOnly = FALSE;
 		}
@@ -9189,7 +9307,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 		signalMAPeriod = 5;
 
 		exitBaseLine = pIndicators->daily_baseline_short;
-		if (strcmp(pParams->accountInfo.brokerName, "International Capital Markets Pty Ltd.") == 0)
+		if (strcmp(pParams->accountInfo.brokerName, "International Capital Markets Pty. Ltd.") == 0)
 			shiftPreDayBar = shift1Index;
 	}
 	else if (strstr(pParams->tradeSymbol, "XAGUSD") != NULL)
@@ -10536,8 +10654,25 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 		buyWonTimes = 2;
 		sellWonTimes = 1;
 
-		pIndicators->minLotSize = 1;
+		//pIndicators->minLotSize = 1;
 		pIndicators->isEnableSellMinLotSize = TRUE;
+
+		//if (strcmp(pParams->accountInfo.brokerName, "Pepperstone Group Limited") == 0)
+		pIndicators->minLotSize = 0.1;	
+
+		startHour = 1;
+	}
+	else if (strstr(pParams->tradeSymbol, "NAS100USD") != NULL)
+	{
+		isEnableWeeklyATRControl = TRUE;
+		pIndicators->takePrice = pBase_Indicators->dailyATR * 4;
+		buyWonTimes = 3;
+		sellWonTimes = 1;
+
+		//pIndicators->minLotSize = 1;
+		pIndicators->isEnableSellMinLotSize = TRUE;
+		//if (strcmp(pParams->accountInfo.brokerName, "Pepperstone Group Limited") == 0)
+		pIndicators->minLotSize = 0.1;
 
 		startHour = 1;
 	}
@@ -10550,6 +10685,8 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 
 		pIndicators->minLotSize = 1;
 		pIndicators->isEnableSellMinLotSize = TRUE;
+		//if (strcmp(pParams->accountInfo.brokerName, "Pepperstone Group Limited") == 0)
+		//pIndicators->minLotSize = 0.1;
 
 		startHour = 1;
 	}
@@ -10812,7 +10949,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 
 	pIndicators->tradeMode = 1;
 
-	pIndicators->volumeStep = 1;
+	pIndicators->volumeStep = 0.1;
 
 	targetPNL = parameter(AUTOBBS_MAX_STRATEGY_RISK);
 	strategyVolRisk = pIndicators->strategyMaxRisk;

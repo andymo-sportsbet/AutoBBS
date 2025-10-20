@@ -13,7 +13,7 @@
 void splitBuyOrders_DayTrading(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
-	// 1£º1 			
+	// 1ï¿½ï¿½1 			
 	if (pIndicators->entryPrice <= pBase_Indicators->dailyR2)
 	{
 		takePrice = fabs(pBase_Indicators->dailyR2 - pIndicators->adjust/2 - pIndicators->entryPrice);
@@ -226,7 +226,7 @@ void splitBuyOrders_Daily_Swing(StrategyParams* pParams, Indicators* pIndicators
 
 		//lots = min(lots, lots_standard);
 
-		////ß@ÑYÊ¹ÓÃ¹ÀÓ‹Ö¹“p50üc£¬È»áá×î´óïLëUÊÇ2%
+		////ï¿½@ï¿½YÊ¹ï¿½Ã¹ï¿½Ó‹Ö¹ï¿½p50ï¿½cï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Lï¿½Uï¿½ï¿½2%
 		////Cap the max risk
 		//lots_max = calculateOrderSizeWithSpecificRisk(pParams, BUY, pIndicators->entryPrice, 5, 2);
 
@@ -286,7 +286,7 @@ void splitSellOrders_Daily_Swing(StrategyParams* pParams, Indicators* pIndicator
 
 		//lots = min(lots, lots_standard);
 		//
-		////ß@ÑYÊ¹ÓÃ¹ÀÓ‹Ö¹“p50üc£¬È»áá×î´óïLëUÊÇ2%
+		////ï¿½@ï¿½YÊ¹ï¿½Ã¹ï¿½Ó‹Ö¹ï¿½p50ï¿½cï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Lï¿½Uï¿½ï¿½2%
 		////Cap the max risk
 		//lots_max = calculateOrderSizeWithSpecificRisk(pParams, SELL, pIndicators->entryPrice, 5, 2);
 
@@ -306,6 +306,7 @@ void splitSellOrders_Daily_Swing(StrategyParams* pParams, Indicators* pIndicator
 	
 
 }
+
 
 void splitBuyOrders_Daily_GBPJPY_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
@@ -339,7 +340,7 @@ void splitBuyOrders_Daily_GBPJPY_Swing(StrategyParams* pParams, Indicators* pInd
 
 	//lots = min(lots, lots_standard);
 
-	////ß@ÑYÊ¹ÓÃ¹ÀÓ‹Ö¹“p50üc£¬È»áá×î´óïLëUÊÇ2%
+	////ï¿½@ï¿½YÊ¹ï¿½Ã¹ï¿½Ó‹Ö¹ï¿½p50ï¿½cï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Lï¿½Uï¿½ï¿½2%
 	////Cap the max risk
 	//lots_max = calculateOrderSizeWithSpecificRisk(pParams, BUY, pIndicators->entryPrice, 0.5, 2);
 
@@ -386,7 +387,7 @@ void splitSellOrders_Daily_GBPJPY_Swing(StrategyParams* pParams, Indicators* pIn
 
 	//lots = min(lots, lots_standard);
 
-	////ß@ÑYÊ¹ÓÃ¹ÀÓ‹Ö¹“p50üc£¬È»áá×î´óïLëUÊÇ2%
+	////ï¿½@ï¿½YÊ¹ï¿½Ã¹ï¿½Ó‹Ö¹ï¿½p50ï¿½cï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Lï¿½Uï¿½ï¿½2%
 	////Cap the max risk
 	//lots_max = calculateOrderSizeWithSpecificRisk(pParams, SELL, pIndicators->entryPrice, 0.5, 2);
 
@@ -803,7 +804,7 @@ void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIn
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1/3 ï¿½Õ¼ï¿½
 	if (down_gap <= pATR / 3)
 	{
 		takePrice = up_gap / 4;
@@ -825,7 +826,7 @@ void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pI
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1/3 ï¿½Õ¼ï¿½
 	if (up_gap <= pATR / 3)
 	{
 		takePrice = down_gap / 4;
@@ -847,7 +848,7 @@ void splitBuyOrders_ShortTerm_Hedge(StrategyParams* pParams, Indicators* pIndica
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1/3 ï¿½Õ¼ï¿½
 	if (down_gap <= pATR / 3)
 	{
 		takePrice = up_gap / 4;
@@ -869,7 +870,7 @@ void splitSellOrders_ShortTerm_Hedge(StrategyParams* pParams, Indicators* pIndic
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1/3 ï¿½Õ¼ï¿½
 	if (up_gap <= pATR / 3)
 	{
 		takePrice = down_gap / 4;
@@ -914,7 +915,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams* pParams, Ind
 	//case MIDDLE_UP_RETREAT_PHASE:
 	//case MIDDLE_DOWN_RETREAT_PHASE:
 	//case RANGE_PHASE:
-	//	//ÄæÊÆ¿Õ¼ä¶Ô³å½»Ò×
+	//	//ï¿½ï¿½ï¿½Æ¿Õ¼ï¿½Ô³å½»ï¿½ï¿½
 	//	//workoutExecutionTrend_Hedge(pParams, pIndicators, pBase_Indicators);
 	//	//if (pIndicators->entrySignal == 0) 
 	//		workoutExecutionTrend_ATR_Hedge(pParams, pIndicators, pBase_Indicators);
@@ -932,7 +933,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams* pParams, Ind
 	return SUCCESS;
 }
 
-//¿Õ¼ä¼«ÏÞ»Ø¹é½»Ò×
+//ï¿½Õ¼ä¼«ï¿½Þ»Ø¹é½»ï¿½ï¿½
 AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {	
 	int    shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -973,7 +974,7 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_RETREAT_PHASE || pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_RETREAT_PHASE || pBase_Indicators->dailyTrend_Phase == RANGE)
 	{
-		//ÖÁÉÙÓÐ1/3 ¿Õ¼ä,Sell		
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1/3 ï¿½Õ¼ï¿½,Sell		
 		if (pBase_Indicators->pMaxDailyHigh - pParams->bidAsk.bid[0] <= pBase_Indicators->pDailyATR / 3)
 		{
 			pIndicators->executionTrend = -1;
@@ -995,7 +996,7 @@ AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams* pParams, Indi
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 			pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
 
-			//ÄæÊÆ¶Ô³å½»Ò×
+			//ï¿½ï¿½ï¿½Æ¶Ô³å½»ï¿½ï¿½
 			if (ATR0 >= pMaxATR && preClose > preOpen && intradayClose - intradayLow >= ATR0 * 0.1
 				&& timeInfo1.tm_hour < 23
 				&& !hasSameDayOrderEasy(currentTime,&isOpen)
@@ -1065,7 +1066,7 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 		pIndicators->stopLossPrice = pBase_Indicators->dailyS;
 		pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
 
-		//ÄæÊÆ¶Ô³å½»Ò×
+		//ï¿½ï¿½ï¿½Æ¶Ô³å½»ï¿½ï¿½
 		if (pIndicators->bbsTrend_excution == 1 && pIndicators->bbsIndex_excution == shift1Index
 			&& timeInfo1.tm_hour < 23
 			&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
@@ -1076,7 +1077,7 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 	}
 	else
 	{
-		//ÖÁÉÙÓÐ1/3 ¿Õ¼ä,Sell
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1/3 ï¿½Õ¼ï¿½,Sell
 		if (up_gap <= pBase_Indicators->pDailyATR / 3)
 		{
 			pIndicators->executionTrend = -1;
@@ -1099,7 +1100,7 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 			pIndicators->stopLossPrice = pBase_Indicators->dailyS;
 			pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
 
-			//ÄæÊÆ¶Ô³å½»Ò×
+			//ï¿½ï¿½ï¿½Æ¶Ô³å½»ï¿½ï¿½
 			if (pIndicators->bbsTrend_excution == 1 && pIndicators->bbsIndex_excution == shift1Index
 				&& timeInfo1.tm_hour < 23
 				&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
@@ -1112,10 +1113,10 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 	return SUCCESS;
 }
 
-//1. ÔÚ5MÍ»ÆÆÇø¼äºó£¬Èë³¡
-//2. µ«ÊÇÈç¹û²»ÊÇµÚÒ»µ¥µÄ»°£¬ÐèÒªÔÚ15·ÖÖÓºó£¬Ê¹ÓÃ15 BBS Trend ¼ì²é
-//3. Èç¹ûÃ»ÓÐBBS TrendµÄÖ§³Ö£¬¾Íclose trade,ÏÈÀë³¡£¬µÈ´ýÏÂÒ»´Î»ú»á£¨Õâ¸öÊ±ºò£¬²»ÄÜÈë³¡£©
-//4. Í¬Ê±£¬Ê¹ÓÃtotal lose risk control < 0.6%
+//1. ï¿½ï¿½5MÍ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡
+//2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½Ò»ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½15ï¿½ï¿½ï¿½Óºï¿½Ê¹ï¿½ï¿½15 BBS Trend ï¿½ï¿½ï¿½
+//3. ï¿½ï¿½ï¿½Ã»ï¿½ï¿½BBS Trendï¿½ï¿½Ö§ï¿½Ö£ï¿½ï¿½ï¿½close trade,ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½Ò»ï¿½Î»ï¿½ï¿½á£¨ï¿½ï¿½ï¿½Ê±ï¿½ò£¬²ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½
+//4. Í¬Ê±ï¿½ï¿½Ê¹ï¿½ï¿½total lose risk control < 0.6%
 static void XAUUSD_Daily_Stop_Check(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -1130,7 +1131,7 @@ static void XAUUSD_Daily_Stop_Check(StrategyParams* pParams, Indicators* pIndica
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
-	//ÕâÀï¼òµ¥´¦Àí£¬Èç¹ûÓÐµ¥£¬¶¼ÊÇÊ¹ÓÃ0 µÄµ¥×Ó
+	//ï¿½ï¿½ï¿½ï¿½òµ¥´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½0 ï¿½Äµï¿½ï¿½ï¿½
 
 	if (pParams->orderInfo[0].ticket != 0 && pParams->orderInfo[0].isOpen == TRUE)
 	{		
@@ -1152,8 +1153,8 @@ static void XAUUSD_Daily_Stop_Check(StrategyParams* pParams, Indicators* pIndica
 			//	(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, count,intradayHigh, intradayLow);
 
 			if (pParams->orderInfo[0].type == BUY && pIndicators->bbsTrend_secondary == -1
-				//( (pBase_Indicators->maTrend < 0 && iClose(B_PRIMARY_RATES, 1)<intradayHigh) //Äæ„Ý
-				//|| (pBase_Indicators->maTrend >  0 && pIndicators->bbsTrend_secondary == -1) //Ë³ÊÆ
+				//( (pBase_Indicators->maTrend < 0 && iClose(B_PRIMARY_RATES, 1)<intradayHigh) //ï¿½ï¿½ï¿½
+				//|| (pBase_Indicators->maTrend >  0 && pIndicators->bbsTrend_secondary == -1) //Ë³ï¿½ï¿½
 				//	)
 					)
 			{
@@ -1167,8 +1168,8 @@ static void XAUUSD_Daily_Stop_Check(StrategyParams* pParams, Indicators* pIndica
 				}
 			}
 			if (pParams->orderInfo[0].type == SELL && pIndicators->bbsTrend_secondary == 1
-				//((pBase_Indicators->maTrend < 0 && iClose(B_PRIMARY_RATES, 1) > intradayLow) //Äæ„Ý
-				//|| (pBase_Indicators->maTrend >  0 && pIndicators->bbsTrend_secondary == 1) //Ë³ÊÆ
+				//((pBase_Indicators->maTrend < 0 && iClose(B_PRIMARY_RATES, 1) > intradayLow) //ï¿½ï¿½ï¿½
+				//|| (pBase_Indicators->maTrend >  0 && pIndicators->bbsTrend_secondary == 1) //Ë³ï¿½ï¿½
 				//)
 				)				
 			{
@@ -1189,12 +1190,12 @@ static void XAUUSD_Daily_Stop_Check(StrategyParams* pParams, Indicators* pIndica
 }
 
 /*
-²»½»Ò×µÄÇé¿ö£º
-1.Ç°Ò»ÌìµÄATR > 20
-2.Ç°Ò»ÌìµÄClose -  Ç°Á½ÌìµÄCloseµÄ¾àÀë > 10
-3.ÑÇÖÞÊ±¶ÎµÄ²¨·ù> 8?
-4.×î¶à½»Ò×3´Î£¬ÈÕÄÚ
-5.10µãÖ®Ç°£¬²»½»Ò×
+ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1.Ç°Ò»ï¿½ï¿½ï¿½ATR > 20
+2.Ç°Ò»ï¿½ï¿½ï¿½Close -  Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Closeï¿½Ä¾ï¿½ï¿½ï¿½ > 10
+3.ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ÎµÄ²ï¿½ï¿½ï¿½> 8?
+4.ï¿½ï¿½à½»ï¿½ï¿½3ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½
+5.10ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 */
 static BOOL GBPJPY_DayTrading_Allow_Trade_Old(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -1276,7 +1277,7 @@ void XAUUSD_BBS_StopLoss_Trend(StrategyParams* pParams, Indicators* pIndicators,
 		{
 			if (pParams->orderInfo[0].type == BUY)
 			{
-				// ¿ªÊ¼¸ú×ÙÖ¹Ëð£¨Ö¹Ó¯£©
+				// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½Ö¹Ó¯ï¿½ï¿½
 				if (pBase_Indicators->dailyTrend_Phase != RANGE_PHASE && pIndicators->bbsTrend_secondary == -1)
 				{
 					
@@ -1302,13 +1303,13 @@ void XAUUSD_BBS_StopLoss_Trend(StrategyParams* pParams, Indicators* pIndicators,
 }
 
 /*
-²»½»Ò×µÄÇé¿ö£º
-1.Ç°Ò»ÌìµÄATR > 20
-2.Ç°Ò»ÌìµÄClose -  Ç°Á½ÌìµÄCloseµÄ¾àÀë > 10
-3.ÑÇÖÞÊ±¶ÎµÄ²¨·ù> 7 or 8?
-4.×î¶à½»Ò×3´Î£¬ÈÕÄÚ
-5.10µãÖ®Ç°£¬²»½»Ò×
-6.Èç¹û15MA too close, ÀýÈç 2£¬1H MA ·½Ïò²»Ö§³Ö
+ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1.Ç°Ò»ï¿½ï¿½ï¿½ATR > 20
+2.Ç°Ò»ï¿½ï¿½ï¿½Close -  Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Closeï¿½Ä¾ï¿½ï¿½ï¿½ > 10
+3.ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ÎµÄ²ï¿½ï¿½ï¿½> 7 or 8?
+4.ï¿½ï¿½à½»ï¿½ï¿½3ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½
+5.10ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+6.ï¿½ï¿½ï¿½15MA too close, ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½1H MA ï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½
 */
 static BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -1354,7 +1355,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 	pIndicators->asia_open = close_prev1;
 	pIndicators->asia_close = iClose(B_PRIMARY_RATES, asia_index_rate);
 
-	if (timeInfo1.tm_hour >= 17) //17:00 ½øÈëÃÀÖÞ½»Ò×Ê±¶Î
+	if (timeInfo1.tm_hour >= 17) //17:00 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
 	{
 		euro_index_rate = shift1Index - ((timeInfo1.tm_hour - 17) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
 
@@ -1409,7 +1410,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 	//MATrend_1H = getMATrend(4, B_HOURLY_RATES, 1);
 	//MATrend_15M = getMATrend(2, B_SECONDARY_RATES, 1);
 
-	//if (MATrend_1H * MATrend_15M <0) //Í¬·½Ïò
+	//if (MATrend_1H * MATrend_15M <0) //Í¬ï¿½ï¿½ï¿½ï¿½
 	//{
 
 	//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s filter out small range: MATrend_1H=%lf,MATrend_15M=%lf",
@@ -1470,42 +1471,42 @@ static void XAUUSD_DayTrading_Entry(StrategyParams* pParams, Indicators* pIndica
 
 
 /*
-¿Õ¼äÓëBBS15µÄ½áºÏÈÕÄÚ»Æ½ð½»Ò×·¨
-ÑÇÖÞÊ±¶Î£º 
+ï¿½Õ¼ï¿½ï¿½ï¿½BBS15ï¿½Ä½ï¿½ï¿½ï¿½ï¿½ï¿½Ú»Æ½ï¿½ï¿½×·ï¿½
+ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Î£ï¿½ 
 1- 10am
 
-ÔÚÓÐµ¥×ÓµÄÇé¿öÏÂ£¬ÔÚµ±ÈÕ²¨·ùÐ¡ÓÚ 80p,±ØÐëÊ¹ÓÃ¿Õ¼ä·¨¡£
+ï¿½ï¿½ï¿½Ðµï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½Úµï¿½ï¿½Õ²ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ 80p,ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ã¿Õ¼ä·¨ï¿½ï¿½
 
-²»½»Ò×µÄÇé¿ö£º
-1.Ç°Ò»ÌìµÄATR > 20
-2.Ç°Ò»ÌìµÄClose -  Ç°Á½ÌìµÄCloseµÄ¾àÀë > 10
-3.ÑÇÖÞÊ±¶ÎµÄ²¨·ù> 7 or 8?
-4.×î¶à½»Ò×3´Î£¬ÈÕÄÚ
-5.Èç¹ûÇ°Ò»Ììµ½ÁËS3 or R3
+ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1.Ç°Ò»ï¿½ï¿½ï¿½ATR > 20
+2.Ç°Ò»ï¿½ï¿½ï¿½Close -  Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Closeï¿½Ä¾ï¿½ï¿½ï¿½ > 10
+3.ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ÎµÄ²ï¿½ï¿½ï¿½> 7 or 8?
+4.ï¿½ï¿½à½»ï¿½ï¿½3ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½
+5.ï¿½ï¿½ï¿½Ç°Ò»ï¿½ìµ½ï¿½ï¿½S3 or R3
 
-ÈÕÄÚÇ÷ÊÆ£º
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½
 MA15(50) > MA15(200): UP
 MA15(50) < MA15(200): DOWN
 
-Èë³¡:
-1. Èç¹ûÔÚ10µãµÄÊ±ºò£¬Ë³ÊÆ, ¾ÍÂíÉÏÈë³¡
-2. Èç¹û10µãµÄÊ±ºò£¬ÄæÊÆ£¬ ¾ÍµÈ´ýµ½ÒÔÏÂÇé¿ö£º
-	2.1 Èç¹û5MµÄÊÕÅÌÍ»ÆÆÑÇÖÞÊ±¶ÎµÄ¸ßµÍµã£¬¾ÍÈë³¡
-	2.2 Ö±µ½Ë³ÊÆµÄ15MBBS Í»ÆÆ£¬ Èë³¡
+ï¿½ë³¡:
+1. ï¿½ï¿½ï¿½ï¿½ï¿½10ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ë³ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡
+2. ï¿½ï¿½ï¿½10ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ ï¿½ÍµÈ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	2.1 ï¿½ï¿½ï¿½5Mï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ÎµÄ¸ßµÍµã£¬ï¿½ï¿½ï¿½ë³¡
+	2.2 Ö±ï¿½ï¿½Ë³ï¿½Æµï¿½15MBBS Í»ï¿½Æ£ï¿½ ï¿½ë³¡
 
-µ¥Á¿£º
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 0.3 risk
 
-³ö³¡£º
-ÈÕÄÚ23£º30£¬±ØÐëÀë³¡
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½23ï¿½ï¿½30ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡
 
-Èç¹ûË³ÊÆ£º ±ØÐë5MÍ»ÆÆÈÕÄÚµÄ¸ßµÍµã£¬²Å³öÏÖÐÅºÅ
-Èç¹ûÄæÊÆ£º µ½ÁËBBS15µÄstoploss, ¾Í³öÏÖÐÅºÅ¡£ÒòÎª¾Í±ä³ÉË³ÊÆµÄBBSÍ»ÆÆ¡£
+ï¿½ï¿½ï¿½Ë³ï¿½Æ£ï¿½ ï¿½ï¿½ï¿½ï¿½5MÍ»ï¿½ï¿½ï¿½ï¿½ï¿½ÚµÄ¸ßµÍµã£¬ï¿½Å³ï¿½ï¿½ï¿½ï¿½Åºï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ ï¿½ï¿½ï¿½ï¿½BBS15ï¿½ï¿½stoploss, ï¿½Í³ï¿½ï¿½ï¿½ï¿½ÅºÅ¡ï¿½ï¿½ï¿½Îªï¿½Í±ï¿½ï¿½Ë³ï¿½Æµï¿½BBSÍ»ï¿½Æ¡ï¿½
 
-ÎÊÌâ£º
-Õâ¸ö²ßÂÔÓÐÎÊÌâ£¬¿ÉÄÜÐèÒª¸ÄÎª
-5M ¾ùÏßÎªÖ¸Òý£¬²»ÊÇ15MBBS
-1M ¿Õ¼äÍ»ÆÆ
+ï¿½ï¿½ï¿½â£º
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½Îª
+5M ï¿½ï¿½ï¿½ï¿½ÎªÖ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½15MBBS
+1M ï¿½Õ¼ï¿½Í»ï¿½ï¿½
 
 
 */
@@ -1577,13 +1578,9 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
-	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE)
-		readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
-	else
-	{
-		pBase_Indicators->pWeeklyPredictATR = 20;
-		pBase_Indicators->pWeeklyPredictMaxATR = 28;
-	}
+
+	readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
+
 
 	if ( (int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR)
 		return SUCCESS;
@@ -1616,7 +1613,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0_EURO,pIndicators->euro_high, pIndicators->euro_low, pIndicators->euro_close);
 	}
 
-	//ÔÚ17üc£¬Èç¹û²¨·ùºÜÐ¡£¬Èç¹ûÓÖÇ÷ÊÆ£¬×ÜÊÇ80µã¡£Èç¹ûÇø¼ä 0.67*0.8
+	//ï¿½ï¿½17ï¿½cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½80ï¿½ã¡£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0.67*0.8
 	if (ATR0_EURO < Range)
 	{
 		if (hasSameDayOrderEasy(currentTime, &isOpen) == TRUE && isOpen == TRUE)		
@@ -1625,11 +1622,11 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 		return SUCCESS;
 	}
 	
-	// secondary rate is 15M , priarmy rate is 5M£¬Ê¹ÓÃ1M?
-	if (hasSameDayOrderEasy(currentTime, &isOpen) == FALSE)  //Èç¹ûÃ»ÓÐ¿ª²Ö, ¾Í¿ÉÒÔ¿ª²Ö
+	// secondary rate is 15M , priarmy rate is 5Mï¿½ï¿½Ê¹ï¿½ï¿½1M?
+	if (hasSameDayOrderEasy(currentTime, &isOpen) == FALSE)  //ï¿½ï¿½ï¿½Ã»ï¿½Ð¿ï¿½ï¿½ï¿½, ï¿½Í¿ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½
 	{
 		if (((ATR0 >= 4 && pBase_Indicators->dailyTrend_Phase == RANGE_PHASE) || pBase_Indicators->dailyTrend_Phase != RANGE_PHASE)
-			&& ATR0_EURO > Range && pBase_Indicators->maTrend > 0 && pIndicators->bbsTrend_secondary == 1 && timeInfo1.tm_hour < 22)//Ë³ÊÆ
+			&& ATR0_EURO > Range && pBase_Indicators->maTrend > 0 && pIndicators->bbsTrend_secondary == 1 && timeInfo1.tm_hour < 22)//Ë³ï¿½ï¿½
 		{
 			gap = pHigh - pParams->bidAsk.ask[0];
 
@@ -1640,7 +1637,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 			pIndicators->lossTimes = 0;
 		}
 		else if (((ATR0 >= 4 && pBase_Indicators->dailyTrend_Phase == RANGE_PHASE) || pBase_Indicators->dailyTrend_Phase != RANGE_PHASE)
-			&& ATR0_EURO > Range && pBase_Indicators->maTrend < 0 && pIndicators->bbsTrend_secondary == -1 && timeInfo1.tm_hour < 22)//Ë³ÊÆ
+			&& ATR0_EURO > Range && pBase_Indicators->maTrend < 0 && pIndicators->bbsTrend_secondary == -1 && timeInfo1.tm_hour < 22)//Ë³ï¿½ï¿½
 		{
 			gap = pParams->bidAsk.bid[0] - pLow;
 
@@ -1650,11 +1647,11 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 			pIndicators->entrySignal = -1;
 			pIndicators->lossTimes = 0;
 		}
-		else //ÄæÊÆ£¬Ê¹ÓÃ¿Õ¼ä½»Ò×·¨,Í»ÆÆÑÇÖÞÅÌµÄ¸ßµÍµã
+		else //ï¿½ï¿½ï¿½Æ£ï¿½Ê¹ï¿½Ã¿Õ¼ä½»ï¿½×·ï¿½,Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÌµÄ¸ßµÍµï¿½
 		{
 
-			//×¢Òâ£¬ÕâÀïÒ²¿ÉÒÔ³öÏÖË³ÊÆµÄÇé¿ö¡£
-			//Èç¹ûÕæµÄÄæÊÆ£¬¾ÍÐèÒª15MµÄÊÕÅÌ¼Û¡£ÕâÀï¾ÍÊÇsecondary rate
+			//×¢ï¿½â£¬ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½Ô³ï¿½ï¿½ï¿½Ë³ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½Òª15Mï¿½ï¿½ï¿½ï¿½ï¿½Ì¼Û¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½secondary rate
 			if (pBase_Indicators->maTrend > 0)
 			{
 				if (ATR0_EURO > Range && primary_close_pre1 > pIndicators->asia_high && timeInfo1.tm_hour < 22)
@@ -1716,12 +1713,12 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, Side = SELL isOpen=%ld, ATR0 = %lf,openOrderHigh = %lf,openOrderLow = %lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, isOpen, ATR0, openOrderHigh, openOrderLow);
 
-			//Ð¡ÓÚ80£¬ ±ØÐëÊ¹ÓÃ¿Õ¼ä¡£
-			//1. ÔÚ5MÍ»ÆÆÇø¼äºó£¬Èë³¡
-			//2. µ«ÊÇÈç¹û²»ÊÇµÚÒ»µ¥µÄ»°£¬ÐèÒªÔÚ15·ÖÖÓºó£¬Ê¹ÓÃ15 BBS Trend ¼ì²é
-			//3. Èç¹ûÃ»ÓÐBBS TrendµÄÖ§³Ö£¬¾Íclose trade,ÏÈÀë³¡£¬µÈ´ýÏÂÒ»´Î»ú»á£¨Õâ¸öÊ±ºò£¬²»ÄÜÈë³¡£©
-			//4. Èç¹ûÊ±¼äµ½ÁËÃÀÖÞÅÌ£¬±ØÐëÊ¹ÓÃ15MBBS
-			//5. Èç¹û¿Õ¼ä²»¹»30µã£¬Õâ¸öÊ±ºò£¬²»ÒªÃ°ÏÕÈë³¡£¬µÈ´ý»Øµ÷£¬ÖªµÀÓÐ30µãµÄ¿Õ¼äÎªÖ¹£¬ÔÚ15MBBSµÄÖ§³ÖÏÂ¡£			
+			//Ð¡ï¿½ï¿½80ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½Ã¿Õ¼ä¡£
+			//1. ï¿½ï¿½5MÍ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡
+			//2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½Ò»ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½15ï¿½ï¿½ï¿½Óºï¿½Ê¹ï¿½ï¿½15 BBS Trend ï¿½ï¿½ï¿½
+			//3. ï¿½ï¿½ï¿½Ã»ï¿½ï¿½BBS Trendï¿½ï¿½Ö§ï¿½Ö£ï¿½ï¿½ï¿½close trade,ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½Ò»ï¿½Î»ï¿½ï¿½á£¨ï¿½ï¿½ï¿½Ê±ï¿½ò£¬²ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½
+			//4. ï¿½ï¿½ï¿½Ê±ï¿½äµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì£ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½15MBBS
+			//5. ï¿½ï¿½ï¿½ï¿½Õ¼ä²»ï¿½ï¿½30ï¿½ã£¬ï¿½ï¿½ï¿½Ê±ï¿½ò£¬²ï¿½ÒªÃ°ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½È´ï¿½ï¿½Øµï¿½ï¿½ï¿½Öªï¿½ï¿½ï¿½ï¿½30ï¿½ï¿½Ä¿Õ¼ï¿½ÎªÖ¹ï¿½ï¿½ï¿½ï¿½15MBBSï¿½ï¿½Ö§ï¿½ï¿½ï¿½Â¡ï¿½			
 			gap = pHigh - pParams->bidAsk.ask[0];
 
 			if (ATR0 >= Range && 
@@ -1837,7 +1834,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 			XAUUSD_Daily_Stop_Check(pParams, pIndicators, pBase_Indicators);
 
 
-		////ÔÚ17üc£¬Èç¹û²¨·ùºÜÐ¡£¬Èç¹ûÓÖÇ÷ÊÆ£¬×ÜÊÇ80µã¡£Èç¹ûÇø¼ä 0.67*0.8
+		////ï¿½ï¿½17ï¿½cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½80ï¿½ã¡£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0.67*0.8
 		//if (ATR0_EURO < Range)
 		//{
 		//	if (hasSameDayOrderEasy(currentTime, &isOpen) == TRUE && isOpen == TRUE)
@@ -1859,7 +1856,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 		//	return SUCCESS;
 		//}
 
-		//ÔÚ21ücºó£¬Èç¹ûÓÐ†Î×Ó£¬Ê¹ÓÃBBS15Æ½²Ö
+		//ï¿½ï¿½21ï¿½cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð†ï¿½ï¿½Ó£ï¿½Ê¹ï¿½ï¿½BBS15Æ½ï¿½ï¿½
 		if (pIndicators->entrySignal == 0 && timeInfo1.tm_hour >= 21)
 		{
 			if (isOpen == TRUE)
@@ -1883,7 +1880,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 	//if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min < 3)
 	if (pIndicators->entrySignal != 0)
 	{
-		// too close ·ÇÅ©
+		// too close ï¿½ï¿½Å©
 		if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1
 			&& abs(pBase_Indicators->maTrend) <= 1 &&
 			((pBase_Indicators->maTrend > 0 && MATrend_1H < 0)
@@ -1942,27 +1939,27 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 }
 
 /*
-´¿¿Õ¼ä½»Ò×·¨
-Ìõ¼þ£º
-1. ÈÕ²¨·ùÖÁÉÙ80-100µã
-2. Ä¿±êÊÇ30µã
-3. ¹ý°ëÊÇ50µã
-4. ²»ÄÜÊÇÔÚºÜÐ¡µÄ¹ý¶ÈÐÐÇéÖÐ£¬ÒòÎª²¨·ù¿ÉÄÜÐ¡ÓÚ80µã¡£
-5. Ö´ÐÐÊ±¼ä¿ò¼ÜÊÇ1·ÖÖÓ
+ï¿½ï¿½ï¿½Õ¼ä½»ï¿½×·ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1. ï¿½Õ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½80-100ï¿½ï¿½
+2. Ä¿ï¿½ï¿½ï¿½ï¿½30ï¿½ï¿½
+3. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½50ï¿½ï¿½
+4. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úºï¿½Ð¡ï¿½Ä¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½80ï¿½ã¡£
+5. Ö´ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½
 
-Èë³¡£º
-1.¿ªÅÌºó£¬µÈ´ý²¨·ùµ½ÁË50µã¡£
-2.°´ÕÕ50µãºóµÄ·½Ïò£¬¿ª³öµ¥×Ó¡£ ²ÖÁ¿ÊÇ1%
-3.Ö¹ËðÊÇ80µã¡£
-4.Ö¹Ó¯ÊÇ30µã¡£
+ï¿½ë³¡ï¿½ï¿½
+1.ï¿½ï¿½ï¿½Ìºó£¬µÈ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½50ï¿½ã¡£
+2.ï¿½ï¿½ï¿½ï¿½50ï¿½ï¿½ï¿½Ä·ï¿½ï¿½ò£¬¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¡ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1%
+3.Ö¹ï¿½ï¿½ï¿½ï¿½80ï¿½ã¡£
+4.Ö¹Ó¯ï¿½ï¿½30ï¿½ã¡£
 
-³ö³¡£º
-1. Ë³ÀûÖ¹Ó¯³ö³¡
-2. µ±´ÓµÍµã×ß³ö50µãºó£¬ÈÏÎª·½Ïò´íÁË£¬Æ½µôÔ­À´µ¥×Ó£¬¿ª³öÐÂµÄµ¥×Ó¡£ 
-3. ²ÖÁ¿ÊÇ°üÀ¨Ô­À´µ¥×ÓµÄ¿÷Ëð£¬ »¹Òª1%Ó¯Àû¡£
-4.Ö¹ËðÊÇ80µã¡£
-5.Ö¹Ó¯ÊÇ30µã¡£
-6.ÔÚ23£º30µÄÊ±ºò£¬Èç¹û¿÷Ëð£¬¾ÍÒªÀë³¡¡£Èç¹û²»¿÷£¬¾ÍÆ½±£µ½Ã÷Ìì
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1. Ë³ï¿½ï¿½Ö¹Ó¯ï¿½ï¿½ï¿½ï¿½
+2. ï¿½ï¿½ï¿½ÓµÍµï¿½ï¿½ß³ï¿½50ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Æ½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÂµÄµï¿½ï¿½Ó¡ï¿½ 
+3. ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½ï¿½ÓµÄ¿ï¿½ï¿½ï¿½ ï¿½ï¿½Òª1%Ó¯ï¿½ï¿½ï¿½ï¿½
+4.Ö¹ï¿½ï¿½ï¿½ï¿½80ï¿½ã¡£
+5.Ö¹Ó¯ï¿½ï¿½30ï¿½ã¡£
+6.ï¿½ï¿½23ï¿½ï¿½30ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ð£¬¾ï¿½Òªï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 */
 AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
@@ -1987,13 +1984,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pPara
 
 	safe_timeString(timeString, currentTime);
 
-	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE)
-		readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
-	else
-	{
-		pBase_Indicators->pWeeklyPredictATR = 2.5; 
-		pBase_Indicators->pWeeklyPredictMaxATR = 3;
-	}
+	readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
 
 	//closeAllWithNegativeEasy(1, currentTime, 3);
 
@@ -2008,8 +1999,8 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pPara
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, pDailyPredictATR = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR);
 
-	//¿ªÅÌ60·ÖÖÓ£¬ÒòÎª¿ªÊ¼Ê±ºò£¬µã²îºÜ´ó¡£
-	//²»ÒªÈë³¡
+	//ï¿½ï¿½ï¿½ï¿½60ï¿½ï¿½ï¿½Ó£ï¿½ï¿½ï¿½Îªï¿½ï¿½Ê¼Ê±ï¿½ò£¬µï¿½ï¿½Ü´ï¿½
+	//ï¿½ï¿½Òªï¿½ë³¡
 	if (timeInfo1.tm_hour == 0)
 		return SUCCESS;
 
@@ -2040,13 +2031,13 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pPara
 	if (pBase_Indicators->pDailyPredictATR >= 1 && ATRWeekly0 < pBase_Indicators->pWeeklyPredictATR)
 		pIndicators->risk = 2;
 
-	if (iAtr(B_DAILY_RATES, 1, 1) >= max(2, pBase_Indicators->pWeeklyPredictATR)) //ÈÕ²¨·ùµ½ÁË×îÐ¡µÄÖÜ²¨·ù
+	if (iAtr(B_DAILY_RATES, 1, 1) >= max(2, pBase_Indicators->pWeeklyPredictATR)) //ï¿½Õ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½Ü²ï¿½ï¿½ï¿½
 		return SUCCESS;
-	if (fabs(close_prev1 - close_prev2) >= max(1, pBase_Indicators->pWeeklyPredictATR /2)) //ÈÕÉýµø·ùµ½ÁËÒ»°ëµÄ×îÐ¡ÖÜ²¨·ù
+	if (fabs(close_prev1 - close_prev2) >= max(1, pBase_Indicators->pWeeklyPredictATR /2)) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Ü²ï¿½ï¿½ï¿½
 		return SUCCESS;
 
 
-	//±ØÐë close all orders before EOD
+	//ï¿½ï¿½ï¿½ï¿½ close all orders before EOD
 	if (timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >=30)
 	{
 		if (hasSameDayOrderEasy(currentTime, &isOpen) == TRUE && isOpen == TRUE)
@@ -2131,12 +2122,12 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pPara
 }
 
 /*
-²»½»Ò×µÄÇé¿ö£º
-1.Ç°Ò»ÌìµÄATR > 20
-2.Ç°Ò»ÌìµÄClose -  Ç°Á½ÌìµÄCloseµÄ¾àÀë > 10
-3.ÑÇÖÞÊ±¶ÎµÄ²¨·ù> 0.8?
-4.×î¶à½»Ò×3´Î£¬ÈÕÄÚ
-5.10µãÖ®Ç°£¬²»½»Ò×
+ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1.Ç°Ò»ï¿½ï¿½ï¿½ATR > 20
+2.Ç°Ò»ï¿½ï¿½ï¿½Close -  Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Closeï¿½Ä¾ï¿½ï¿½ï¿½ > 10
+3.ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ÎµÄ²ï¿½ï¿½ï¿½> 0.8?
+4.ï¿½ï¿½à½»ï¿½ï¿½3ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½
+5.10ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 */
 static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, BOOL shouldFilter)
 {
@@ -2170,7 +2161,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		return FALSE;
 	}
 
-	// filter ·ÇÅ©
+	// filter ï¿½ï¿½Å©
 	if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
 	{
 	
@@ -2243,7 +2234,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		return FALSE;
 	}
 
-	if (iAtr(B_DAILY_RATES, 1, 1) - max(20, pBase_Indicators->pWeeklyPredictATR / 2) >= 0) //ÈÕ²¨·ùµ½ÁË×îÐ¡µÄÖÜ²¨·ù
+	if (iAtr(B_DAILY_RATES, 1, 1) - max(20, pBase_Indicators->pWeeklyPredictATR / 2) >= 0) //ï¿½Õ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½Ü²ï¿½ï¿½ï¿½
 	{
 		sprintf(pIndicators->status, "ATR1 %lf is greater than half of pWeeklyPredictATR %lf",
 			iAtr(B_DAILY_RATES, 1, 1), max(20, pBase_Indicators->pWeeklyPredictATR / 2));
@@ -2254,7 +2245,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicato
 		return FALSE;
 	}
 
-	if (fabs(close_prev1 - close_prev2) >= max(10, pBase_Indicators->pWeeklyPredictATR / 3)) //ÈÕÉýµø·ùµ½ÁËÒ»°ëµÄ×îÐ¡ÖÜ²¨·ù
+	if (fabs(close_prev1 - close_prev2) >= max(10, pBase_Indicators->pWeeklyPredictATR / 3)) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Ü²ï¿½ï¿½ï¿½
 	{
 		sprintf(pIndicators->status, "Previous close gap %lf is greater than third of pWeeklyPredictATR %lf",
 			fabs(close_prev1 - close_prev2), max(10, pBase_Indicators->pWeeklyPredictATR / 3));
@@ -2289,18 +2280,6 @@ static BOOL BTCUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 
 
-	//// filter ·ÇÅ©
-	//if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
-	//{
-
-	//	strcpy(pIndicators->status, "Filter Non-farm day");
-
-	//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
-	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
-
-	//	return FALSE;
-	//}
-
 	if (timeInfo1.tm_hour < startTradingTime)
 		return FALSE;
 
@@ -2308,8 +2287,7 @@ static BOOL BTCUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 	if (shouldFilter == FALSE)
 		return TRUE;
 
-	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE)
-		readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
+	readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
 	
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
@@ -2327,18 +2305,7 @@ static BOOL BTCUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 		return FALSE;
 	}
 
-	//if (ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR)
-	//{
-	//	sprintf(pIndicators->status, "ATRWeekly0 %lf is greater than pWeeklyPredictMaxATR %lf",
-	//		ATRWeekly0, pBase_Indicators->pWeeklyPredictMaxATR);
-
-	//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
-	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
-
-	//	return FALSE;
-	//}
-
-	if (iAtr(B_DAILY_RATES, 1, 1) >= pBase_Indicators->pWeeklyPredictATR / 2) //ÈÕ²¨·ùµ½ÁË×îÐ¡µÄÖÜ²¨·ù
+	if (iAtr(B_DAILY_RATES, 1, 1) >= pBase_Indicators->pWeeklyPredictATR / 2) //ï¿½Õ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½Ü²ï¿½ï¿½ï¿½
 	{
 		sprintf(pIndicators->status, "ATR1 %lf is greater than half of pWeeklyPredictATR %lf",
 			iAtr(B_DAILY_RATES, 1, 1), pBase_Indicators->pWeeklyPredictATR / 2);
@@ -2348,7 +2315,7 @@ static BOOL BTCUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 
 		return FALSE;
 	}
-	if (fabs(close_prev1 - close_prev2) >= pBase_Indicators->pWeeklyPredictATR / 3) //ÈÕÉýµø·ùµ½ÁËÒ»°ëµÄ×îÐ¡ÖÜ²¨·ù
+	if (fabs(close_prev1 - close_prev2) >= pBase_Indicators->pWeeklyPredictATR / 3) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Ü²ï¿½ï¿½ï¿½
 	{
 		sprintf(pIndicators->status, "Previous close gap %lf is greater than third of pWeeklyPredictATR %lf",
 			fabs(close_prev1 - close_prev2), pBase_Indicators->pWeeklyPredictATR / 3);
@@ -2363,17 +2330,17 @@ static BOOL BTCUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 }
 
 /*
-²»½»Ò×µÄÇé¿ö£º
-1.Ç°Ò»ÌìµÄATR > 20
-2.Ç°Ò»ÌìµÄClose -  Ç°Á½ÌìµÄCloseµÄ¾àÀë > 10
-3.ÑÇÖÞÊ±¶ÎµÄ²¨·ù> 0.8?
-4.×î¶à½»Ò×2´Î£¬ÈÕÄÚ
-5.3µãÖ®Ç°£¬²»½»Ò×
-6.ÓÅ»¯£º
-Èç¹ûÔÚ8µãÇ°ÒÑ¾­Èë³¡£¬risk = 1,¶øÇÒÊÇ¸¡¿÷µÄ»°£¬¾ÍÖ»×öÒ»´Î½»Ò×
-Èç¹ûÔÚ8µãÇ°ÒÑ¾­Èë³¡£¬risk = 1,¶øÇÒµÚÒ»´ÎÒÑ¾­¿÷ÁË£¬Ö»×öÒ»´Î£¬²»ÔÙÈë³¡¡£
-Èç¹ûÊÇÖÜÈý£¬risk =1µÄ»°£¬Ò²¿ÉÒÔ×öÒ»´Î
-Èç¹ûÇ°Ò»Ìì£¬²¨·ùºÜ´ó£¬Ò²¿ÉÒÔ×öÒ»´Î¡£
+ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1.Ç°Ò»ï¿½ï¿½ï¿½ATR > 20
+2.Ç°Ò»ï¿½ï¿½ï¿½Close -  Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Closeï¿½Ä¾ï¿½ï¿½ï¿½ > 10
+3.ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ÎµÄ²ï¿½ï¿½ï¿½> 0.8?
+4.ï¿½ï¿½à½»ï¿½ï¿½2ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½
+5.3ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+6.ï¿½Å»ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½8ï¿½ï¿½Ç°ï¿½Ñ¾ï¿½ï¿½ë³¡ï¿½ï¿½risk = 1,ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Ò»ï¿½Î½ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½8ï¿½ï¿½Ç°ï¿½Ñ¾ï¿½ï¿½ë³¡ï¿½ï¿½risk = 1,ï¿½ï¿½ï¿½Òµï¿½Ò»ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ö»ï¿½ï¿½Ò»ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½risk =1ï¿½Ä»ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
+ï¿½ï¿½ï¿½Ç°Ò»ï¿½ì£¬ï¿½ï¿½ï¿½ï¿½ï¿½Ü´ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Î¡ï¿½
 */
 static BOOL GBPJPY_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -2406,13 +2373,8 @@ static BOOL GBPJPY_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 	
-	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE)
-		readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
-	else
-	{
-		pBase_Indicators->pWeeklyPredictATR = 2.5;
-		pBase_Indicators->pWeeklyPredictMaxATR = 3;
-	}
+	readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
+
 
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
@@ -2463,9 +2425,9 @@ static BOOL GBPJPY_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 	}
 	
 
-	if (iAtr(B_DAILY_RATES, 1, 1) >= max(2, pBase_Indicators->pWeeklyPredictATR)) //ÈÕ²¨·ùµ½ÁË×îÐ¡µÄÖÜ²¨·ù
+	if (iAtr(B_DAILY_RATES, 1, 1) >= max(2, pBase_Indicators->pWeeklyPredictATR)) //ï¿½Õ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½Ü²ï¿½ï¿½ï¿½
 		return FALSE;
-	if (fabs(close_prev1 - close_prev2) >= max(1, pBase_Indicators->pWeeklyPredictATR / 2)) //ÈÕÉýµø·ùµ½ÁËÒ»°ëµÄ×îÐ¡ÖÜ²¨·ù
+	if (fabs(close_prev1 - close_prev2) >= max(1, pBase_Indicators->pWeeklyPredictATR / 2)) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½Ü²ï¿½ï¿½ï¿½
 		return FALSE;
 
 	//Filter out wenesday ??? Need to check out more data....
@@ -2489,17 +2451,17 @@ static BOOL GBPJPY_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* p
 }
 
 /*
-²»½»Ò×µÄÇé¿ö£º
-1.Ç°Ò»ÌìµÄATR > 20
-2.Ç°Ò»ÌìµÄClose -  Ç°Á½ÌìµÄCloseµÄ¾àÀë > 10
-3.ÑÇÖÞÊ±¶ÎµÄ²¨·ù> 0.8?
-4.×î¶à½»Ò×2´Î£¬ÈÕÄÚ
-5.3µãÖ®Ç°£¬²»½»Ò×
-6.ÓÅ»¯£º
-Èç¹ûÔÚ8µãÇ°ÒÑ¾­Èë³¡£¬risk = 1,¶øÇÒÊÇ¸¡¿÷µÄ»°£¬¾ÍÖ»×öÒ»´Î½»Ò×
-Èç¹ûÔÚ8µãÇ°ÒÑ¾­Èë³¡£¬risk = 1,¶øÇÒµÚÒ»´ÎÒÑ¾­¿÷ÁË£¬Ö»×öÒ»´Î£¬²»ÔÙÈë³¡¡£
-Èç¹ûÊÇÖÜÈý£¬risk =1µÄ»°£¬Ò²¿ÉÒÔ×öÒ»´Î
-Èç¹ûÇ°Ò»Ìì£¬²¨·ùºÜ´ó£¬Ò²¿ÉÒÔ×öÒ»´Î¡£
+ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1.Ç°Ò»ï¿½ï¿½ï¿½ATR > 20
+2.Ç°Ò»ï¿½ï¿½ï¿½Close -  Ç°ï¿½ï¿½ï¿½ï¿½ï¿½Closeï¿½Ä¾ï¿½ï¿½ï¿½ > 10
+3.ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ÎµÄ²ï¿½ï¿½ï¿½> 0.8?
+4.ï¿½ï¿½à½»ï¿½ï¿½2ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½
+5.3ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+6.ï¿½Å»ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½8ï¿½ï¿½Ç°ï¿½Ñ¾ï¿½ï¿½ë³¡ï¿½ï¿½risk = 1,ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Ò»ï¿½Î½ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½8ï¿½ï¿½Ç°ï¿½Ñ¾ï¿½ï¿½ë³¡ï¿½ï¿½risk = 1,ï¿½ï¿½ï¿½Òµï¿½Ò»ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ö»ï¿½ï¿½Ò»ï¿½Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½risk =1ï¿½Ä»ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
+ï¿½ï¿½ï¿½Ç°Ò»ï¿½ì£¬ï¿½ï¿½ï¿½ï¿½ï¿½Ü´ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Î¡ï¿½
 */
 static BOOL GBPJPY_MultipleDays_Allow_Trade(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -2524,16 +2486,22 @@ static BOOL GBPJPY_MultipleDays_Allow_Trade(StrategyParams* pParams, Indicators*
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 
 	
-	if (timeInfo1.tm_hour < startTradingTime)
-		return FALSE;
+	//if (timeInfo1.tm_hour < startTradingTime)
+	//	return FALSE;
 
 	
 	asia_index_rate = shift1Index - ((timeInfo1.tm_hour - startTradingTime) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
 
 	count = startTradingTime * (60 / execution_tf) - 1;
-	if (count >= 1)
+	if (count >= 1) {
 		iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, asia_index_rate, count, &(pIndicators->asia_high), &(pIndicators->asia_low));
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, asia_index_rate = %d, count=%d, asia_high = %lf,asia_low = %lf",
+			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, asia_index_rate, count, pIndicators->asia_high, pIndicators->asia_low);
+	}
 	else
+		return FALSE;
+
+	if (timeInfo1.tm_hour < startTradingTime)
 		return FALSE;
 
 	pIndicators->asia_low = min(close_prev1, pIndicators->asia_low);
@@ -2626,43 +2594,43 @@ static BOOL GBPUSD_MultipleDays_Allow_Trade(StrategyParams* pParams, Indicators*
 	return TRUE;
 }
 /*
-¿Õ¼ä£¬Ê±¼ä£¬¾ùÏß ½áºÏµÄ½»Ò×·¨
-Ìõ¼þ£º
-1. ÈÕ²¨·ùÖÁÉÙ80-100µã
-2. Ä¿±êÊÇ30µã
-3. ¹ý°ëÊÇ50µã
-4. ²»ÄÜÊÇÔÚºÜÐ¡µÄ¹ý¶ÈÐÐÇéÖÐ£¬ÒòÎª²¨·ù¿ÉÄÜÐ¡ÓÚ80µã¡£
-5. Ö´ÐÐÊ±¼ä¿ò¼ÜÊÇ1·ÖÖÓ
-6. ¼ÓÈëÊ±¼ä,Èç¹ûÑÇÖÞÅÌµÄÊ±ºò£¬50µã³öÏÖ£¬²¢ÇÒ5MµÄ¾ùÏßÖ§³Ö£¬¾ÍÈë³¡¡£
-Èç¹û²»Ö§³Ö£¬¾ÍµÈ´ýµ½Å·ÖÞÅÌ¡£
-µ±Å·ÖÞÅÌ¿ªÊ¼µÄÊ±ºò£¬Ò²ÊÇ²»ÊÇÂíÉÏÈë³¡£¬Èç¹û50µãÒÑ¾­³ö£¬¾ÍµÈ´ý»Øµ÷¡£
-Èç¹ûÃ»ÓÐ³ö£¬µÈ´ý50µã£¬²»ÐèÒª¾ùÏßÖ§³ÖÁË¡£
+ï¿½Õ¼ä£¬Ê±ï¿½ä£¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ÏµÄ½ï¿½ï¿½×·ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1. ï¿½Õ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½80-100ï¿½ï¿½
+2. Ä¿ï¿½ï¿½ï¿½ï¿½30ï¿½ï¿½
+3. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½50ï¿½ï¿½
+4. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úºï¿½Ð¡ï¿½Ä¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½80ï¿½ã¡£
+5. Ö´ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½
+6. ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½Ê±ï¿½ï¿½50ï¿½ï¿½ï¿½ï¿½Ö£ï¿½ï¿½ï¿½ï¿½ï¿½5Mï¿½Ä¾ï¿½ï¿½ï¿½Ö§ï¿½Ö£ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½Ö§ï¿½Ö£ï¿½ï¿½ÍµÈ´ï¿½ï¿½ï¿½Å·ï¿½ï¿½ï¿½Ì¡ï¿½
+ï¿½ï¿½Å·ï¿½ï¿½ï¿½Ì¿ï¿½Ê¼ï¿½ï¿½Ê±ï¿½ï¿½Ò²ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½50ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÍµÈ´ï¿½ï¿½Øµï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½Ã»ï¿½Ð³ï¿½ï¿½ï¿½ï¿½È´ï¿½50ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½ï¿½Ë¡ï¿½
 
-¾ùÏßµÄÖ§³Ö£¬Ö»ÊÊÓÃÓÚÊÇµÚÒ»´ÎÈë³¡£¬ºóÃæ¶¼ÒÀ¿¿¿Õ¼ä½»Ò×¡£
+ï¿½ï¿½ï¿½ßµï¿½Ö§ï¿½Ö£ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½Ò»ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½æ¶¼ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ä½»ï¿½×¡ï¿½
 
-¾ßÌåÊµÏÖ£º
-Ê¹ÓÃÎÄ¼þ±£Áô½»Ò×µÄÐÅÏ¢£º
-¸ßµã
-µÍµã
-Ä¿Ç°openµÄµ¥×ÓºÅ
-·çÏÕ
-ÊÇ·ñ»Øµ÷£¿
+ï¿½ï¿½ï¿½ï¿½Êµï¿½Ö£ï¿½
+Ê¹ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½Ï¢ï¿½ï¿½
+ï¿½ßµï¿½
+ï¿½Íµï¿½
+Ä¿Ç°openï¿½Äµï¿½ï¿½Óºï¿½
+ï¿½ï¿½ï¿½ï¿½
+ï¿½Ç·ï¿½Øµï¿½ï¿½ï¿½
 
-Èë³¡£º
-1.ÑÇÖÞÅÌ²¨·ù²»ÄÜ´óÓÚ80µã
-2.10am£¨9am)¿ªÊ¼Èë³¡£¬
-3.¿ªÅÌºó£¬µÈ´ý²¨·ùµ½ÁË50µã¡£
-2.°´ÕÕ50µãºóµÄ·½Ïò£¬¿ª³öµ¥×Ó¡£ ²ÖÁ¿ÊÇ1%
-3.Ö¹ËðÊÇ80µã¡£
-4.Ö¹Ó¯ÊÇ30µã¡£
+ï¿½ë³¡ï¿½ï¿½
+1.ï¿½ï¿½ï¿½ï¿½ï¿½Ì²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü´ï¿½ï¿½ï¿½80ï¿½ï¿½
+2.10amï¿½ï¿½9am)ï¿½ï¿½Ê¼ï¿½ë³¡ï¿½ï¿½
+3.ï¿½ï¿½ï¿½Ìºó£¬µÈ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½50ï¿½ã¡£
+2.ï¿½ï¿½ï¿½ï¿½50ï¿½ï¿½ï¿½Ä·ï¿½ï¿½ò£¬¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¡ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1%
+3.Ö¹ï¿½ï¿½ï¿½ï¿½80ï¿½ã¡£
+4.Ö¹Ó¯ï¿½ï¿½30ï¿½ã¡£
 
-³ö³¡£º
-1. Ë³ÀûÖ¹Ó¯³ö³¡
-2. µ±´ÓµÍµã×ß³ö50µãºó£¬ÈÏÎª·½Ïò´íÁË£¬Æ½µôÔ­À´µ¥×Ó£¬¿ª³öÐÂµÄµ¥×Ó¡£
-3. ²ÖÁ¿ÊÇ°üÀ¨Ô­À´µ¥×ÓµÄ¿÷Ëð£¬ »¹Òª1%Ó¯Àû¡£
-4.Ö¹ËðÊÇ80µã¡£
-5.Ö¹Ó¯ÊÇ30µã¡£
-6.ÔÚ23£º30µÄÊ±ºò£¬Èç¹û¿÷Ëð£¬¾ÍÒªÀë³¡¡£Èç¹û²»¿÷£¬¾ÍÆ½±£µ½Ã÷Ìì
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+1. Ë³ï¿½ï¿½Ö¹Ó¯ï¿½ï¿½ï¿½ï¿½
+2. ï¿½ï¿½ï¿½ÓµÍµï¿½ï¿½ß³ï¿½50ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Æ½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÂµÄµï¿½ï¿½Ó¡ï¿½
+3. ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½ï¿½ÓµÄ¿ï¿½ï¿½ï¿½ ï¿½ï¿½Òª1%Ó¯ï¿½ï¿½ï¿½ï¿½
+4.Ö¹ï¿½ï¿½ï¿½ï¿½80ï¿½ã¡£
+5.Ö¹Ó¯ï¿½ï¿½30ï¿½ã¡£
+6.ï¿½ï¿½23ï¿½ï¿½30ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ð£¬¾ï¿½Òªï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 */
 AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
@@ -2736,7 +2704,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && GBPJPY_DayTrading_Allow_Trade(pParams, pIndicators, pBase_Indicators) == FALSE)
 		return SUCCESS;
 
-	//¼ÆËãÈÕÄÚ¸ßµÍµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
 	{
@@ -2755,7 +2723,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
 	pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
 
-	//±ØÐë close all orders before EOD
+	//ï¿½ï¿½ï¿½ï¿½ close all orders before EOD
 	if (timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
 	{
 		if (hasSameDayOrderEasy(currentTime, &isOpen) == TRUE && isOpen == TRUE)
@@ -2767,11 +2735,11 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	// secondary rate is 5M , priarmy rate is 1M
 	if (hasSameDayOrderEasy(currentTime, &isOpen) == FALSE)
 	{
-		//ÔÚ80µãÄÚ£¬±ØÐëÈë³¡£¬Èç¹û·ÅÆúÁË£¬¾Í·ÅÆúµ±ÈÕ½»Ò×¡£
+		//ï¿½ï¿½80ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ï¿½×¡ï¿½
 		//if (ATR0 >= 1.0)
 		//	return SUCCESS;
 
-		//¼ÓÈë5M¾ùÏßµÄÖ§³Ö
+		//ï¿½ï¿½ï¿½ï¿½5Mï¿½ï¿½ï¿½ßµï¿½Ö§ï¿½ï¿½
 		if (pParams->bidAsk.ask[0] - intradayLow >= Range 
 			&& intradayHigh - pParams->bidAsk.bid[0] < Range
 			//&& pBase_Indicators->maTrend > 0
@@ -2809,12 +2777,12 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 
 		//latestOrderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
-		//ÕâÀï¿ÉÒÔ¿¼ÂÇgetlatestorder, ²»µ¥µ¥ÊÇopen order£¬ÒòÎª¿ÉÄÜ»áÆ½±£
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½getlatestorder, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½open orderï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½Ü»ï¿½Æ½ï¿½ï¿½
 		//side = getLastestOpenOrderTypeEasy_GBPJPY(B_PRIMARY_RATES, &openOrderHigh, &openOrderLow);
 		side = getLastestOrderTypeEasy(B_PRIMARY_RATES, &openOrderHigh, &openOrderLow,&isOpen);
 		
-		//Èç¹ûÒÑ¾­ÓÐÁËÒ»¸ötrade£¬ÄÇ¾ÍÊÇµÚ¶þ´Î½»Ò×£¬ÒªÊ¹ÓÃÈÕÄÚµÄ¸ßµÍµã
-		//Èç¹ûÓÐÁË2¸ötrades,ÄÇ¾ÍÊÇµÚÈý´Î½»Ò×ÁË£¬Ê¹ÓÃorderHigh, orderLow.
+		//ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½tradeï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ÇµÚ¶ï¿½ï¿½Î½ï¿½ï¿½×£ï¿½ÒªÊ¹ï¿½ï¿½ï¿½ï¿½ï¿½ÚµÄ¸ßµÍµï¿½
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½trades,ï¿½Ç¾ï¿½ï¿½Çµï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ê¹ï¿½ï¿½orderHigh, orderLow.
 		orderCountToday = getOrderCountTodayEasy(currentTime);
 		//orderCountToday = getOrderCountTodayExcludeBreakeventOrdersEasy(currentTime,0.1);
 		if (orderCountToday == 1)
@@ -2825,19 +2793,19 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 		}
 			
 
-		//´ÓµÚÒ»µ¥¿ªÊ¼£ºclose negative if ¸¡Ó¯´óÓÚ20µãºó
+		//ï¿½Óµï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½close negative if ï¿½ï¿½Ó¯ï¿½ï¿½ï¿½ï¿½20ï¿½ï¿½ï¿½
 		if (orderCountToday >= 1)
 		{				
 			//entryPrice = getLastestOrderPriceEasy(B_PRIMARY_RATES, &isOpen);
 			//orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
-			//Õâ²ßÂÔ²»ÔÊÐíÍ¬Ê±¿ª³ö¶à¸öopen order,ËùÒÔÕâÀïindex,Ó¦¸Ã¶¼ÊÇ0			 
+			//ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½open order,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½index,Ó¦ï¿½Ã¶ï¿½ï¿½ï¿½0			 
 			//if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
 			if (isOpen == TRUE)
 			{			
 				entryPrice = pParams->orderInfo[latestOrderIndex].openPrice;
 				if (side == SELL)
 				{
-					//Èç¹û¹ýÁË20µãºó£¬³öÏÖµÚÒ»¸ö5MµÄÑôÏß£¬Àë³¡¡£
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½20ï¿½ï¿½ó£¬³ï¿½ï¿½Öµï¿½Ò»ï¿½ï¿½5Mï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ë³¡ï¿½ï¿½
 					if (entryPrice - openOrderLow > 0.3 &&
 						//entryPrice - pParams->bidAsk.ask[0] < 0
 						//iClose(B_SECONDARY_RATES, 1) > iOpen(B_SECONDARY_RATES,1)
@@ -2855,7 +2823,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 
 				if (side == BUY)
 				{
-					//Èç¹û¹ýÁË20µãºó£¬³öÏÖµÚÒ»¸ö5MµÄÒõÏß£¬Àë³¡
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½20ï¿½ï¿½ó£¬³ï¿½ï¿½Öµï¿½Ò»ï¿½ï¿½5Mï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ë³¡
 					if (openOrderHigh - entryPrice > 0.3 && 
 						//entryPrice - pParams->bidAsk.bid[0] > 0
 						//iClose(B_SECONDARY_RATES, 1) < iOpen(B_SECONDARY_RATES, 1)
@@ -2941,18 +2909,17 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 	}
 
 
-	//±£´æ½»Ò×µÄÐÅÏ¢
+	//ï¿½ï¿½ï¿½æ½»ï¿½×µï¿½ï¿½ï¿½Ï¢
 	//saveTradingInfo((int)pParams->settings[STRATEGY_INSTANCE_ID], &orderInfo, (BOOL)pParams->settings[IS_BACKTESTING]);
 
 	return SUCCESS;
 }
 
-
 /*
-¿çÈÕ½»Ò×
-ÐèÒªÈÏÊ¶ÐÐÇé
-¿ÉÄÜµã£º
-1. Ê¹ÓÃ4HµÄÇ÷ÊÆÐÅºÅ¡£
+ï¿½ï¿½ï¿½Õ½ï¿½ï¿½ï¿½
+ï¿½ï¿½Òªï¿½ï¿½Ê¶ï¿½ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½Üµã£º
+1. Ê¹ï¿½ï¿½4Hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ¡ï¿½
 */
 AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay_old(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -2975,7 +2942,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay_old(StrategyParams* 
 	safe_gmtime(&timeInfo1, currentTime);
 
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
 		dailyTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
@@ -3107,7 +3074,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay(StrategyParams* pPar
 	if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && GBPJPY_MultipleDays_Allow_Trade(pParams, pIndicators, pBase_Indicators) == FALSE)
 		return SUCCESS;
 
-	//¼ÆËãÈÕÄÚ¸ßµÍµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
 	{
@@ -3225,7 +3192,7 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay(StrategyParams* pPar
 
 			if (side == BUY)
 			{
-				//Èç¹û¹ýÁË20µãºó£¬³öÏÖµÚÒ»¸ö5MµÄÒõÏß£¬Àë³¡
+				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½20ï¿½ï¿½ó£¬³ï¿½ï¿½Öµï¿½Ò»ï¿½ï¿½5Mï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ë³¡
 				if (openOrderHigh - entryPrice > pIndicators->takePrice &&
 					pParams->bidAsk.bid[0] - entryPrice < pIndicators->takePrice
 					)
@@ -3255,24 +3222,24 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_MultipleDay(StrategyParams* pPar
 }
 
 /*
-Ê¹ÓÃÔÚ5MÍ¼
-1. Ê¹ÓÃ50M, 200M¾ùÏßµÄ½ð²æ£¬ËÀ²æ
-2. ¶¨Òå³ö¹ý¶ÈµÄÇø¼ä£º 
-   . ±ØÐëÍ»ÆÆ½üÆÚµÄ¸ßµÍµã£¨ÈÕÄÚ£©
-   . ½»²æµÄ²î¾à±ØÐë10µãÒÔÉÏ£¨10% predicatedDailyATR)
-3. ×Ê½ð¹ÜÀí
-  1. No TP, No SL. ¸ù¾Ý¾ùÏßµÄÑÕÉ«³ö³¡¡£¿ÉÒÔÉèÖÃ100µãµÄ±£»¤Ö¹Ëð¡£
-  2. TP=30µã£¬SL= 100µã¡£Ã¿Ìì¶¼½»Ò×¡£ 
-     »¹ÊÇÖ»×öÒ»²¨Ç÷ÊÆ£¿
+Ê¹ï¿½ï¿½ï¿½ï¿½5MÍ¼
+1. Ê¹ï¿½ï¿½50M, 200Mï¿½ï¿½ï¿½ßµÄ½ï¿½æ£¬ï¿½ï¿½ï¿½ï¿½
+2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½ï¿½ä£º 
+   . ï¿½ï¿½ï¿½ï¿½Í»ï¿½Æ½ï¿½ï¿½ÚµÄ¸ßµÍµã£¨ï¿½ï¿½ï¿½Ú£ï¿½
+   . ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½10ï¿½ï¿½ï¿½ï¿½ï¿½Ï£ï¿½10% predicatedDailyATR)
+3. ï¿½Ê½ï¿½ï¿½ï¿½ï¿½
+  1. No TP, No SL. ï¿½ï¿½ï¿½Ý¾ï¿½ï¿½ßµï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½100ï¿½ï¿½Ä±ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½
+  2. TP=30ï¿½ã£¬SL= 100ï¿½ã¡£Ã¿ï¿½ì¶¼ï¿½ï¿½ï¿½×¡ï¿½ 
+     ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½
 */
 
 /*
-Ö»ÓÃÓÚXAUUSD 15M
-ÑÇÖÞÊ±¶Î£¬1/2 risk Èë³¡ ÊÔµ¥¡£
-Èç¹ûµ½ÁË1/2ATR,¾Í°´ÕÕµ±Ê±·½Ïò£¬Èë³¡¡£Èç¹ûÖ®Ç°µÄµ¥×Ó£¬²»¶Ô£¬¾ÍÖ¹ËðÀë³¡£¬·´ÊÖ¼Ó±¶Èë³¡¡£
-µ½ÁËÅ·ÖÞ£¬ÃÀÖÞÊ±¶Î£º
-Èç¹ûÃ»ÓÐµ½1/2ATR£¬¾Í°´ÕÕÑÇÖÞÊ±¶ÎµÄÇø¼ä±ßÑØ²¼¾Ö¡£Èç¹ûÍ»ÆÆ±ßÔµ½»Ò×¡£Ê¹ÓÃstop µ¥£¿
-Èç¹ûÖ®Ç°´íÁË£¬Ö¹Ëð£¬·´ÊÖ¼Ó±¶Èë³¡¡£
+Ö»ï¿½ï¿½ï¿½ï¿½XAUUSD 15M
+ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Î£ï¿½1/2 risk ï¿½ë³¡ ï¿½Ôµï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1/2ATR,ï¿½Í°ï¿½ï¿½Õµï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½Ö®Ç°ï¿½Äµï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½Ô£ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼Ó±ï¿½ï¿½ë³¡ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½Å·ï¿½Þ£ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Î£ï¿½
+ï¿½ï¿½ï¿½Ã»ï¿½Ðµï¿½1/2ATRï¿½ï¿½ï¿½Í°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø²ï¿½ï¿½Ö¡ï¿½ï¿½ï¿½ï¿½Í»ï¿½Æ±ï¿½Ôµï¿½ï¿½ï¿½×¡ï¿½Ê¹ï¿½ï¿½stop ï¿½ï¿½ï¿½ï¿½
+ï¿½ï¿½ï¿½Ö®Ç°ï¿½ï¿½ï¿½Ë£ï¿½Ö¹ï¿½ð£¬·ï¿½ï¿½Ö¼Ó±ï¿½ï¿½ë³¡ï¿½ï¿½
 */
 AsirikuyReturnCode workoutExecutionTrend_XAUUSD_Daily_KongJian(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {	
@@ -3411,12 +3378,12 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_Daily_KongJian(StrategyParams* p
 }
 
 /*
-Ê¹ÓÃM50,M200µÄ½ð²æ£¬ËÀ²æ£¬adjust: ATR_primary(20)
-Èç¹ûÐèÒª¸Ä±ä·½Ïò£¬±ØÐë³¬¹ýadjust¡£
-Ò»¿ªÊ¼£¬Ã¿ÖÜÒ»1amÈë³¡¡£
-µ±·½Ïò¸Ä±äºó£¬¼Ó±¶Èë³¡¡£
-²»Òª³¬¹ý5´Î¡£
-Ê±¼ä¿ò¼Ü30M
+Ê¹ï¿½ï¿½M50,M200ï¿½Ä½ï¿½æ£¬ï¿½ï¿½ï¿½æ£¬adjust: ATR_primary(20)
+ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½Ä±ä·½ï¿½ò£¬±ï¿½ï¿½ë³¬ï¿½ï¿½adjustï¿½ï¿½
+Ò»ï¿½ï¿½Ê¼ï¿½ï¿½Ã¿ï¿½ï¿½Ò»1amï¿½ë³¡ï¿½ï¿½
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ó£¬¼Ó±ï¿½ï¿½ë³¡ï¿½ï¿½
+ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½5ï¿½Î¡ï¿½
+Ê±ï¿½ï¿½ï¿½ï¿½30M
 */
 AsirikuyReturnCode workoutExecutionTrend_Weekly_Swing_New(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -3437,7 +3404,7 @@ AsirikuyReturnCode workoutExecutionTrend_Weekly_Swing_New(StrategyParams* pParam
 
 	shift1_execution = shift1Index_primary;
 
-	//¹ýÂËµôÍÑÅ·µÄÄÇ¸öÖÜ£¬Ö»ÊÇÓÃÓÚ²âÊÔ
+	//ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½Å·ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½Ü£ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½
 	if (timeInfo1.tm_year == 116 && timeInfo1.tm_mon == 9 && timeInfo1.tm_mday >= 3 && timeInfo1.tm_mday <= 7)
 		return SUCCESS;
 
@@ -3447,7 +3414,7 @@ AsirikuyReturnCode workoutExecutionTrend_Weekly_Swing_New(StrategyParams* pParam
 	}
 
 
-	if (hasSameWeekOrderEasy(currentTime, &isOpen) == FALSE)  //Èç¹ûÃ»ÓÐ¿ª²Ö, ¾Í¿ÉÒÔ¿ª²Ö
+	if (hasSameWeekOrderEasy(currentTime, &isOpen) == FALSE)  //ï¿½ï¿½ï¿½Ã»ï¿½Ð¿ï¿½ï¿½ï¿½, ï¿½Í¿ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½
 	{
 		if (pBase_Indicators->maTrend > 0)
 		{
@@ -3538,12 +3505,12 @@ AsirikuyReturnCode workoutExecutionTrend_Weekly_Swing(StrategyParams* pParams, I
 	//if (timeInfo1.tm_min > 3)
 	//	return SUCCESS;
 
-	//¹ýÂËµôÍÑÅ·µÄÄÇ¸öÖÜ£¬Ö»ÊÇÓÃÓÚ²âÊÔ
+	//ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½Å·ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½Ü£ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½
 	if (timeInfo1.tm_year == 116 && timeInfo1.tm_mon == 9 && timeInfo1.tm_mday >= 3 && timeInfo1.tm_mday <= 7)
 		return SUCCESS;
 
 
-	//Ã¿ÖÜÒ»£¬¸ù¾ÝBBS TrendÈë³¡
+	//Ã¿ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½BBS Trendï¿½ë³¡
 	if (timeInfo1.tm_wday == 1)
 	{
 		if (timeInfo1.tm_hour == 0)
@@ -3694,7 +3661,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 	if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators,TRUE) == FALSE)
 		return SUCCESS;
 
-	//¼ÆËãÈÕÄÚ¸ßµÍµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 	count = (timeInfo1.tm_hour-1)  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
 	{
@@ -3710,7 +3677,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, intradayHigh, intradayLow, intradayClose);
 
 
-	//±ØÐë close all orders before EOD
+	//ï¿½ï¿½ï¿½ï¿½ close all orders before EOD
 	if (timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
 	{
 		if (hasSameDayOrderEasy(currentTime, &isOpen) == TRUE && isOpen == TRUE)
@@ -3721,7 +3688,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 	// secondary rate is 5M , priarmy rate is 1M
 	if (hasSameDayOrderEasy(currentTime, &isOpen) == FALSE)
 	{
-		//ÔÚ80µãÄÚ£¬±ØÐëÈë³¡£¬Èç¹û·ÅÆúÁË£¬¾Í·ÅÆúµ±ÈÕ½»Ò×¡£
+		//ï¿½ï¿½80ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ½ï¿½ï¿½×¡ï¿½
 		if (ATR0 > 8)
 			return SUCCESS;
 
@@ -3761,8 +3728,8 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 	else
 	{
 		side = getLastestOpenOrderTypeEasy(B_PRIMARY_RATES, &openOrderHigh, &openOrderLow);
-		//Èç¹ûÒÑ¾­ÓÐÁËÒ»¸ötrade£¬ÄÇ¾ÍÊÇµÚ¶þ´Î½»Ò×£¬ÒªÊ¹ÓÃÈÕÄÚµÄ¸ßµÍµã
-		//Èç¹ûÓÐÁË2¸ötrades,ÄÇ¾ÍÊÇµÚÈý´Î½»Ò×ÁË£¬Ê¹ÓÃorderHigh, orderLow.
+		//ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½tradeï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ÇµÚ¶ï¿½ï¿½Î½ï¿½ï¿½×£ï¿½ÒªÊ¹ï¿½ï¿½ï¿½ï¿½ï¿½ÚµÄ¸ßµÍµï¿½
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½trades,ï¿½Ç¾ï¿½ï¿½Çµï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ê¹ï¿½ï¿½orderHigh, orderLow.
 		orderCountToday = getOrderCountTodayEasy(currentTime);
 		if (orderCountToday == 1)
 		{
@@ -3770,12 +3737,12 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 			openOrderLow = intradayLow;			
 		}
 
-		////´ÓµÚÒ»µ¥¿ªÊ¼£ºclose negative if ¸¡Ó¯´óÓÚ20µãºó,break event
+		////ï¿½Óµï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½close negative if ï¿½ï¿½Ó¯ï¿½ï¿½ï¿½ï¿½20ï¿½ï¿½ï¿½,break event
 		//if (getOrderCountTodayEasy(currentTime) >= 1)
 		//{
 		//	//entryPrice = getLastestOrderPriceEasy(B_PRIMARY_RATES, &isOpen);
 		//	//orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
-		//	//Õâ²ßÂÔ²»ÔÊÐíÍ¬Ê±¿ª³ö¶à¸öopen order,ËùÒÔÕâÀïindex,Ó¦¸Ã¶¼ÊÇ0			 
+		//	//ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½open order,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½index,Ó¦ï¿½Ã¶ï¿½ï¿½ï¿½0			 
 		//	if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
 		//	{
 		//		entryPrice = pParams->orderInfo[latestOrderIndex].openPrice;
@@ -3850,31 +3817,31 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 }
 
 /*
-ÕâÊÇ5MµÄ¾ùÏß²ßÂÔ£¬ÅäºÏ±£ÀûÍ¨µÀÐÎ³ÉÂòÈë£¬¹ÛÍû£¬Âô³öÐÅºÅ¡£
+ï¿½ï¿½ï¿½ï¿½5Mï¿½Ä¾ï¿½ï¿½ß²ï¿½ï¿½Ô£ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½Î³ï¿½ï¿½ï¿½ï¿½ë£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ¡ï¿½
 
 
-ºÃ´¦£º 
-1. ±ÜÃâÈÕÄÚ¾çÁÒ²¨¶¯
-2. ÊÊºÏÒ»ÇÐ¿ìËÙÆ·ÖÖ£¬GBPJPY, XAUUSD.....
+ï¿½Ã´ï¿½ï¿½ï¿½ 
+1. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¾ï¿½ï¿½Ò²ï¿½ï¿½ï¿½
+2. ï¿½Êºï¿½Ò»ï¿½Ð¿ï¿½ï¿½ï¿½Æ·ï¿½Ö£ï¿½GBPJPY, XAUUSD.....
 
-»µ´¦£º Ö¹Ëð²»È·¶¨£¬¿ÉÒÔ±È½Ï´ó¡£
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ö¹ï¿½ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô±È½Ï´ï¿½
 
-Ä¿±ê: 30µã
-Ö¹Ëð£º±£»¤Ö¹Ëð100µã£¬ ÒÔÂô³öÐÅºÅÎª×¼¡£
+Ä¿ï¿½ï¿½: 30ï¿½ï¿½
+Ö¹ï¿½ð£º±ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½100ï¿½ã£¬ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½Îª×¼ï¿½ï¿½
 
-»ÆÉ«Àë³¡¡£
+ï¿½ï¿½É«ï¿½ë³¡ï¿½ï¿½
 
-ÊµÑé¿çÈÕ£º
+Êµï¿½ï¿½ï¿½ï¿½Õ£ï¿½
 
-ÎÊÌâ£º
-1. Òª²»Òª¿çÈÕ£¿
-2. Òª²»Òª20µãÆ½±££¿
-3. Òª²»Òª²ÖÁ¿·­±¶£¿
-4. Òª²»Òª¿çÈÕ·­±¶£¿
-5. Òª²»ÒªÒýÈëÈÕ²¨·ùµÄ¹ýÂË£¿
-6. Ö¹Ó¯µÄÎ»ÖÃ£¬Òª²»ÒªÊ¹ÓÃÔ¤²âµÄÈÕ²¨·ù£¿
+ï¿½ï¿½ï¿½â£º
+1. Òªï¿½ï¿½Òªï¿½ï¿½ï¿½Õ£ï¿½
+2. Òªï¿½ï¿½Òª20ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½
+3. Òªï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+4. Òªï¿½ï¿½Òªï¿½ï¿½ï¿½Õ·ï¿½ï¿½ï¿½ï¿½ï¿½
+5. Òªï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Õ²ï¿½ï¿½ï¿½ï¿½Ä¹ï¿½ï¿½Ë£ï¿½
+6. Ö¹Ó¯ï¿½ï¿½Î»ï¿½Ã£ï¿½Òªï¿½ï¿½ÒªÊ¹ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½Õ²ï¿½ï¿½ï¿½ï¿½ï¿½
 
-¿çÈÕ½»Ò×
+ï¿½ï¿½ï¿½Õ½ï¿½ï¿½ï¿½
 */
 //AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 //{
@@ -3931,7 +3898,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 //
 //
 //	//pIndicators->executionTrend = executionTrend;
-//	//¼ÆËãÈÕÄÚ¸ßµÍµã
+//	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 //	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 //	if (count > 1)
 //	{
@@ -3965,10 +3932,10 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 //	else
 //		side = NONE;
 //
-//	////Èç¹ûÉÏÒ»´ÎµÄµ¥×ÓÊÇÇ°Ò»Ìì£¬¶øÇÒÊÇÖ¹Ó¯Àë³¡£¬¶øÇÒÊÇÓÐÇ÷ÊÆ£¬¶øÇÒÊÕÅÌ¸ß¹ýÖ¹Ó¯¼Û¸ñ
-//	////1. ¿ªÅÌÈë³¡
-//	////2. Èç¹û»Øµ½ÉÏ´ÎÀë³¡£¬Èë³¡
-//	////3. È¡ÏûÈë³¡¼ì²é£¬¿ÉÒÔ15µãºóÈë³¡
+//	////ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ÎµÄµï¿½ï¿½ï¿½ï¿½ï¿½Ç°Ò»ï¿½ì£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹Ó¯ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ß¹ï¿½Ö¹Ó¯ï¿½Û¸ï¿½
+//	////1. ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡
+//	////2. ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½Ï´ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ë³¡
+//	////3. È¡ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½é£¬ï¿½ï¿½ï¿½ï¿½15ï¿½ï¿½ï¿½ï¿½ë³¡
 //	//if (latestOrderIndex >= 0 && pParams->orderInfo[latestOrderIndex].isOpen == FALSE)
 //	//{		
 //	//	safe_gmtime(&timeInfo2, pParams->orderInfo[latestOrderIndex].openTime);
@@ -3994,8 +3961,8 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 //	//}
 //
 //
-//	// TODO: ÐèÒªÐÞ¸ÄBASE,Ö§³ÖÔÚÊÕÅÌÖØÐÂ¼ÆËãTrend£¬µ«ÊÇÐèÒªÊ±¼ä¡£
-//	//ÔÝÊ±Ñ¡ÔÚÔÚµÚ¶þÌì¿ªÅÌÀë³¡£¬ÊµÅÌÖÐÓÐµã²îµÄÎÊÌâ£¬»¹ÓÐÖÜÄ©Ìø¿ÕµÄÎÊÌâ¡£
+//	// TODO: ï¿½ï¿½Òªï¿½Þ¸ï¿½BASE,Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½Trendï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÊ±ï¿½ä¡£
+//	//ï¿½ï¿½Ê±Ñ¡ï¿½ï¿½ï¿½ÚµÚ¶ï¿½ï¿½ì¿ªï¿½ï¿½ï¿½ë³¡ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä©ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½â¡£
 //	//if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE && timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
 //	//	if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE && timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 0)
 //	//{
@@ -4079,7 +4046,7 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading_Ver2(StrategyParams* 
 //	
 //			
 //
-//		//Èç¹ûÊÇµ±ÌìµÄµ¥×Ó£¬Èë³¡ºó£¬²»ÐèÒª¹ýÂË¡£		
+//		//ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½Äµï¿½ï¿½Ó£ï¿½ï¿½ë³¡ï¿½ó£¬²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ë¡ï¿½		
 //		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1
 //			&& isSameDayOrder == FALSE			
 //			&& XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators, shouldFilter) == FALSE)
@@ -4255,7 +4222,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	pIndicators->preSlow = slow2;
 
 	//pIndicators->executionTrend = executionTrend;
-	//¼ÆËãÈÕÄÚ¸ßµÍµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
 	{
@@ -4298,10 +4265,10 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	else
 		side = NONE;
 
-	//Èç¹ûÉÏÒ»´ÎµÄµ¥×ÓÊÇÇ°Ò»Ìì£¬¶øÇÒÊÇÖ¹Ó¯Àë³¡£¬¶øÇÒÊÇÓÐÇ÷ÊÆ£¬¶øÇÒÊÕÅÌ¸ß¹ýÖ¹Ó¯¼Û¸ñ
-	//1. ¿ªÅÌÈë³¡
-	//2. Èç¹û»Øµ½ÉÏ´ÎÀë³¡£¬Èë³¡
-	//3. È¡ÏûÈë³¡¼ì²é£¬¿ÉÒÔ15µãºóÈë³¡
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ÎµÄµï¿½ï¿½ï¿½ï¿½ï¿½Ç°Ò»ï¿½ì£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹Ó¯ï¿½ë³¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ß¹ï¿½Ö¹Ó¯ï¿½Û¸ï¿½
+	//1. ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡
+	//2. ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½Ï´ï¿½ï¿½ë³¡ï¿½ï¿½ï¿½ë³¡
+	//3. È¡ï¿½ï¿½ï¿½ë³¡ï¿½ï¿½é£¬ï¿½ï¿½ï¿½ï¿½15ï¿½ï¿½ï¿½ï¿½ë³¡
 	if (latestOrderIndex >= 0 && pParams->orderInfo[latestOrderIndex].isOpen == FALSE)
 	{
 		safe_gmtime(&timeInfo2, pParams->orderInfo[latestOrderIndex].openTime);
@@ -4327,8 +4294,8 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 	}
 
 
-	// TODO: ÐèÒªÐÞ¸ÄBASE,Ö§³ÖÔÚÊÕÅÌÖØÐÂ¼ÆËãTrend£¬µ«ÊÇÐèÒªÊ±¼ä¡£
-	//ÔÝÊ±Ñ¡ÔÚÔÚµÚ¶þÌì¿ªÅÌÀë³¡£¬ÊµÅÌÖÐÓÐµã²îµÄÎÊÌâ£¬»¹ÓÐÖÜÄ©Ìø¿ÕµÄÎÊÌâ¡£
+	// TODO: ï¿½ï¿½Òªï¿½Þ¸ï¿½BASE,Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½Trendï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÊ±ï¿½ä¡£
+	//ï¿½ï¿½Ê±Ñ¡ï¿½ï¿½ï¿½ÚµÚ¶ï¿½ï¿½ì¿ªï¿½ï¿½ï¿½ë³¡ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä©ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½â¡£
 	if (oldestOpenOrderIndex>=0 && timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
 		//if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE && timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 0)
 	{
@@ -4445,7 +4412,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 			}
 		}
 
-		//Èç¹ûÊÇµ±ÌìµÄµ¥×Ó£¬Èë³¡ºó£¬²»ÐèÒª¹ýÂË¡£		
+		//ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½Äµï¿½ï¿½Ó£ï¿½ï¿½ë³¡ï¿½ó£¬²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ë¡ï¿½		
 		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1
 			&& isSameDayOrder == FALSE
 			&& XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators, shouldFilter) == FALSE)
@@ -4581,7 +4548,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 
 		pIndicators->endHour = 23;
-		//Èç¹ûÊÇµ±ÌìµÄµ¥×Ó£¬Èë³¡ºó£¬²»ÐèÒª¹ýÂË¡£		
+		//ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½Äµï¿½ï¿½Ó£ï¿½ï¿½ë³¡ï¿½ó£¬²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ë¡ï¿½		
 		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1
 			&& isSameDayOrder == FALSE
 			&& XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators, shouldFilter) == FALSE)
@@ -4665,7 +4632,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 		riskCapBuy = parameter(AUTOBBS_RISK_CAP);
 		riskCapSell = 0;
 
-		//Èç¹ûÊÇµ±ÌìµÄµ¥×Ó£¬Èë³¡ºó£¬²»ÐèÒª¹ýÂË¡£		
+		//ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½Äµï¿½ï¿½Ó£ï¿½ï¿½ë³¡ï¿½ó£¬²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ë¡ï¿½		
 		if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1
 			&& isSameDayOrder == FALSE
 			&& BTCUSD_DayTrading_Allow_Trade(pParams, pIndicators, pBase_Indicators, shouldFilter) == FALSE)
@@ -4680,7 +4647,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 		//pIndicators->stopLoss = pIndicators->atr_euro_range*0.88;
 
-		//Èç¹ûÓÐÇ÷ÊÆ£¬¼Ó´óRange
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½Ó´ï¿½Range
 		if ((int)parameter(AUTOBBS_RANGE) == 1 && executionTrend != 0)
 			pIndicators->atr_euro_range = max((double)parameter(AUTOBBS_IS_ATREURO_RANGE), (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 2 * 0.8);
 
@@ -4808,7 +4775,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 		//pIndicators->stopLoss = pIndicators->atr_euro_range*0.88;
 
-		//Èç¹ûÓÐÇ÷ÊÆ£¬¼Ó´óRange
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½Ó´ï¿½Range
 		if ((int)parameter(AUTOBBS_RANGE) == 1 && executionTrend != 0)
 			pIndicators->atr_euro_range = max((double)parameter(AUTOBBS_IS_ATREURO_RANGE), (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 2 * 0.8);
 
@@ -4881,7 +4848,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay(StrategyParams* pParams, In
 
 		//pIndicators->stopLoss = pIndicators->atr_euro_range*0.88;
 
-		//Èç¹ûÓÐÇ÷ÊÆ£¬¼Ó´óRange
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½Ó´ï¿½Range
 		//if ((int)parameter(AUTOBBS_RANGE) == 1 && pIndicators->executionTrend != 0)
 		pIndicators->atr_euro_range = max((double)parameter(AUTOBBS_IS_ATREURO_RANGE), (pBase_Indicators->pDailyPredictATR + pBase_Indicators->pDailyMaxATR) / 2 * 0.8);
 
@@ -5030,7 +4997,7 @@ AsirikuyReturnCode modifyOrder_MultipleDay(StrategyParams* pParams, Indicators* 
 
 		if (side == BUY)
 		{
-			//Èç¹û¹ýÁË20µãºó£¬³öÏÖµÚÒ»¸ö5MµÄÒõÏß£¬Àë³¡
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½20ï¿½ï¿½ó£¬³ï¿½ï¿½Öµï¿½Ò»ï¿½ï¿½5Mï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ë³¡
 			if (openOrderHigh - entryPrice > pIndicators->takePrice &&
 				pParams->bidAsk.bid[0] - entryPrice < floatingTP
 				&& (takeProfitMode == 0 || iClose(B_PRIMARY_RATES, 1) < iOpen(B_PRIMARY_RATES, 1))
@@ -5067,10 +5034,16 @@ AsirikuyReturnCode enterOrder_MultipleDay(StrategyParams* pParams, Indicators* p
 	struct tm timeInfo1;
 	char       timeString[MAX_TIME_STRING_SIZE] = "";
 	double upperBBand, lowerBBand;
+	double currentLow = iLow(B_DAILY_RATES, 0);
+	double currentHigh = iHigh(B_DAILY_RATES, 0);
+	double currentClose = iClose(B_DAILY_RATES, 0);
+	double adjustGap;
+	double adjustRisk;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
+
 
 	if (pBase_Indicators->maTrend > 0
 		&& pBase_Indicators->dailyTrend >= -1
@@ -5090,8 +5063,11 @@ AsirikuyReturnCode enterOrder_MultipleDay(StrategyParams* pParams, Indicators* p
 
 			pIndicators->riskCap = riskCapBuy;
 			
-			if (isSameDayClosedOrder == FALSE)
+			if (isSameDayClosedOrder == FALSE){
 				pIndicators->entrySignal = 1;
+				adjustGap = pBase_Indicators->dailyATR - (currentClose - currentLow);
+								
+			}
 
 			pIndicators->exitSignal = EXIT_SELL;
 		}
@@ -5115,12 +5091,57 @@ AsirikuyReturnCode enterOrder_MultipleDay(StrategyParams* pParams, Indicators* p
 
 			pIndicators->riskCap = riskCapSell;
 
-			if (isSameDayClosedOrder == FALSE)
+			if (isSameDayClosedOrder == FALSE){
 				pIndicators->entrySignal = -1;
 
+				adjustGap = pBase_Indicators->dailyATR - (currentHigh - currentClose);
+
+				
+
+				//if (pBase_Indicators->dailyATR < currentHigh-currentClose + pIndicators->takePrice)
+				//{
+				//	sprintf(pIndicators->status, "dailyATR %lf is less than currentHigh-currentClose + pIndicators->takePrice %lf",
+				//		pBase_Indicators->dailyATR, currentHigh - currentClose + pIndicators->takePrice);
+
+				//	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+				//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+
+				//	pIndicators->entrySignal = 0;
+
+				//	return FALSE;
+				//}
+			}
+			
 			pIndicators->exitSignal = EXIT_BUY;
 		}
 	}
+
+	
+
+	if (pIndicators->entrySignal != 0)
+	{
+		adjustRisk = min(1, (adjustGap - pIndicators->takePrice) / pIndicators->takePrice);
+
+		if (adjustRisk > 0.5)
+			pIndicators->risk = 1;
+		else if (adjustRisk > 0)
+			pIndicators->risk = 0.5;
+		//pIndicators->risk = adjustRisk;
+
+		if (adjustRisk <= 0)
+		{
+			sprintf(pIndicators->status, "risk = %lf", adjustRisk);
+
+			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, %s",
+				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
+
+			pIndicators->entrySignal = 0;
+
+			return FALSE;
+		}
+	}
+
+
 }
 
 
@@ -5203,7 +5224,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay_V2(StrategyParams* pParams,
 	pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
 
 	//pIndicators->executionTrend = executionTrend;
-	//¼ÆËãÈÕÄÚ¸ßµÍµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
 	{
@@ -5242,8 +5263,8 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay_V2(StrategyParams* pParams,
 	else
 		side = NONE;
 
-	// TODO: ÐèÒªÐÞ¸ÄBASE,Ö§³ÖÔÚÊÕÅÌÖØÐÂ¼ÆËãTrend£¬µ«ÊÇÐèÒªÊ±¼ä¡£
-	//ÔÝÊ±Ñ¡ÔÚÔÚµÚ¶þÌì¿ªÅÌÀë³¡£¬ÊµÅÌÖÐÓÐµã²îµÄÎÊÌâ£¬»¹ÓÐÖÜÄ©Ìø¿ÕµÄÎÊÌâ¡£
+	// TODO: ï¿½ï¿½Òªï¿½Þ¸ï¿½BASE,Ö§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½Trendï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÊ±ï¿½ä¡£
+	//ï¿½ï¿½Ê±Ñ¡ï¿½ï¿½ï¿½ÚµÚ¶ï¿½ï¿½ì¿ªï¿½ï¿½ï¿½ë³¡ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä©ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½â¡£
 	if (oldestOpenOrderIndex >= 0 && timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
 		//if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE && timeInfo1.tm_hour == 1 && timeInfo1.tm_min == 0)
 	{
@@ -5315,7 +5336,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay_V2(StrategyParams* pParams,
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->atr_euro_range, pIndicators->stopLoss, pIndicators->takePrice);
 		
 
-		// filter ·ÇÅ©
+		// filter ï¿½ï¿½Å©
 		if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
 		{
 
@@ -5402,14 +5423,14 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay_V2(StrategyParams* pParams,
 
 
 /*
-´¿¿Õ¼ä½»Ò×·¨
-Èë³¡£º
-1.ÔÚÐÂµÄÒ»Ìì£¬if no existing open order, ¿ªÅÌºó,¸ù“þîAÓ‹²¨·ù£¬é_³ö¶à ¿Õlimit orders.
-2.²ÖÁ¿ÊÇ1%,two orders. One order is no TP. the other one with TP.
-3.Ö¹ËðÊÇ0.40 * ATR(20)¡£
-4.Ö¹Ó¯ÊÇ0.40 * ATR(20)¡£
+ï¿½ï¿½ï¿½Õ¼ä½»ï¿½×·ï¿½
+ï¿½ë³¡ï¿½ï¿½
+1.ï¿½ï¿½ï¿½Âµï¿½Ò»ï¿½ì£¬if no existing open order, ï¿½ï¿½ï¿½Ìºï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½AÓ‹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½limit orders.
+2.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1%,two orders. One order is no TP. the other one with TP.
+3.Ö¹ï¿½ï¿½ï¿½ï¿½0.40 * ATR(20)ï¿½ï¿½
+4.Ö¹Ó¯ï¿½ï¿½0.40 * ATR(20)ï¿½ï¿½
 
-³ö³¡£º
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 1. If TP order is closed, the no TP order will continue. and move SL on long term order to break event. And keep moving SL when 1 SL level(0.4 * ATR(20))
 2. If both orders are closed. It will be back to clean state.
 3. After that, if it is a strong move day, will enter pending orders on 1/2 projected ATR level. 
@@ -5542,7 +5563,7 @@ AsirikuyReturnCode workoutExecutionTrend_MultipleDay_V2(StrategyParams* pParams,
 //
 
 /*
-MACD BEILI: Ö÷ÒªÊÇÔÚ³¬Âò³¬ÂôµÄÊ±ºò£¬×ó²à½»Ò×£¬ËðÒæ±ÈÖÁÉÙ1
+MACD BEILI: ï¿½ï¿½Òªï¿½ï¿½ï¿½Ú³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½à½»ï¿½×£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1
 Buy:
 Entry:
 1. The highest MCAD (10) in the last 5 days, > limit
@@ -5611,7 +5632,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI_Daily_Regression(StrategyPar
 	safe_timeString(timeString, currentTime);
 
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -5933,7 +5954,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Ind
 	safe_timeString(timeString, currentTime);
 
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ê·ï¿½ï¿½ï¿½ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -6014,7 +6035,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Ind
 		isDailyOnly = TRUE;
 	}
 
-	//Èç¹ûÊÇ23H£¬¿ÉÒÔ¼ì²éÊÇ·ñ¿ÉÒÔÈë³¡
+	//ï¿½ï¿½ï¿½ï¿½ï¿½23Hï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ë³¡
 	if (isEnableEntryEOD == TRUE && timeInfo1.tm_hour == 23)
 	{
 		startShift = 0;
@@ -6029,10 +6050,10 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Ind
 	preBarTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shiftPreDayBar];
 	safe_gmtime(&timeInfoPreBar, preBarTime);
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ£ï¿½ï¿½ï¿½ï¿½Ü³ï¿½ï¿½ï¿½ 0.2 daily ATR,ï¿½È´ï¿½ï¿½ï¿½ï¿½ï¿½
 	if (timeInfo1.tm_hour >= 1
 		&& (isDailyOnly == FALSE || timeInfo1.tm_mday != timeInfoPreBar.tm_mday)
-		) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±,Í¬Ê±Ö»ÊÇÐÂµÄÒ»ÌìµÄµÚÒ»¸öÐ¡Ê±
+		) // 1:00 ï¿½ï¿½ï¿½×£ï¿½ ï¿½Ü¿ï¿½ï¿½ï¿½ï¿½Ìµï¿½Ò»ï¿½ï¿½Ð¡Ê±,Í¬Ê±Ö»ï¿½ï¿½ï¿½Âµï¿½Ò»ï¿½ï¿½Äµï¿½Ò»ï¿½ï¿½Ð¡Ê±
 	{
 
 		//The last 5 days High and Low
@@ -6317,7 +6338,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyPa
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR);
 	
 
-	//¼ÆËãÈÕÄÚ¸ßµÍµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
 	{
@@ -6370,7 +6391,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyPa
 	if (hasCurrentDayOrder == FALSE)
 	{
 
-		////¼ÓÈë5M¾ùÏßµÄÖ§³Ö
+		////ï¿½ï¿½ï¿½ï¿½5Mï¿½ï¿½ï¿½ßµï¿½Ö§ï¿½ï¿½
 		//if (pParams->bidAsk.ask[0] - intradayLow >= Range && intradayHigh - pParams->bidAsk.bid[0] < Range 
 		//	&& ( (asia_ATR > Range && iClose(B_DAILY_RATES, 0) - iOpen(B_DAILY_RATES, 0) > 0)
 		//	|| asia_ATR <= Range)
@@ -6425,8 +6446,8 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyPa
 
 		side = getLastestOrderTypeEasy(B_PRIMARY_RATES, &openOrderHigh, &openOrderLow, &isOpen);
 
-		//Èç¹ûÒÑ¾­ÓÐÁËÒ»¸ötrade£¬ÄÇ¾ÍÊÇµÚ¶þ´Î½»Ò×£¬ÒªÊ¹ÓÃÈÕÄÚµÄ¸ßµÍµã
-		//Èç¹ûÓÐÁË2¸ötrades,ÄÇ¾ÍÊÇµÚÈý´Î½»Ò×ÁË£¬Ê¹ÓÃorderHigh, orderLow.
+		//ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½tradeï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ÇµÚ¶ï¿½ï¿½Î½ï¿½ï¿½×£ï¿½ÒªÊ¹ï¿½ï¿½ï¿½ï¿½ï¿½ÚµÄ¸ßµÍµï¿½
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½2ï¿½ï¿½trades,ï¿½Ç¾ï¿½ï¿½Çµï¿½ï¿½ï¿½ï¿½Î½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ê¹ï¿½ï¿½orderHigh, orderLow.
 		orderCountToday = getOrderCountTodayEasy(currentTime);
 		//orderCountToday = getOrderCountTodayExcludeBreakeventOrdersEasy(currentTime,0.1);
 		if (orderCountToday == 1)
@@ -6440,7 +6461,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyPa
 		{
 			//entryPrice = getLastestOrderPriceEasy(B_PRIMARY_RATES, &isOpen);
 			//orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
-			//Õâ²ßÂÔ²»ÔÊÐíÍ¬Ê±¿ª³ö¶à¸öopen order,ËùÒÔÕâÀïindex,Ó¦¸Ã¶¼ÊÇ0			 
+			//ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½ï¿½ï¿½ï¿½Í¬Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½open order,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½index,Ó¦ï¿½Ã¶ï¿½ï¿½ï¿½0			 
 			//if (pParams->orderInfo[latestOrderIndex].isOpen == TRUE)
 
 
@@ -6464,7 +6485,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyPa
 
 				if (side == BUY)
 				{
-					//Èç¹û¹ýÁË20µãºó£¬³öÏÖµÚÒ»¸ö5MµÄÒõÏß£¬Àë³¡
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½20ï¿½ï¿½ó£¬³ï¿½ï¿½Öµï¿½Ò»ï¿½ï¿½5Mï¿½ï¿½ï¿½ï¿½ï¿½ß£ï¿½ï¿½ë³¡
 					if (openOrderHigh - entryPrice > pIndicators->takePrice &&
 						pParams->bidAsk.bid[0] - entryPrice < pIndicators->takePrice
 						)
@@ -6622,7 +6643,7 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR);
 
 
-	//¼ÆËãÈÕÄÚ¸ßµÍµã
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ßµÍµï¿½
 	count = timeInfo1.tm_hour  * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 	if (count > 1)
 	{
@@ -6760,7 +6781,7 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver4(StrategyParams* pParams, Indicato
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 
 
-	// filter ·ÇÅ©
+	// filter ï¿½ï¿½Å©
 	if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
 	{
 
@@ -6773,13 +6794,8 @@ static BOOL XAUUSD_DayTrading_Allow_Trade_Ver4(StrategyParams* pParams, Indicato
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low);
 
-	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE)
-		readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
-	else
-	{
-		pBase_Indicators->pWeeklyPredictATR = 20;
-		pBase_Indicators->pWeeklyPredictMaxATR = 25;
-	}
+	readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
+
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
 	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, ATRWeekly0 = %lf,pWeeklyPredictATR = %lf, pWeeklyPredictMaxATR=%lf",

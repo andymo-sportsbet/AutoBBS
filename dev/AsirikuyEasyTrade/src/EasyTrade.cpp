@@ -5350,21 +5350,22 @@ AsirikuyReturnCode EasyTrade::validateDailyBars(StrategyParams* pParams, int pri
 	safe_gmtime(&timeInfo, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	if (strstr(pParams->tradeSymbol, "XAU") != NULL
-		|| strstr(pParams->tradeSymbol, "XAG") != NULL
-		|| strstr(pParams->tradeSymbol, "XPD") != NULL
-		|| strstr(pParams->tradeSymbol, "XTI") != NULL
-		//|| (strstr(pParams->tradeSymbol, "BTC") != NULL && timeInfo.tm_wday == 6)
-		//|| (strstr(pParams->tradeSymbol, "ETH") != NULL && timeInfo.tm_wday == 6)
-		|| strstr(pParams->tradeSymbol, "US500USD") != NULL
-		|| strstr(pParams->tradeSymbol, "USTECUSD") != NULL
-		)
-		startHour = 1;
+	//if (strstr(pParams->tradeSymbol, "XAU") != NULL
+	//	|| strstr(pParams->tradeSymbol, "XAG") != NULL
+	//	|| strstr(pParams->tradeSymbol, "XPD") != NULL
+	//	|| strstr(pParams->tradeSymbol, "XTI") != NULL
+	//	//|| (strstr(pParams->tradeSymbol, "BTC") != NULL && timeInfo.tm_wday == 6)
+	//	//|| (strstr(pParams->tradeSymbol, "ETH") != NULL && timeInfo.tm_wday == 6)
+	//	|| strstr(pParams->tradeSymbol, "US500USD") != NULL
+	//	|| strstr(pParams->tradeSymbol, "USTECUSD") != NULL
+	//	)
+	//	startHour = 1;
 
 	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"checking missing bars: Current daily bar matached: current time = %s, current daily time =%s", timeString, dailyTimeString);
 	printBarInfo(pParams, daily_rate, timeString);
 
-	if (dailyTimeInfo.tm_yday == timeInfo.tm_yday  && dailyTimeInfo.tm_hour == startHour)
+	if (dailyTimeInfo.tm_yday == timeInfo.tm_yday  //&& dailyTimeInfo.tm_hour == startHour
+		)
 	{	
 		return SUCCESS;
 	}
@@ -5400,17 +5401,18 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 
 	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
-		offset_min = 7;
-		if (timeInfo.tm_min == 0)
-			offset_hour = 1;
-		else
-			offset_hour = 0;
+		//offset_min = 7;
+		//if (timeInfo.tm_min == 0)
+		//	offset_hour = 1;
+		//else
+		//	offset_hour = 0;
 
 		if (timeInfo.tm_wday == 6)
 		{
 			if (timeInfo.tm_min < 45)
 				offset_hour = 1;
 			start_min = 45;
+			offset_min = 45;
 		}
 	}
 
@@ -5419,11 +5421,11 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
 		if (timeInfo.tm_hour == 0 && timeInfo.tm_min == 0
-			&& hourlyTimeInfo.tm_yday == timeInfo.tm_yday - 1 && hourlyTimeInfo.tm_hour == 23 && hourlyTimeInfo.tm_min == start_min)
+			&& hourlyTimeInfo.tm_yday == timeInfo.tm_yday - 1 && hourlyTimeInfo.tm_hour == 23 && hourlyTimeInfo.tm_min <= offset_min)
 		{			
 			return SUCCESS;
 		}
-		else if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour - offset_hour && hourlyTimeInfo.tm_min == start_min)
+		else if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour - offset_hour && hourlyTimeInfo.tm_min <= offset_min)
 		{
 			return SUCCESS;
 		}
@@ -5432,7 +5434,8 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 		pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
 		return ERROR_IN_RATES_RETRIEVAL;
 	}
-	else if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour && hourlyTimeInfo.tm_min <=offset_min)
+	else 
+		if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour && hourlyTimeInfo.tm_min <=offset_min)
 	{		
 		return SUCCESS;
 	}
@@ -5454,10 +5457,11 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 	int   offset_min = 3;
 	int closeHour = 23;
 	int specialCloseHour = 19;
+	int specialCloseMin = 45;
 
 	BOOL isCheckHistoricalBars = TRUE;
-	if (rateErrorTimes > 2)
-		isCheckHistoricalBars = FALSE;
+	//if (rateErrorTimes > 2)
+	//	isCheckHistoricalBars = FALSE;
 
 
 	safe_gmtime(&timeInfo, currentTime);
@@ -5485,7 +5489,11 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 		{
 			if (timeInfo.tm_wday == 6)
 				offset_min = 47;
-			closeMin = 5;
+
+			if (timeInfo.tm_wday == 6)
+				closeMin = 45;
+			else
+				closeMin = 5;
 		}
 	}
 
@@ -5566,45 +5574,88 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 			
 			//Only BTCUSD will miss 00:00 on 5m chart, in the weekend,it can be more than 5 mins....
 			if ((strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL) && secondary_tf == 5
-				&& secondaryTimeInfo.tm_hour == closeHour 
-				&& ( (!isWeekend(currentTime) && secondaryTimeInfo.tm_min == closeMin)
-				|| (isWeekend(currentTime) && secondaryTimeInfo.tm_min >= closeMin-30)
-				)
-				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin)
+				&& secondaryTimeInfo.tm_hour == closeHour
+				&& ((!isWeekend(currentTime) && secondaryTimeInfo.tm_min == closeMin)
+					|| (isWeekend(currentTime) && secondaryTimeInfo.tm_min >= closeMin - 30)
+					)
+				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin) {
+				
+				//saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 				return TRUE;
+			}
 			if ((strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL) && secondary_tf == 5
 				&& secondaryTimeInfo.tm_hour == closeHour
 				&& timeInfo.tm_wday == 6
 				&& timeInfo.tm_hour == startHour
-				&& timeInfo.tm_min == secondaryTimeInfo.tm_min)
+				&& timeInfo.tm_min == secondaryTimeInfo.tm_min) {
+				//saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 				return TRUE;
+			}
 			else if ((strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL) && secondary_tf == 60
-				&& secondaryTimeInfo.tm_hour == closeHour && timeInfo.tm_wday == 0 //Sunday
-				&&  secondaryTimeInfo.tm_min == closeMin
-				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin)
+				&& timeInfo.tm_wday == 0 //Sunday BTC Saturday is 00:45, Sunday 00:05, but sometimes it keeps changing.
+				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin
+				&& secondaryTimeInfo.tm_hour == closeHour
+				&& secondaryTimeInfo.tm_min == specialCloseMin
+				) {
+				//saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 				return TRUE;
+			}
 			else if (secondaryTimeInfo.tm_hour == closeHour && secondaryTimeInfo.tm_min == closeMin &&
-				timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin)
+				timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin) {
+				saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 				return TRUE;
+			}
 			else if (secondaryTimeInfo.tm_hour == specialCloseHour
 				&& secondaryTimeInfo.tm_min == closeMin
-				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin)
+				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin) {
+				saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 				return TRUE;
+			}
 			else
 			{
-				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
-					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
-				saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes+1, (BOOL)pParams->settings[IS_BACKTESTING]);
+				//if (rateErrorTimes > 2) {
+				//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"Skip rate error: current time = %s, current secondary time =%s System InstanceID = %d",
+				//		timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+				//	return TRUE;
+				//}
+				if (rateErrorTimes <= 2) {
+					pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
+						timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+
+					saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes + 1, (BOOL)pParams->settings[IS_BACKTESTING]);
+				}
 				return FALSE;
 			}
 		}
 		else if (diff > secondary_tf + 1 || diff < secondary_tf - 1)
 		{
-			pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
-				timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
-			saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes+1, (BOOL)pParams->settings[IS_BACKTESTING]);
+			if ((strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL) && secondary_tf == 60
+				&& timeInfo.tm_wday == 0 //Sunday BTC Saturday is 00:45, Sunday 00:05, but sometimes it keeps changing.
+				&& timeInfo.tm_hour == startHour && timeInfo.tm_min == startMin
+				&& secondaryTimeInfo.tm_hour == closeHour
+				&& secondaryTimeInfo.tm_min == specialCloseMin
+				) {
+				//saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
+				return TRUE;
+			}
+			//if (rateErrorTimes > 2) {
+			//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"Skip rate error: current time = %s, current secondary time =%s System InstanceID = %d",
+			//		timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+			//	return TRUE;
+			//}
+			if (rateErrorTimes <= 2) {
+				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
+					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+				saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes + 1, (BOOL)pParams->settings[IS_BACKTESTING]);
+			}
 			return FALSE;
 		}
+
+		//if (rateErrorTimes > 2) {
+		//	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"reset rate to 0: current time = %s, current secondary time =%s System InstanceID = %d",
+		//		timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+		//	saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
+		//}
 	}
 
 	
@@ -5638,9 +5689,11 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 		|| strstr(pParams->tradeSymbol, "XAG") != NULL
 		|| strstr(pParams->tradeSymbol, "XPD") != NULL
 		|| strstr(pParams->tradeSymbol, "XTI") != NULL
+		|| strstr(pParams->tradeSymbol, "SpotCrude") != NULL
 		//|| (strstr(pParams->tradeSymbol, "BTC") != NULL && timInfo.tm_wday == 6)
 		//|| (strstr(pParams->tradeSymbol, "ETH") != NULL && timInfo.tm_wday == 6)
 		|| strstr(pParams->tradeSymbol, "US500USD") != NULL 
+		|| strstr(pParams->tradeSymbol, "NAS100USD") != NULL
 		|| strstr(pParams->tradeSymbol, "USTECUSD") != NULL
 		)
 		startHour = 1;
@@ -5682,10 +5735,24 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 				pParams->ratesBuffers->rates[secondary_rate].open[shiftSecondary0Index - 1],
 				pParams->ratesBuffers->rates[secondary_rate].close[shiftSecondary0Index - 1]);
 
-			if (!validateSecondaryBarsGap(pParams, currentTime, currentSeondaryTime, secondary_tf, primary_tf, false, startHour, rateErrorTimes))
-				return ERROR_IN_RATES_RETRIEVAL;
+			if (!validateSecondaryBarsGap(pParams, currentTime, currentSeondaryTime, secondary_tf, primary_tf, false, startHour, rateErrorTimes)) {
+
+				if (rateErrorTimes > 2) {
+					pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"Skip rate error: current time = %s, current secondary time =%s System InstanceID = %d",
+						timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);	
+					return SUCCESS;
+				}
+				else
+					return ERROR_IN_RATES_RETRIEVAL;
+			}
 
 			shiftSecondary0Index--;
+		}
+
+		if (rateErrorTimes > 0) {
+			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"reset rate to 0: current time = %s, current secondary time =%s System InstanceID = %d",
+				timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+			saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 		}
 	}
 	
