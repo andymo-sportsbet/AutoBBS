@@ -14,7 +14,7 @@
 .idea/
 
 # Vendor dependencies (kept in vendor/ but often should be tracked) - uncomment if you vendor libs and don't want them in repo
-#/vendor/
+/vendor/
 
 # Temporary files
  /tmp/
