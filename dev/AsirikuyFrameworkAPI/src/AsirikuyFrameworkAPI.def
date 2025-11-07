@@ -1,0 +1,46 @@
+LIBRARY
+EXPORTS
+  initInstanceMQL4
+  initInstanceMQL5
+  initInstanceC
+  deinitInstance
+  getFrameworkVersion
+
+  mql4_runStrategy
+  mql5_runStrategy
+  jf_runStrategy
+  c_runStrategy
+
+  mql4_parseSymbol
+  mql4_normalizeSymbol
+  mql4_normalizeCurrency
+  mql4_getConversionSymbols
+  mql4_getCurrencyInfo
+
+  mql4_getCurrencyPairPrefix
+  mql4_getBaseCurrency
+  mql4_getCurrencyPairSeparator
+  mql4_getQuoteCurrency
+  mql4_getCurrencyPairSuffix
+
+  mql4_getCurrencyNumber
+  mql4_getNumDigitsAfterDecimal
+  mql4_getCurrencyName
+  mql4_getCurrencyLocations
+
+  mql5_parseSymbol
+  mql5_normalizeSymbol
+  mql5_normalizeCurrency
+  mql5_getConversionSymbols
+  mql5_getCurrencyInfo
+
+  mql5_getCurrencyPairPrefix
+  mql5_getBaseCurrency
+  mql5_getCurrencyPairSeparator
+  mql5_getQuoteCurrency
+  mql5_getCurrencyPairSuffix
+
+  mql5_getCurrencyNumber
+  mql5_getNumDigitsAfterDecimal
+  mql5_getCurrencyName
+  mql5_getCurrencyLocations
