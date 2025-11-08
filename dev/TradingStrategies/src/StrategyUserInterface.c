@@ -40,6 +40,7 @@
 #include "StrategyUserInterface.h"
 #include "EasyTradeCWrapper.hpp"
 #include "AsirikuyTime.h"
+#include <curl/curl.h> /* added for curl_getdate prototype (fix C4013) */
 
 #include "Logging.h"
 
@@ -347,8 +348,8 @@ double readRiskFile(BOOL isBackTesting)
 	return risk;
 }
 
-//这里包括非农，和美联储议息会议的时间
-//这里只有日期，没有时间。
+//锟斤拷锟斤拷锟斤拷锟斤拷锟脚╋拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟较拷锟斤拷锟斤拷时锟斤拷
+//锟斤拷锟斤拷只锟斤拷锟斤拷锟节ｏ拷没锟斤拷时锟戒。
 int readXAUUSDKeyNewsDateFile(time_t *pKeyDates)
 {
 //	char instanceIDName[TOTAL_UI_VALUES];

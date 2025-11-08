@@ -82,7 +82,7 @@ AsirikuyReturnCode runTakeOver(StrategyParams* pParams)
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.buyStopLossPrice, indicators.sellStopLossPrice, indicators.dsl_type);
 	
 
-	//如果是1MBBS, 增加退出能力
+//If using 1M BBS, exit when trend reverses
 	if (indicators.dsl_type == EXIT_DSL_BBS && (int)pParams->settings[TIMEFRAME] == 1)
 	{
 		if (totalOpenOrders(pParams, BUY) > 0 && indicators.bbsTrend == -1 && indicators.bbsIndex == shift1Index && pParams->bidAsk.ask[0] >= indicators.position)

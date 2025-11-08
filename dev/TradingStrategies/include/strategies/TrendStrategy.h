@@ -82,7 +82,6 @@ AsirikuyReturnCode workoutExecutionTrend_Weekly_MIDDLE_RETREAT_PHASE(StrategyPar
 
 //GBPJPY only
 AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
-AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_New(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
@@ -90,10 +89,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 AsirikuyReturnCode workoutExecutionTrend_Limit_BBS(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators* pBase_Indicators);
 AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
-AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
-AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_V2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
-AsirikuyReturnCode workoutExecutionTrend_Test(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
 //4H shellington
 AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);

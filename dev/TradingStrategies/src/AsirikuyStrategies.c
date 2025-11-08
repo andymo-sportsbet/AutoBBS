@@ -49,201 +49,32 @@
 #include "OrderManagement.h"
 #include "StrategyUserInterface.h"
 
-#include "Atipaq.h"
-#include "Ayotl.h"
-#include "Coatl.h"
-#include "Comitl.h"
-#include "GodsGiftATR.h"
-#include "eurchf_grid.h"
-#include "Qallaryi.h"
-#include "Quimichi.h"
-#include "Ruphay.h"
-#include "Sapaq.h"
-#include "Kantu.h"
-#include "KantuML.h"
-#include "AsirikuyBrain.h"
-#include "TestEA.h"
-#include "Teyacanani.h"
-#include "WatukushayFE.h"
 #include "RecordBars.h"
-#include "Munay.h"
-#include "RenkoTest.h"
 #include "Screening.h"
-#include "Kelpie.h"
-#include "BBS.h"
 #include "TakeOver.h"
 #include "Screening.h"
-#include "KeyK.h"
 #include "AutoBBS.h"
 #include "TrendLimit.h"
-#include "BuDan.h"
 
 typedef enum strategyId_t
 {
-  WATUKUSHAY_FE_BB  = 0,
-  WATUKUSHAY_FE_CCI = 1,
-  ATIPAQ            = 2,
-  AYOTL             = 3,
-  COATL             = 4,
-  COMITL_BB         = 5,
-  COMITL_KC         = 6,
-  COMITL_PA         = 7,
-  GODS_GIFT_ATR     = 8,
-  QALLARYI          = 9,
-  QUIMICHI          = 10,
-  SAPAQ             = 11,
-  ASIRIKUY_BRAIN    = 12,
-  TEYACANANI        = 13,
-  WATUKUSHAY_FE_RSI = 14,
-  RUPHAY            = 15,
-  TEST_EA           = 16,
-  EURCHF_GRID       = 17,
-  KANTU             = 18,
   RECORD_BARS       = 19,
-  MUNAY				= 20,
-  RENKO_TEST		= 21,
-  KANTU_ML          = 22,
-  KANTU_RL          = 23,
-  KELPIE			= 24,
-  BBS				= 25,
   TAKEOVER			= 26,
   SCREENING			= 27,
-  KEYK				= 28,
   AUTOBBS			= 29,
   AUTOBBSWEEKLY		= 30,
-  TRENDLIMIT		= 31,
-  BUDAN				= 32
+  TRENDLIMIT		= 31
 } StrategyId;
 
 AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnCode(**runStrategyFunc)(StrategyParams*))
 {
   switch((int)pParams->settings[INTERNAL_STRATEGY_ID])
   {
-  case WATUKUSHAY_FE_BB:
-    {
-      *runStrategyFunc            = &runWatukushayFE_BB;
-      return SUCCESS;
-    }
-  case WATUKUSHAY_FE_CCI:
-    {
-      *runStrategyFunc            = &runWatukushayFE_CCI;
-      return SUCCESS;
-    }
-  case ATIPAQ:
-    {
-      *runStrategyFunc            = &runAtipaq;
-      return SUCCESS;
-    }
-  case AYOTL:
-    {
-      *runStrategyFunc            = &runAyotl;
-      return SUCCESS;
-    }
-  case COATL:
-    {
-      *runStrategyFunc            = &runCoatl;
-      return SUCCESS;
-    }
-  case COMITL_BB:
-    {
-      *runStrategyFunc            = &runComitl_BB;
-      return SUCCESS;
-    }
-  case COMITL_KC:
-    {
-      *runStrategyFunc            = &runComitl_KC;
-      return SUCCESS;
-    }
-  case COMITL_PA:
-    {
-      *runStrategyFunc            = &runComitl_PA;
-      return SUCCESS;
-    }
-  case GODS_GIFT_ATR:
-    {
-      *runStrategyFunc            = &runGodsGiftATR;
-      return SUCCESS;
-    }
-  case QALLARYI:
-    {
-      *runStrategyFunc            = &runQallaryi;
-      return SUCCESS;
-    }
-  case QUIMICHI:
-    {
-      *runStrategyFunc            = &runQuimichi;
-      return SUCCESS;
-    }
-  case SAPAQ:
-    {
-      *runStrategyFunc            = &runSapaq;
-      return SUCCESS;
-    }
-  case ASIRIKUY_BRAIN:
-    {
-      *runStrategyFunc            = &runAsirikuyBrain;
-      return SUCCESS;
-    }
-  case TEYACANANI:
-    {
-      *runStrategyFunc            = &runTeyacanani;
-      return SUCCESS;
-    }
-  case WATUKUSHAY_FE_RSI:
-    {
-      *runStrategyFunc            = &runWatukushayFE_RSI;
-      return SUCCESS;
-    }
-  case RUPHAY:
-    {
-      *runStrategyFunc            = &runRuphay;
-      return SUCCESS;
-    }
-  case TEST_EA:
-    {
-      *runStrategyFunc            = &runTestEA;
-      return SUCCESS;
-    }
-  case EURCHF_GRID:
-    {
-      *runStrategyFunc            = &runEURCHF_grid;
-      return SUCCESS;
-    }
-	case KANTU:
-    {
-      *runStrategyFunc            = &runKantu;
-      return SUCCESS;
-    }
   case RECORD_BARS:
     {
       *runStrategyFunc            = &runRecordBars;
       return SUCCESS;
     }
-  case MUNAY:
-    {
-      *runStrategyFunc            = &runMunay;
-      return SUCCESS;
-    }
- case RENKO_TEST:
-    {
-      *runStrategyFunc            = &runRenkoTest;
-      return SUCCESS;
-    }
-  case KANTU_ML:
-    {
-      *runStrategyFunc            = &runKantuML;
-      return SUCCESS;
-    }
-  case KELPIE:
-    {
-      *runStrategyFunc            = &runKelpie;
-      return SUCCESS;
-    }
-  case BBS:
-  {
-	  *runStrategyFunc = &runBBS;
-	  return SUCCESS;
-  }
   case TAKEOVER:
   {
 	  *runStrategyFunc = &runTakeOver;
@@ -252,11 +83,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case SCREENING:
   {
 	  *runStrategyFunc = &runScreening;
-	  return SUCCESS;
-  }
-  case KEYK:
-  {
-	  *runStrategyFunc = &runKeyK;
 	  return SUCCESS;
   }
   case AUTOBBS:
@@ -272,11 +98,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case TRENDLIMIT:
   {
 	  *runStrategyFunc = &runTrendLimit;
-	  return SUCCESS;
-  }
-  case BUDAN:
-  {
-	  *runStrategyFunc = &runBuDan;
 	  return SUCCESS;
   }
   default:
@@ -440,7 +261,7 @@ AsirikuyReturnCode runStrategy(StrategyParams* pParams)
   }
 
   // Control when should run the strategy....
-  // Add special rule for XAUUSD, it is open on 1am, but only start trade from 1£º02 am. 
+  // Add special rule for XAUUSD, it is open on 1am, but only start trade from 1ï¿½ï¿½02 am. 
   if(!pParams->settings[RUN_EVERY_TICK] 
     && areOrdersCorrect(pParams, pParams->settings[USE_SL], pParams->settings[USE_TP]) 
     && hasInstanceRunOnCurrentBar((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[PRIMARY_RATES_INDEX].time[pParams->ratesBuffers->rates[PRIMARY_RATES_INDEX].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]))

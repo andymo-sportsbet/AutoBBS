@@ -26,8 +26,6 @@ project "UnitTests"
     -- otherwise the GCC on Linux will complain
     "AsirikuyFrameworkAPI",
 	"AsirikuyTechnicalAnalysis",
-	"AsirikuyMachineLearning",
-	"AsirikuyImageLib",
 	"AsirikuyEasyTrade",
 	"TradingStrategies",
 	"SymbolAnalyzer",

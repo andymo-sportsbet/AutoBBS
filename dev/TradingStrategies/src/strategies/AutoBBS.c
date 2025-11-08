@@ -25,8 +25,7 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 		case 4:
 			splitBuyOrders_Limit(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
-		case 5:		
-			splitBuyOrders_DayTrading(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		case 5:
 			break;
 		case 6:			
 			break;
@@ -48,7 +47,6 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			splitBuyOrders_ATR(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 13:
-			splitBuyOrders_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 14:
 			splitBuyOrders_ShortTerm_Hedge(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -60,10 +58,8 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			splitBuyOrders_Daily_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 17:
-			splitBuyOrders_Daily_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;	
 		case 18:
-			splitBuyOrders_Daily_Swing_Fix(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 19:
 			splitBuyOrders_4HSwing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -72,10 +68,8 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			splitBuyOrders_4HSwing_100P(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 21:
-			splitBuyOrders_Daily_XAUUSD_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 22:
-			splitBuyOrders_MultiDays_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;			
 		case 23:
 			splitBuyOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -99,7 +93,6 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			splitBuyOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 30:
-			splitBuyOrders_MultiDays_Swing_V2(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 31:
 			splitBuyOrders_ShortTerm_New(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -128,9 +121,8 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 	case 4:
 		splitSellOrders_Limit(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
-	case 5:	
-		splitSellOrders_DayTrading(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
-		break;	
+	case 5:
+		break;
 	case 8:
 		splitSellOrders_WeeklyTrading(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
@@ -147,7 +139,6 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		splitSellOrders_ATR(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 13:
-		splitSellOrders_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 14:
 		splitSellOrders_ShortTerm_Hedge(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -159,10 +150,8 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		splitSellOrders_Daily_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 17:
-		splitSellOrders_Daily_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;	
 	case 18:
-		splitSellOrders_Daily_Swing_Fix(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 19:
 		splitSellOrders_4HSwing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -171,10 +160,8 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		splitSellOrders_4HSwing_100P(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 21:
-		splitSellOrders_Daily_XAUUSD_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 22:
-		splitSellOrders_MultiDays_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 23:
 		splitSellOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -198,7 +185,6 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		splitSellOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 30:
-		splitSellOrders_MultiDays_Swing_V2(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 31:
 		splitSellOrders_ShortTerm_New(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -257,7 +243,6 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_XAUUSD_DayTrading(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 16:
-		//workoutExecutionTrend_GBPJPY_DayTrading(pParams, pIndicators, pBase_Indicators);
 		workoutExecutionTrend_GBPJPY_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 17:
@@ -294,17 +279,11 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_Limit_BBS_LongTerm(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 27:
-		workoutExecutionTrend_Ichimoko_Daily_V2(pParams, pIndicators, pBase_Indicators);
+		workoutExecutionTrend_Ichimoko_Daily_Index(pParams, pIndicators, pBase_Indicators);
 		break;	
 	case 28:
 		workoutExecutionTrend_Ichimoko_Daily_Index(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 29:
-		workoutExecutionTrend_Test(pParams, pIndicators, pBase_Indicators);
-		break;
-	//case 30:
-	//	workoutExecutionTrend_Ichimoko_Daily_Index_V2(pParams, pIndicators, pBase_Indicators);		
-	//	break;
 	case 30:		
 		//workoutExecutionTrend_4H_ShellingtonVer1(pParams, pIndicators, pBase_Indicators);
 		workoutExecutionTrend_4H_Shellington(pParams, pIndicators, pBase_Indicators);		
@@ -325,16 +304,12 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_Ichimoko_Weekly_Index(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 36:
-		//workoutExecutionTrend_BTCUSD_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 101:
 		workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 102:
 		workoutExecutionTrend_ASI(pParams, pIndicators, pBase_Indicators);
-		break;
-	case 103:
-		workoutExecutionTrend_MACD_BEILI_Daily_Regression(pParams, pIndicators, pBase_Indicators);
 		break;
 	}
 

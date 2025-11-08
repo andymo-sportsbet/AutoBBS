@@ -53,7 +53,6 @@
 #include "InstanceStates.h"
 #include "NTPCWrapper.hpp"
 #include "TradingWeekBoundaries.h"
-#include "KantuStrategies.h"
 
 #define LOG_FILENAME "AsirikuyFramework.log"
 
@@ -176,8 +175,6 @@ static int initFramework(char* pAsirikuyConfig, char* pAccountName)
 
   setTempFileFolderPath(config.tempFileFolderPath);
   setTradingWeekBoundaries(config.cropMondayHours, config.cropFridayHours);
-
-  initKantuFileParams();
 
   initialized  = TRUE;
   initializing = FALSE;
