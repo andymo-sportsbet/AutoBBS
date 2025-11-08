@@ -60,7 +60,7 @@ void splitBuyOrders_ShortTerm(StrategyParams* pParams, Indicators* pIndicators, 
 	safe_timeString(timeString, currentTime);
 
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	// Take 1/3 of the gap as take profit
 	
 	if (pIndicators->tradeMode == 1)
 	{
@@ -74,7 +74,7 @@ void splitBuyOrders_ShortTerm(StrategyParams* pParams, Indicators* pIndicators, 
 				lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice) * pIndicators->risk;
 
 				// Cap to 2 % risk
-				//ß@ÑYÊ¹ÓÃ¹ÀÓ‹Ö¹“p50üc£¬È»áá×î´óïLëUÊÇ2%
+				// If using calculated stop loss 50 points, then cap the max risk to 2%
 				//Cap the max risk
 				lots_max = calculateOrderSizeWithSpecificRisk(pParams, BUY, pIndicators->entryPrice, stopLoss, pParams->settings[ACCOUNT_RISK_PERCENT] * 7);
 				lots = min(lots_max, lots);
@@ -138,7 +138,7 @@ void splitSellOrders_ShortTerm(StrategyParams* pParams, Indicators* pIndicators,
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	// Take 1/3 of the gap as take profit
 	if (pIndicators->tradeMode == 1)
 	{
 		if (gap >= pATR / 2 && fabs(iClose(B_DAILY_RATES, 1) - iClose(B_DAILY_RATES, 2)) < pBase_Indicators->dailyATR)
@@ -151,7 +151,7 @@ void splitSellOrders_ShortTerm(StrategyParams* pParams, Indicators* pIndicators,
 				lots = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, takePrice) * pIndicators->risk;
 
 				// Cap to 2 % risk
-				//ß@ÑYÊ¹ÓÃ¹ÀÓ‹Ö¹“p50üc£¬È»áá×î´óïLëUÊÇ2%
+				// If using calculated stop loss 50 points, then cap the max risk to 2%
 				//Cap the max risk
 				lots_max = calculateOrderSizeWithSpecificRisk(pParams, SELL, pIndicators->entryPrice, stopLoss, pParams->settings[ACCOUNT_RISK_PERCENT] * 7);
 				lots = min(lots_max, lots);
@@ -191,7 +191,7 @@ void splitSellOrders_ShortTerm(StrategyParams* pParams, Indicators* pIndicators,
 void splitBuyOrders_KeyK(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	
 	takePrice = takePrice_primary;
 	openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 3);
@@ -222,7 +222,7 @@ void splitSellOrders_KeyK(StrategyParams* pParams, Indicators* pIndicators, Base
 void splitBuyOrders_Weekly_Beginning(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if (pIndicators->entryPrice <= pBase_Indicators->weeklyR1)
 	{
 		takePrice = 0;
@@ -232,7 +232,7 @@ void splitBuyOrders_Weekly_Beginning(StrategyParams* pParams, Indicators* pIndic
 void splitSellOrders_Weekly_Beginning(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if (pIndicators->entryPrice >= pBase_Indicators->weeklyS1)
 	{
 		//takePrice = 2 * takePrice_primary;
@@ -264,7 +264,7 @@ void splitBuyOrders_Weekly_ShortTerm(StrategyParams* pParams, Indicators* pIndic
 void splitSellOrders_Weekly_ShortTerm(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if (pIndicators->entryPrice >= pBase_Indicators->weeklyS2)
 	{
 		takePrice = takePrice_primary;
@@ -286,7 +286,7 @@ void splitSellOrders_Weekly_ShortTerm(StrategyParams* pParams, Indicators* pIndi
 void splitBuyOrders_WeeklyTrading(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if (pIndicators->entryPrice <= pBase_Indicators->weeklyR1)
 	{
 		takePrice = fabs(pBase_Indicators->weeklyR2 - pIndicators->adjust - pIndicators->entryPrice);
@@ -296,7 +296,7 @@ void splitBuyOrders_WeeklyTrading(StrategyParams* pParams, Indicators* pIndicato
 void splitSellOrders_WeeklyTrading(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
-	// 1£º1 or S2?
+	// 1 to 1 (risk/reward ratio) or S2?
 	if (pIndicators->entryPrice >= pBase_Indicators->weeklyS1)
 	{
 		takePrice = fabs(pIndicators->entryPrice - (pBase_Indicators->weeklyS2 + pIndicators->adjust));
@@ -305,8 +305,8 @@ void splitSellOrders_WeeklyTrading(StrategyParams* pParams, Indicators* pIndicat
 }
 
 /*
-µÚÒ»µ¥£º ÈÕÄÚ³ö³¡
-µÚ¶þµ¥£º ÖÜÄÚ³ö³¡
+Ò» Ú³
+Ú¶ Ú³
 */
 void splitBuyOrders_4HSwing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double atr, double stopLoss)
 {
@@ -329,7 +329,7 @@ void splitBuyOrders_4HSwing(StrategyParams* pParams, Indicators* pIndicators, Ba
 	//lots_singal = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, stopLoss)* pIndicators->risk;
 	//lots_singal = lots_singal * (pIndicators->strategyMaxRisk - pIndicators->strategyRiskWithoutLockedProfit) / pIndicators->strategyMaxRisk;
 	 
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if (pIndicators->entryPrice <= pBase_Indicators->dailyR1 && (int)pParams->settings[TIMEFRAME] == 15)
 	{
 
@@ -344,8 +344,8 @@ void splitBuyOrders_4HSwing(StrategyParams* pParams, Indicators* pIndicators, Ba
 }
 
 /*
-µÚÒ»µ¥£º ÈÕÄÚ³ö³¡
-µÚ¶þµ¥£º ÖÜÄÚ³ö³¡
+Ò» Ú³
+Ú¶ Ú³
 */
 void splitSellOrders_4HSwing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double atr, double stopLoss)
 {
@@ -366,7 +366,7 @@ void splitSellOrders_4HSwing(StrategyParams* pParams, Indicators* pIndicators, B
 	//lots_singal = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, stopLoss)* pIndicators->risk;
 	//lots_singal = lots_singal * (pIndicators->strategyMaxRisk - pIndicators->strategyRiskWithoutLockedProfit) / pIndicators->strategyMaxRisk;
 
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if (pIndicators->entryPrice >= pBase_Indicators->dailyS1 && (int)pParams->settings[TIMEFRAME] == 15)		
 	{
 		
@@ -381,7 +381,7 @@ void splitSellOrders_4HSwing(StrategyParams* pParams, Indicators* pIndicators, B
 }
 
 /*
-³öÏÖÐÅºÅ£¬Ö¹Ó¯100µã
+ÅºÅ£Ö¹Ó¯100
 */
 void splitBuyOrders_4HSwing_100P(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double atr, double stopLoss)
 {
@@ -440,7 +440,7 @@ void splitBuyOrders_4HSwing_100P(StrategyParams* pParams, Indicators* pIndicator
 }
 
 /*
-³öÏÖÐÅºÅ£¬Ö¹Ó¯100µã
+ÅºÅ£Ö¹Ó¯100
 */
 void splitSellOrders_4HSwing_100P(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double atr, double stopLoss)
 {
@@ -498,7 +498,7 @@ void splitSellOrders_4HSwing_100P(StrategyParams* pParams, Indicators* pIndicato
 
 
 /*
-³öÏÖÐÅºÅ£¬Ö¹Ó¯ÊÇÒ»°ëµÄÖÜ²¨·ù,»òÕßÊÇÈÕ²¨·ù
+ÅºÅ£Ö¹Ó¯Ò»Ü²,Õ²
 */
 void splitBuyOrders_4HSwing_Shellington(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double atr, double stopLoss)
 {
@@ -534,7 +534,7 @@ void splitBuyOrders_4HSwing_Shellington(StrategyParams* pParams, Indicators* pIn
 }
 
 /*
-³öÏÖÐÅºÅ£¬Ö¹Ó¯ÊÇÒ»°ëµÄÖÜ²¨·ù,»òÕßÊÇÈÕ²¨·ù
+ÅºÅ£Ö¹Ó¯Ò»Ü²,Õ²
 */
 void splitSellOrders_4HSwing_Shellington(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double atr, double stopLoss)
 {
@@ -759,7 +759,7 @@ void splitBuyOrders_ATR(StrategyParams* pParams, Indicators* pIndicators, Base_I
 {
 	double takePrice;
 	//double intradayClose = iClose(B_DAILY_RATES, 0), intradayHigh = iHigh(B_DAILY_RATES, 0), intradayLow = iLow(B_DAILY_RATES, 0);
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if ((pIndicators->entryPrice <= pBase_Indicators->dailyR1 && (int)pParams->settings[TIMEFRAME] == 15) ||
 		(pIndicators->entryPrice <= pBase_Indicators->dailyR2 && (int)pParams->settings[TIMEFRAME] == 5) ||
 		(pIndicators->entryPrice <= pBase_Indicators->dailyR2 && (int)pParams->settings[TIMEFRAME] == 30))
@@ -783,7 +783,7 @@ void splitSellOrders_ATR(StrategyParams* pParams, Indicators* pIndicators, Base_
 	double takePrice;
 	//double intradayClose = iClose(B_DAILY_RATES, 0), intradayHigh = iHigh(B_DAILY_RATES, 0), intradayLow = iLow(B_DAILY_RATES, 0);	
 
-	// 1£º1 			
+	// 1 to 1 (risk/reward ratio) 			
 	if ((pIndicators->entryPrice >= pBase_Indicators->dailyS1 && (int)pParams->settings[TIMEFRAME] == 15) ||
 		(pIndicators->entryPrice >= pBase_Indicators->dailyS2 && (int)pParams->settings[TIMEFRAME] == 5) ||
 		(pIndicators->entryPrice >= pBase_Indicators->dailyS2 && (int)pParams->settings[TIMEFRAME] == 30))
@@ -805,7 +805,7 @@ void splitBuyOrders_LongTerm(StrategyParams* pParams, Indicators* pIndicators, B
 	double pLow = pBase_Indicators->pDailyLow;
 	double gap = pHigh - pIndicators->entryPrice;
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	// Take 1/3 of the gap as take profit
 	if (gap >= pATR / 2)
 	{
 		//takePrice = 2 * takePrice_primary;		
@@ -822,7 +822,7 @@ void splitSellOrders_LongTerm(StrategyParams* pParams, Indicators* pIndicators, 
 	double pLow = pBase_Indicators->pDailyLow;
 	double gap = pIndicators->entryPrice - pLow;
 
-	//ÖÁÉÙÓÐ1/3 ¿Õ¼ä
+	// Take 1/3 of the gap as take profit
 	if (gap >= pATR / 2)
 	{		
 		takePrice = 0;
@@ -1140,7 +1140,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	pIndicators->limitRiskPNL = pParams->settings[AUTOBBS_MAX_STRATEGY_RISK] * -1;
 
 	//Check out if Key K is triggered. If yes, take piority with other strategies., 
-	//TODO ÐèÒªÌø¹ýriskPNL µÄ²âÊÔ£¿£¿£¿£¿
+	//TODO: Need to add riskPNL strategy, need to implement
 	if ((int)parameter(AUTOBBS_KEYK) == 1)
 	{
 		workoutExecutionTrend_KeyK(pParams, pIndicators, pBase_Indicators);
@@ -1243,7 +1243,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	//	pIndicators->tradeMode = 0;
 	//}
 
-	//Èç¹ûMACD²»Ö§³Ö£¬¾Í²»Òª×öÈÕÄÚ¶Ìµ¥
+	// If MACD doesn't support, then don't trade short term
 	//fast = iMACD(B_DAILY_RATES, 5, 10, 5, 0, 1);
 
 	//if ((pIndicators->entrySignal == 1 && fast <= 0)
@@ -1261,7 +1261,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	//	pIndicators->tradeMode = 0;
 	//}
 
-	//ÔÚ17µãºó£¬Èç¹ûÈÕ²¨·ù»¹Ã»ÓÐ³öÀ´£¬ÈÕÄÚµ¥¾ÍÏÈ³ö³¡¡£ µ±È»£¬ÐèÒª¿¼ÂÇÃÀÁª´¢ÒéÏ¢»áÒéµÄÈÕ×ÓÂð£¿
+	// After 17:00, if the current day hasn't exceeded the intraday range, then need to close all short term orders
 	if (timeInfo1.tm_hour >= 17)
 	{
 		execution_tf = (int)pParams->settings[TIMEFRAME];
@@ -1284,7 +1284,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	}
 
 
-	////¹ØµôËùÓÐÈÕÄÚµ¥£¬µ±ÈÕ²¨·ùµ½ÁË×î´óÖµ
+	// Calculate intraday support/resistance levels and daily range
 	//// 1: current day; 2: current week
 
 	//count = (timeInfo1.tm_hour - 1) * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]) - 1;
@@ -1305,7 +1305,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	//}
 
 
-	//ÀûÓÃMACD Exit long term trades
+	// Use MACD to exit long term trades
 
 	//Load MACD
 	/*
@@ -1618,7 +1618,7 @@ AsirikuyReturnCode workoutExecutionTrend_DailyOpen(StrategyParams* pParams, Indi
 
 	//pIndicators->tradeMode = 1;
 
-	//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+	// Enter order on key support/resistance levels
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE || (ignored && pBase_Indicators->dailyTrend_Phase > 0))
 	{
 		pIndicators->executionTrend = 1;
@@ -1668,7 +1668,7 @@ AsirikuyReturnCode workoutExecutionTrend_DailyOpen(StrategyParams* pParams, Indi
 }
 
 /*
-1. ÐèÒª¿¼ÂÇ15MBBS support?
+1. Òª15MBBS support?
 */
 AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators,BOOL ignored)
 {	
@@ -1706,7 +1706,7 @@ AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicato
 	
 	//pIndicators->tradeMode = 1;
 
-	//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+	// Enter order on key support/resistance levels
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE || (ignored && pBase_Indicators->dailyTrend_Phase > 0 ))
 	{
 		pIndicators->executionTrend = 1;
@@ -1766,9 +1766,9 @@ AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicato
 	return SUCCESS;
 }
 
-//ÈÕÄÚBBS, Èë³¡ÊÇ15MBBS,Ö¹ËðÊÇ¹Ø¼üÖ§³ÅÎ»ÖÃ ¶øÇÒ¶¼ÊÇ S2/R2 only
-//¿ÉÒÔ¼ÓÈë×Ü·çÏÕ¿ØÖÆ£¬±ÜÃâÁ¬ÐøÈë³¡¡£
-//»¹ÓÐ±ØÐë close ÔÚÈÕÄÚ23£º45
+// Use BBS, entry on 15M BBS, stop loss at key support/resistance levels, and only S2/R2 only
+// Risk management and position control, don't enter if risk too high
+// Close all orders at 23:45
 AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {	
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -1811,7 +1811,7 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 	if (count >= 2)
 		iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, shift1Index, count, &intraHigh, &intraLow);
 
-	//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+	// Enter order on key support/resistance levels
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_RETREAT_PHASE )
 	{
 		pIndicators->executionTrend = 1;
@@ -1942,7 +1942,7 @@ AsirikuyReturnCode workoutExecutionTrend_Weekly_Pivot(StrategyParams* pParams, I
 	pIndicators->tpMode = 0;
 	pIndicators->splitTradeMode = 11;
 
-	//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+	// Enter order on key support/resistance levels
 	if (pBase_Indicators->weeklyTrend_Phase == MIDDLE_UP_PHASE || (ignored && pBase_Indicators->weeklyTrend_Phase > 0))
 	{
 		pIndicators->executionTrend = 1;
@@ -1998,7 +1998,7 @@ AsirikuyReturnCode workoutExecutionTrend_Weekly_MIDDLE_RETREAT_PHASE(StrategyPar
 	pIndicators->tpMode = 0;
 	pIndicators->splitTradeMode = 5;
 
-	//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+	// Enter order on key support/resistance levels
 	if (pBase_Indicators->weeklyTrend_Phase == MIDDLE_UP_RETREAT_PHASE || (ignored && pBase_Indicators->weeklyTrend_Phase > 0))
 	{
 		pIndicators->executionTrend = 1;
@@ -2122,7 +2122,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan(StrategyParam
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
 		dailyTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
@@ -2148,11 +2148,11 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan(StrategyParam
 		if (pIndicators->atr_euro_range == 0)
 			pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;
 
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf£º low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
-		if (movement >= pIndicators->atr_euro_range) // 100 pips,ÕâÓ¦¸ÃÊÇ¸ù¾Ýµ±Ê±µÄ²¨·ù¶ø¶¨,40% weekly ATR
+		if (movement >= pIndicators->atr_euro_range) // Should be based on current market conditions, 40% weekly ATR
 		{
 			if (fabs(high_4H - close_4H) < movement / 3)
 			{
@@ -2168,7 +2168,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan(StrategyParam
 			trend_4H = 1;
 		if (trend_MA < 0 || trend_KeyK == -1)
 			trend_4H = -1;
-		//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+		// Enter order on key support/resistance levels
 
 		if (trend_4H == 1 && pIndicators->bbsTrend_4H == 1)
 		{
@@ -2256,7 +2256,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
 		dailyTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
@@ -2290,11 +2290,11 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 		if (pIndicators->atr_euro_range == 0)
 			pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;		
 
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf£º low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
-		if (movement >= pIndicators->atr_euro_range) // 100 pips,ÕâÓ¦¸ÃÊÇ¸ù¾Ýµ±Ê±µÄ²¨·ù¶ø¶¨,40% weekly ATR
+		if (movement >= pIndicators->atr_euro_range) // Should be based on current market conditions, 40% weekly ATR
 		{
 			if (fabs(high_4H - close_4H) < movement / 3)
 			{
@@ -2310,7 +2310,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 			trend_4H = 1;
 		if (trend_MA < 0 || trend_KeyK == -1)
 			trend_4H = -1;
-		//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+		// Enter order on key support/resistance levels
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
 		if (trend_4H == 1 && pIndicators->bbsTrend_4H == 1)
@@ -2320,13 +2320,13 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 			pIndicators->stopLossPrice = pIndicators->bbsStopPrice_4H;
 			pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pIndicators->stopLoss);
 				
-			//Ç÷ÊÆ×ªÕÛµÄµÚÒ»µ¥
+			// First turning point
 			if (orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].type != BUY))
 			{
 				pIndicators->entrySignal = 1;
 			}
 			
-			////ÔÚÒ»²¨Ç÷ÊÆÖÐ£¬×î¶à×ö3´Î
+			//// First order in trend, take 1/3
 			//if (pIndicators->bbsIndex_4H == shift1Index_4H
 			//	&& pIndicators->entrySignal == 0 
 			//	&& pParams->orderInfo[orderIndex].isOpen == FALSE &&  getSameSideTradesInCurrentTrendEasy(B_PRIMARY_RATES, BUY) < 3)
@@ -2346,13 +2346,13 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 	
 			pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pIndicators->stopLoss);
 
-			//Ç÷ÊÆ×ªÕÛµÄµÚÒ»µ¥
+			// First turning point
 			if (orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].type != SELL))
 			{
 				pIndicators->entrySignal = -1;
 			}
 			
-			////ÔÚÒ»²¨Ç÷ÊÆÖÐ£¬×î¶à×ö3´Î
+			//// First order in trend, take 1/3
 			//if (pIndicators->bbsIndex_4H == shift1Index_4H
 			//	&& pIndicators->entrySignal == 0 
 			//	&& pParams->orderInfo[orderIndex].isOpen == FALSE && getSameSideTradesInCurrentTrendEasy(B_PRIMARY_RATES, SELL) < 3)
@@ -2371,11 +2371,11 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 }
 
 /*
-Õâ²ßÂÔÊÇÒÔÖÜÇ÷ÊÆÎª»ù´¡£¬Ê¹ÓÃ15MBBSÈë³¡¡£
-Ç÷ÊÆÊÇ4H¹Ø¼üKºÍM50,M200½»²æ¾ö¶¨¡£
-ÒÆ¶¯Ö¹Ëð£¬Ã»ÓÐÖ÷¶¯exit.
-Ö¹Ó¯ÊÇÈÕÄÚ¶¯Ì¬¸ßµÍµãºÍATR
-Èç¹ûÖÜ²¨·ù´óÓÚÔ¤²â²¨·ù£¬¾ÍÍ£Ö¹Èë³¡£¬¼ÌÐøÒÆ¶¯Ö¹Ëð¡£
+ÎªÊ¹15MBBSë³¡
+4HØ¼KM50,M200
+Æ¶Ö¹Ã»exit.
+Ö¹Ó¯Ú¶Ì¬ßµÍµATR
+Ü²Ô¤â²¨Í£Ö¹ë³¡Æ¶Ö¹
 */
 AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -2402,7 +2402,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 	safe_timeString(timeString, currentTime);
 	
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
 		dailyTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
@@ -2432,7 +2432,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 	if (pIndicators->atr_euro_range == 0)
 		pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;
 	
-	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf£º low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+	pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
@@ -2452,7 +2452,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 		trend_4H = 1;
 	if (trend_MA < 0 || trend_KeyK == -1)
 		trend_4H = -1;
-	//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+	// Enter order on key support/resistance levels
 
 	
 	if (pIndicators->bbsTrend_4H == 1)
@@ -2479,8 +2479,8 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 		//	pIndicators->entrySignal = 1;			
 		//}
 
-		//Çø¼äÕðµ´:
-		//Èç¹ûÔÚÇø¼äÉÏÑØ£¬²ÖÎ»¼õ°ë
+		// Stop loss:
+		// If daily trend is range, reduce position size
 		if (dailyTrend == 0
 			&& pIndicators->entryPrice >= pBase_Indicators->dailyS
 			&& fabs(pIndicators->entryPrice - pIndicators->stopLossPrice) >= pBase_Indicators->dailyATR * 0.5)
@@ -2489,11 +2489,11 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 		if (pIndicators->stopLossPrice > pIndicators->entryPrice) //invalid price. current price is above stop loss price. No entry trade.
 			pIndicators->entrySignal = 0;
 
-		////Èç¹ûÖÜºÍÈÕÍ¼µÄÇ÷ÊÆ²»Ò»ÖÂ£¬ÊÇ·ñÍ£Ö¹?»¹ÊÇ50% risk?
+		//// If weekly and daily trend not consistent, should stop? Use 50% risk?
 		//if (dailyTrend < 0)
 		//	pIndicators->risk = 0.5;
 
-		// ÍË³öÈç¹û4H·½Ïò¸Ä±ä¡£
+		// Follow 4H trend change.
 		//pIndicators->exitSignal = -1;	
 
 
@@ -2525,7 +2525,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 			&& fabs(pIndicators->stopLossPrice - pIndicators->entryPrice) >= pBase_Indicators->dailyATR * 0.5)
 			pIndicators->risk = 0.5;
 
-		////Èç¹ûÖÜºÍÈÕÍ¼µÄÇ÷ÊÆ²»Ò»ÖÂ£¬ÊÇ·ñÍ£Ö¹?»¹ÊÇ50% risk?
+		//// If weekly and daily trend not consistent, should stop? Use 50% risk?
 		//if (dailyTrend > 0)
 		//	pIndicators->entrySignal = 0;
 
@@ -2534,17 +2534,17 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 			pIndicators->risk = 0.5;
 
 
-		// ÍË³öÈç¹û4H·½Ïò¸Ä±ä¡£		
+		// Follow 4H trend change.
 		//pIndicators->exitSignal = 1;
 	}
 	
 	// If RiksPNL < 0, 
-	// ÀëÖ¹Ëð²»µ½0.5 ATR
+	// Stop loss not less than 0.5 ATR
 	// Risk = 0.5
 
 	//if (pIndicators->strategyRiskWithoutLockedProfit < 0 && fabs(pIndicators->stopLossPrice - pIndicators->entryPrice) <= pBase_Indicators->dailyATR * 0.5)
 	//{
-	//		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, strategyRiskWithoutLockedProfit %lf£º GapToSL= %lf, dailyATR=%lf",
+	//		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, strategyRiskWithoutLockedProfit %lf GapToSL= %lf, dailyATR=%lf",
 	//			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->strategyRiskWithoutLockedProfit, fabs(pIndicators->stopLossPrice - pIndicators->entryPrice), pBase_Indicators->dailyATR );
 
 	//	pIndicators->risk = 0.5;
@@ -2553,7 +2553,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 	//	&& ((pIndicators->entryPrice > preHigh - (preHigh - preLow) * 0.382 && pIndicators->entrySignal == 1)
 	//	|| (pIndicators->entryPrice < preLow + (preHigh - preLow) * 0.382 && pIndicators->entrySignal == -1)))
 	//{
-	//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, strategyRisk %lf£º limitRiskPNL %lf, entrySignal=%d",
+	//	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, strategyRisk %lf limitRiskPNL %lf, entrySignal=%d",
 	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->strategyRisk, pIndicators->limitRiskPNL, pIndicators->entrySignal);
 	//	pIndicators->entrySignal = 0;
 	//}
@@ -2581,7 +2581,7 @@ AsirikuyReturnCode workoutExecutionTrend_ShortTerm(StrategyParams* pParams, Indi
 	int startShift = 1;
 	double preDailyClose;	
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
-	int entryMode = 1; // 1: pivot, 2: S1 or R1, 3: ATR range
+	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
 	double stopLossLevel = 2.5;
 	BOOL isCloseOrdersEOD = FALSE;
 	int orderIndex = -1;
@@ -2766,7 +2766,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_WeeklyATR(StrategyParams* pParams
 	double currentLow = iLow(B_DAILY_RATES, 0);
 	double currentHigh = iHigh(B_DAILY_RATES, 0);
 	int startShift = 1;	
-	int entryMode = 1; // 1: pivot, 2: S1 or R1, 3: ATR range
+	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
 	double stopLossLevel = (double)parameter(AUTOBBS_RISK_CAP);
 	double moveTPLimit = (double)parameter(AUTOBBS_KEYK);
 	int autoMode = (int)parameter(AUTOBBS_IS_AUTO_MODE);
@@ -2885,7 +2885,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	int startShift = 1;
 	double preDailyClose,preDailyHigh,preDailyLow,preDailyOpen;
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
-	int entryMode = 1; // 1: pivot, 2: S1 or R1, 3: ATR range
+	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
 	double stopLossLevel = (double)parameter(AUTOBBS_RISK_CAP);
 	double moveTPLimit = (double)parameter(AUTOBBS_KEYK);
 	int autoMode = (int)parameter(AUTOBBS_IS_AUTO_MODE);	
@@ -3014,7 +3014,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 		stopHour = 22;
 
-		// filter ·ÇÅ©
+		// filter non-farm payroll day
 		if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
 		{
 
@@ -3387,10 +3387,11 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	//		pBase_Indicators->maTrend = 0;
 	//}
 		
-	//ÐèÒªÊÖ¹¤´ò¿ª£º
-	//AUTOBBS_RANGE=1 ATR Range ¶Ô³åµ¥
-	//AUTOBBS_STARTHOUR = 8 ²»×öÑÇÅÌ
-	//AUTOBBS_IS_AUTO_MODE = 1, ×öR1, S1 Stop order
+	// Need to set stop loss
+
+	// AUTOBBS_RANGE=1 ATR Range order
+	// AUTOBBS_STARTHOUR = 8 start hour
+	// AUTOBBS_IS_AUTO_MODE = 1, use R1, S1 Stop order Stop order
 	//AUTOBBS_IS_AUTO_MODE = 3, cancel all orders
 	//AUTOBBS_RISK_CAP=2 : stopLossLevel, by default is 2
 
@@ -3831,9 +3832,9 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	//{
 	//	safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].openTime);
 
-	//	if (timeInfo2.tm_hour >= 11 && timeInfo2.tm_hour <= 16)
+	// 1 to 1 (risk/reward ratio))
 	//	{
-	//		if (timeInfo1.tm_hour >= 11 && timeInfo1.tm_hour <= 16)
+	// 1 to 1 (risk/reward ratio))
 	//		{
 	//			move_stop_loss(pParams, pIndicators, pBase_Indicators, orderIndex, 1.0);
 	//		}
@@ -3892,7 +3893,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 	int startShift = 1;
 	double preDailyClose, preDailyHigh, preDailyLow, preDailyOpen;
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
-	int entryMode = 1; // 1: pivot, 2: S1 or R1, 3: ATR range
+	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
 	double stopLossLevel = (double)parameter(AUTOBBS_RISK_CAP);
 	double moveTPLimit = (double)parameter(AUTOBBS_KEYK);
 	int autoMode = (int)parameter(AUTOBBS_IS_AUTO_MODE);	
@@ -3979,7 +3980,8 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 
 		stopHour = 22;
 
-		// filter ·ÇÅ©
+		// filter non-farm payroll day
+
 		if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
 		{
 
@@ -4694,7 +4696,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BBS(StrategyParams* pParams, Indi
 	int startShift = 1;
 	double preDailyClose;
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
-	int entryMode = 1; // 1: pivot, 2: S1 or R1, 3: ATR range
+	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
 	double stopLossLevel = (double)parameter(AUTOBBS_RISK_CAP);
 	double macdMaxLevel = (double)parameter(AUTOBBS_IS_ATREURO_RANGE); 
 	int orderIndex = -1;
@@ -4777,10 +4779,11 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BBS(StrategyParams* pParams, Indi
 	else 
 		trend = RANGE;
 
-	//ÐèÒªÊÖ¹¤´ò¿ª£º
-	//AUTOBBS_RANGE=1 ATR Range ¶Ô³åµ¥
-	//AUTOBBS_STARTHOUR = 8 ²»×öÑÇÅÌ
-	//AUTOBBS_IS_AUTO_MODE = 1, ×öR1, S1 Stop order
+	// Need to set stop loss
+
+	// AUTOBBS_RANGE=1 ATR Range order
+	// AUTOBBS_STARTHOUR = 8 start hour
+	// AUTOBBS_IS_AUTO_MODE = 1, use R1, S1 Stop order Stop order
 	//AUTOBBS_IS_AUTO_MODE = 3, cancel all orders
 	//AUTOBBS_RISK_CAP=2 : stopLossLevel, by default is 2
 
@@ -4944,7 +4947,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BBS_LongTerm(StrategyParams* pPar
 	int startShift = 1;
 	double preDailyClose;
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
-	int entryMode = 1; // 1: pivot, 2: S1 or R1, 3: ATR range
+	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
 	double stopLossLevel = (double)parameter(AUTOBBS_RISK_CAP);
 	double macdMaxLevel = (double)parameter(AUTOBBS_IS_ATREURO_RANGE);	
 	int orderIndex = -1;
@@ -5090,7 +5093,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_Old(StrategyParams* pParams, Indi
 	int startShift = 1;
 	double preDailyClose;
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
-	int entryMode = 1; // 1: pivot, 2: S1 or R1, 3: ATR range
+	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
 	double stopLossLevel = 2;
 	BOOL isCloseOrdersEOD = TRUE;
 	int orderIndex = -1;
@@ -5466,7 +5469,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 	safe_timeString(timeString, currentTime);
 
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -5771,7 +5774,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 		isDailyOnly = TRUE;
 	}
 
-	//Èç¹ûÊÇ23H£¬¿ÉÒÔ¼ì²éÊÇ·ñ¿ÉÒÔÈë³¡
+	// After 23:00, check if need to enter
 	if (isEnableEntryEOD == TRUE && timeInfo1.tm_hour == 23)
 	{
 		startShift = 0;
@@ -5787,10 +5790,10 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 	safe_gmtime(&timeInfoPreBar, preBarTime);
 
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day
 	if (timeInfo1.tm_hour >= 1
 		&& (isDailyOnly == FALSE || timeInfo1.tm_mday != timeInfoPreBar.tm_mday)
-		) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±,Í¬Ê±Ö»ÊÇÐÂµÄÒ»ÌìµÄµÚÒ»¸öÐ¡Ê±
+		) // 1:00 start, avoid the first hour
 	{
 
 		preWeeklyClose = iClose(B_WEEKLY_RATES, 1);
@@ -5807,7 +5810,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 		pIndicators->CMFVolumeGap = getCMFVolumeGap(B_DAILY_RATES, 1, fastMAPeriod, startShift);
 
 		//Volume indicator....
-		//preVolume > MA(10): µ±Ç°µÄvolum > ¹ýÈ¥10ÌìµÄÆ½¾ùvolume
+		// preVolume > MA: current volume > past average volume
 		pIndicators->volume1 = iVolume(B_DAILY_RATES, startShift);
 		pIndicators->volume2 = iVolume(B_DAILY_RATES, startShift + 1);
 		//volume_ma_10 = iMA(4, B_DAILY_RATES, 10, startShift);
@@ -5899,7 +5902,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 					//	pIndicators->tradeMode = 2;
 					//}
 
-					//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+					// If price retreats back, add position
 					if (preHist1 > histLevel && preHist2 > histLevel && preHist3 > histLevel && preHist4 > histLevel && preHist5 > histLevel
 						&& fast1 > level && fast2 > level && fast3 > level && fast4 > level && fast5 > level
 						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
@@ -5931,7 +5934,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 						pIndicators->entrySignal = 0;
 					}
 
-					//Èç¹û·½Ïò¸Ä±äµÄµÚÒ»¸ötrade,Àëbaseline ³¬¹ý1 ATR(20),²»×ö¡£
+					// First trade after trend change, if baseline exceeds 1 ATR(20), don't enter
 					//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL && fabs(preDailyClose - ma20Daily) >= iAtr(B_DAILY_RATES, 20, 1))
 					//	pIndicators->entrySignal = 0;
 				}
@@ -5939,7 +5942,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 
 			}
 			//else if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
-			//	&& pParams->orderInfo[orderIndex].openPrice - pIndicators->entryPrice > abs(pParams->orderInfo[orderIndex].stopLoss - pParams->orderInfo[orderIndex].openPrice) / 2) //Èç¹ûÓÐµ¥£¬¾Í»Øµ÷¼Ó²Ö¡£ 
+			// If there is profit and pullback, add position 
+
 			//{
 			//	pIndicators->tradeMode = 2;
 			//	pIndicators->entrySignal = 1;
@@ -6012,7 +6016,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 					//	pIndicators->tradeMode = 2;
 					//}
 
-					//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+					// If price retreats back, add position
 					if (preHist1 < (histLevel*-1) && preHist2 < (histLevel*-1) && preHist3 < (histLevel*-1) && preHist4 < (histLevel*-1) && preHist5 < (histLevel*-1)
 						&& fast1 < (level*-1) && fast2 < (level*-1) && fast3 < (level*-1) && fast4 < (level*-1) && fast5 < (level*-1)
 						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL
@@ -6044,13 +6048,14 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 						pIndicators->entrySignal = 0;
 					}
 
-					//Èç¹û·½Ïò¸Ä±äµÄµÚÒ»¸ötrade,Àëbaseline ³¬¹ý1 ATR(20),²»×ö¡£
+					// First trade after trend change, if baseline exceeds 1 ATR(20), don't enter
 					//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY && fabs(preDailyClose - ma20Daily) >= iAtr(B_DAILY_RATES, 20, 1))
 					//	pIndicators->entrySignal = 0;
 				}
 			}
 			//else if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
-			//	&& pIndicators->entryPrice - pParams->orderInfo[orderIndex].openPrice > abs(pParams->orderInfo[orderIndex].stopLoss - pParams->orderInfo[orderIndex].openPrice) / 2) //Èç¹ûÓÐµ¥£¬¾Í»Øµ÷¼Ó²Ö¡£ 
+			// If there is profit and pullback, add position 
+
 			//{
 			//	pIndicators->tradeMode = 2;
 			//	pIndicators->entrySignal = -1;
@@ -6061,7 +6066,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 		}
 
 
-		//¼ÓÈëÈÕÍ¼µÄ³ö³¡ÐÅºÅ:½øÈërange
+		// Exit signal from daily chart: enter range
 		if (isMACDZeroExit == FALSE)
 		{
 			if (pIndicators->fast - pIndicators->slow > macdLimit && pIndicators->preFast <= pIndicators->preSlow) // Exit SELL		
@@ -6108,8 +6113,8 @@ Run on daily chart.
 when both slow and fast are above 0 and the fast cross up slow, buy signal
 when both slow and fast are under 0 and the fast cross down slow, sell signal
 
-2. ÈÕÍ¼µÄÒÆ¶¯Ö¹Ëð¡£ 
-Èç¹ûdailyTrend = 0, »òÕß MACD³öÏÖÏà·´ÐÅºÅ
+2. Í¼Æ¶Ö¹ 
+dailyTrend = 0,  MACDà·´Åº
 
 3. No TP
 
@@ -6214,7 +6219,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	safe_timeString(timeString, currentTime);
 
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 	
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -6740,7 +6745,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		isDailyOnly = TRUE;
 	}
 
-	//Èç¹ûÊÇ23H£¬¿ÉÒÔ¼ì²éÊÇ·ñ¿ÉÒÔÈë³¡
+	// After 23:00, check if need to enter
 	if (isEnableEntryEOD == TRUE && timeInfo1.tm_hour == 23)
 	{
 		startShift = 0;		
@@ -6763,10 +6768,10 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 	iASIEasy(B_DAILY_RATES, 0, 10, 5, &asiBull, &asiBear);
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day
 	if (timeInfo1.tm_hour >= startHour
 		&& (isDailyOnly == FALSE || timeInfo1.tm_mday != timeInfoPreBar.tm_mday)
-		) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±,Í¬Ê±Ö»ÊÇÐÂµÄÒ»ÌìµÄµÚÒ»¸öÐ¡Ê±
+		) // 1:00 start, avoid the first hour
 	{		
 
 		preWeeklyClose = iClose(B_WEEKLY_RATES, 1);
@@ -6785,7 +6790,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		//iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily - 1, range-1, &rangeHigh, &rangeLow);
 
 		//Volume indicator....
-		//preVolume > MA(5): µ±Ç°µÄvolum > ¹ýÈ¥5ÌìµÄÆ½¾ùvolume
+		// preVolume > MA: current volume > past average volume
 		pIndicators->volume1 = iVolume(B_DAILY_RATES, startShift);
 		pIndicators->volume2 = iVolume(B_DAILY_RATES, startShift + 1);
 		volume_ma_5 = iMA(4, B_DAILY_RATES, 5, startShift);
@@ -6910,7 +6915,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						pIndicators->entrySignal = 0;
 					}
 
-					//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+					// If price retreats back, add position
 					if (isEnableLate == TRUE && preHist1 > histLevel && preHist2 > histLevel && preHist3 > histLevel && preHist4 > histLevel && preHist5 > histLevel
 						&& fast1 > level && fast2 > level && fast3 > level && fast4 > level && fast5 > level
 						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
@@ -7024,7 +7029,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						
 					}
 
-					//Èç¹û·½Ïò¸Ä±äµÄµÚÒ»¸ötrade,Àëbaseline ³¬¹ý1 ATR(20),²»×ö¡£
+					// First trade after trend change, if baseline exceeds 1 ATR(20), don't enter
 					//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL && fabs(preDailyClose - ma20Daily) >= iAtr(B_DAILY_RATES, 20, 1))
 					//	pIndicators->entrySignal = 0;
 				}
@@ -7032,7 +7037,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 				
 			}			
 			//else if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
-			//	&& pParams->orderInfo[orderIndex].openPrice - pIndicators->entryPrice > abs(pParams->orderInfo[orderIndex].stopLoss - pParams->orderInfo[orderIndex].openPrice) / 2) //Èç¹ûÓÐµ¥£¬¾Í»Øµ÷¼Ó²Ö¡£ 
+			// If there is profit and pullback, add position 
+
 			//{
 			//	pIndicators->tradeMode = 2;
 			//	pIndicators->entrySignal = 1;
@@ -7123,7 +7129,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						pIndicators->entrySignal = 0;
 					}
 
-					//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+					// If price retreats back, add position
 					if (isEnableLate == TRUE && preHist1 < (histLevel*-1) && preHist2 < (histLevel*-1) && preHist3 < (histLevel*-1) && preHist4 < (histLevel*-1) && preHist5 < (histLevel*-1)
 						&& fast1 < (level*-1) && fast2 < (level*-1) && fast3 < (level*-1) && fast4 < (level*-1) && fast5 < (level*-1)
 						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL
@@ -7234,13 +7240,14 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						
 					}
 
-					//Èç¹û·½Ïò¸Ä±äµÄµÚÒ»¸ötrade,Àëbaseline ³¬¹ý1 ATR(20),²»×ö¡£
+					// First trade after trend change, if baseline exceeds 1 ATR(20), don't enter
 					//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY && fabs(preDailyClose - ma20Daily) >= iAtr(B_DAILY_RATES, 20, 1))
 					//	pIndicators->entrySignal = 0;
 				}
 			}
 			//else if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
-			//	&& pIndicators->entryPrice - pParams->orderInfo[orderIndex].openPrice > abs(pParams->orderInfo[orderIndex].stopLoss - pParams->orderInfo[orderIndex].openPrice) / 2) //Èç¹ûÓÐµ¥£¬¾Í»Øµ÷¼Ó²Ö¡£ 
+			// If there is profit and pullback, add position 
+
 			//{
 			//	pIndicators->tradeMode = 2;
 			//	pIndicators->entrySignal = -1;
@@ -7312,7 +7319,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			pIndicators->entrySignal = 0;
 		}
 
-		//¼ÓÈëÈÕÍ¼µÄ³ö³¡ÐÅºÅ:½øÈërange
+		// Exit signal from daily chart: enter range
 
 		if (pIndicators->fast - pIndicators->slow > macdLimit && pIndicators->preFast <= pIndicators->preSlow) // Exit SELL		
 		pIndicators->exitSignal = EXIT_SELL;
@@ -7375,734 +7382,6 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	return SUCCESS;
 }
 
-AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
-{
-	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	int    shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
-	int    shift1Index_Daily = pParams->ratesBuffers->rates[B_DAILY_RATES].info.arraySize - 2;
-	int   dailyTrend;
-	time_t currentTime;
-	struct tm timeInfo1;
-	char   timeString[MAX_TIME_STRING_SIZE] = "";
-	double fast, slow;
-	double preFast, preSlow;
-	int orderIndex;
-	double ma50Daily,preDailyClose;
-
-	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-	safe_gmtime(&timeInfo1, currentTime);
-	safe_timeString(timeString, currentTime);
-
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
-	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
-		dailyTrend = 0;
-	else if (pBase_Indicators->dailyTrend > 0)
-		dailyTrend = 1;
-	else if (pBase_Indicators->dailyTrend < 0)
-		dailyTrend = -1;
-	else
-		dailyTrend = 0;
-
-	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-
-	pIndicators->splitTradeMode = 24;
-	pIndicators->tpMode = 3;
-
-	ma50Daily = iMA(3, B_DAILY_RATES, 50, 1);
-	preDailyClose = iClose(B_DAILY_RATES, 1);
-	if (timeInfo1.tm_hour == 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
-	{
-
-		//Load MACD
-		fast = iMACD(B_DAILY_RATES, 5, 10, 5, 0, 1);
-		slow = iMACD(B_DAILY_RATES, 5, 10, 5, 1, 1);
-
-
-		preFast = iMACD(B_DAILY_RATES, 5, 10, 5, 0, 2);
-		preSlow = iMACD(B_DAILY_RATES, 5, 10, 5, 1, 2);
-
-
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
-			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_DAILY_RATES, 1), fast, slow);
-		pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
-			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_DAILY_RATES, 2), preFast, preSlow);
-
-		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
-
-
-		if (preDailyClose > ma50Daily) // Buy
-		{
-			pIndicators->executionTrend = 1;
-			pIndicators->entryPrice = pParams->bidAsk.ask[0];
-			pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-			if (fast > 0 && slow > 0 && fast > slow && preFast <= preSlow &&
-				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
-				)
-			{
-				pIndicators->entrySignal = 1;
-			}
-
-			pIndicators->exitSignal = EXIT_SELL;
-
-		}
-
-		if (preDailyClose < ma50Daily) // Sell
-		{
-			pIndicators->executionTrend = -1;
-			pIndicators->entryPrice = pParams->bidAsk.bid[0];
-			pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-
-			if (fast < 0 && slow < 0 && fast < slow && preFast >= preSlow &&
-				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
-				)
-			{
-				pIndicators->entrySignal = -1;
-			}
-
-			pIndicators->exitSignal = EXIT_BUY;
-
-		}
-
-
-		//¼ÓÈëÈÕÍ¼µÄ³ö³¡ÐÅºÅ:½øÈërange
-
-		if (fast > slow && preFast <= preSlow) // Exit SELL		
-			pIndicators->exitSignal = EXIT_SELL;
-
-		if (fast < slow && preFast >= preSlow) // Exit SELL		
-			pIndicators->exitSignal = EXIT_BUY;
-
-		//if (dailyTrend == 0)		
-		//	pIndicators->exitSignal = EXIT_ALL;
-	}
-
-	return SUCCESS;
-}
-
-/*
-ÕâÀïÖ»ÊÇÓÃÓÚ»Ø²â£¬Ö»ÓÐÈÕÍ¼Ê¹ÓÃ¡£
-pBase_IndicatorsÎª¿Õ¡£
-B_PRIMARY_RATES ÊÇÈÕÍ¼¡£
-*/
-AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
-{
-	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	int    shift0Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 1;
-	int    shift1Index_Weekly = pParams->ratesBuffers->rates[B_WEEKLY_RATES].info.arraySize - 2;
-	time_t currentTime;
-	struct tm timeInfo1, timeInfo2;
-	char   timeString[MAX_TIME_STRING_SIZE] = "";
-	double fast, slow;
-	double preFast, preSlow;
-	int orderIndex;
-	double atr5 = iAtr(B_PRIMARY_RATES, 5, 1);
-	int index1, index2, index3;
-	double level = 0, histLevel = 0, maxLevel = 0;
-	double volume1, volume2, volume_ma_10;
-
-	double preClose1, preClose2, preClose3, preClose4, preClose5;
-	double ma20Daily, preDailyClose;
-	double dailyBaseLine;
-	double preHist1, preHist2, preHist3, preHist4, preHist5;
-	double fast1, fast2, fast3, fast4, fast5;
-	double slow1, slow2, slow3, slow4, slow5;
-
-	double cmfVolume = 0.0;
-	BOOL isVolumeControl = TRUE;
-	BOOL isEnableBeiLi = TRUE;
-	BOOL isEnableSlow = TRUE;
-	BOOL isEnableATR = TRUE;
-	BOOL isEnableCMFVolume = FALSE;
-	BOOL isEnableCMFVolumeGap = FALSE;
-	BOOL isEnableMaxLevel = FALSE;
-
-	BOOL isVolumeControlRisk = FALSE;
-	BOOL isCMFVolumeRisk = FALSE;
-	BOOL isCMFVolumeGapRisk = FALSE;
-	BOOL isAllVolumeRisk = FALSE;
-	BOOL isWeeklyBaseLine = FALSE;
-
-	BOOL isMACDZeroExit = FALSE;
-
-	BOOL isEnableASI = FALSE;
-
-	BOOL isEnableLate = FALSE;
-
-	double preWeeklyClose, preWeeklyClose1;		
-	double shortDailyHigh = 0.0, shortDailyLow = 0.0, dailyHigh = 0.0, dailyLow = 0.0, weeklyHigh = 0.0, weeklyLow = 0.0, shortWeeklyHigh = 0.0, shortWeeklyLow = 0.0;
-	double daily_baseline = 0.0, weekly_baseline = 0.0, daily_baseline_short = 0.0, weekly_baseline_short = 0.0;
-	int pre3KTrend;
-
-	int fastMAPeriod = 12, slowMAPeriod = 26, signalMAPeriod = 9;
-	double CMFVolumeGap = 0.0;
-	double maxRisk = 1.5;
-
-	int startShift = 1;
-
-	double asiBull, asiBear;
-	int truningPointIndex = -1, minPointIndex = -1;
-	double turningPoint, minPoint;
-
-	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-	safe_gmtime(&timeInfo1, currentTime);
-	safe_timeString(timeString, currentTime);
-
-	pIndicators->splitTradeMode = 24;
-	pIndicators->tpMode = 3;
-
-	pIndicators->tradeMode = 1;
-
-	pIndicators->stopMovingBackSL = FALSE;
-
-	ma20Daily = iMA(3, B_DAILY_RATES, 20, 1);
-	preDailyClose = iClose(B_DAILY_RATES, 1);
-
-	dailyBaseLine = ma20Daily;
-
-	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
-	{
-
-		level = 0.005 * pParams->bidAsk.ask[0];
-		maxLevel = 0.05 * pParams->bidAsk.ask[0];
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = FALSE;
-		isWeeklyBaseLine = TRUE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		//stopLoss = pBase_Indicators->dailyATR * 1.8;
-
-		maxRisk = 1.5;
-
-		//isDailyOnly = FALSE;
-
-		//shiftPreDayBar = shift1Index;
-
-		pIndicators->stopMovingBackSL = TRUE;
-
-		//isEnableEntryEOD = TRUE;
-
-		isEnableLate = FALSE;
-
-		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, startShift);
-
-		pIndicators->riskCap = parameter(AUTOBBS_RISK_CAP);
-	}
-	else if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
-	{
-		level = 0.35; 
-		//maxLevel = 0.008;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = FALSE;
-		isWeeklyBaseLine = TRUE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-		
-	}
-	else if (strstr(pParams->tradeSymbol, "GER30EUR") != NULL)
-	{
-		level = 30;
-		//maxLevel = 0.008;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = FALSE;
-		isWeeklyBaseLine = TRUE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-	}
-	else if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
-	{
-		level = 2; // XAUUSD
-		maxLevel = 10;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-		isEnableSlow = TRUE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = TRUE;
-
-		isCMFVolumeGapRisk = TRUE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		isWeeklyBaseLine = FALSE;
-
-		maxRisk = 2;
-		
-	}
-	else if (strstr(pParams->tradeSymbol, "XAGUSD") != NULL)
-	{
-		level = 0.3; // XAGUSD
-		maxLevel = 0.5;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = FALSE;
-
-		isCMFVolumeGapRisk = FALSE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		isWeeklyBaseLine = TRUE;
-
-		maxRisk = 2;
-
-	}
-	else if (strstr(pParams->tradeSymbol, "XPDUSD") != NULL)
-	{
-		level = 2; // XAUUSD
-		maxLevel = 10;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = TRUE;
-
-		isCMFVolumeGapRisk = FALSE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		isWeeklyBaseLine = FALSE;
-
-		maxRisk = 2;
-
-		isMACDZeroExit = TRUE;
-
-		isEnableASI = TRUE;
-	}
-	else if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
-	{
-		level = 0.1; //GBPJPY
-		maxLevel = 0.9;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = FALSE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = TRUE;
-		isEnableCMFVolume = TRUE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = FALSE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		maxRisk = 2;
-
-	}
-	else if (strstr(pParams->tradeSymbol, "GBPCHF") != NULL)
-	{
-		level = 0.002; //GBPJPY
-		maxLevel = 0.008;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isEnableMaxLevel = TRUE;
-
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-	}
-	else if (strstr(pParams->tradeSymbol, "GBPAUD") != NULL)
-	{
-		level = 0.001; //GBPAUD
-		maxLevel = 0.008;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isAllVolumeRisk = TRUE;
-		//isCMFVolumeRisk = TRUE;
-			 
-		isEnableMaxLevel = TRUE;
-
-		isWeeklyBaseLine = FALSE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		pIndicators->stopMovingBackSL = TRUE;
-
-		//isMACDZeroExit = TRUE;
-
-		//isEnableASI = TRUE;
-
-		dailyBaseLine = iMA(3, B_DAILY_RATES, 50, 1); // 50 Daily MA
-	}
-	else if (strstr(pParams->tradeSymbol, "GBPUSD") != NULL)
-	{
-		level = 0.001; //GBPUSD
-		maxLevel = 0.007;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = TRUE;
-
-		isEnableMaxLevel = TRUE;
-
-		isWeeklyBaseLine = FALSE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		pIndicators->stopMovingBackSL = TRUE;
-
-		//isMACDZeroExit = TRUE;
-
-		isEnableASI = TRUE;
-		
-	}
-	else if (strstr(pParams->tradeSymbol, "AUDJPY") != NULL)
-	{
-		level = 0.1; //GBPJPY
-		maxLevel = 0.5;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = TRUE;
-
-		isEnableMaxLevel = FALSE;
-
-		isWeeklyBaseLine = FALSE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-	}
-	else if (strstr(pParams->tradeSymbol, "USDSGD") != NULL)
-	{
-		level = 0.001; //USDSGD
-		maxLevel = 0.008;
-		histLevel = 0.01;
-		isVolumeControl = FALSE;
-		isEnableBeiLi = TRUE;
-		
-
-		//isEnableSlow = TRUE;
-		isEnableSlow = FALSE;
-		isEnableATR = FALSE;
-		isEnableCMFVolume = FALSE;
-		isEnableCMFVolumeGap = FALSE;
-
-		isAllVolumeRisk = FALSE;
-		//isCMFVolumeRisk = TRUE;
-
-		isEnableMaxLevel = FALSE;
-
-		isWeeklyBaseLine = FALSE;
-
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
-
-		pIndicators->stopMovingBackSL = TRUE;
-
-		//dailyBaseLine = iMA(3, B_DAILY_RATES, 50, 1); // 50 Daily MA
-	}
-	else
-	{
-		level = 0; //EURUSD
-		maxLevel = 0.005;
-	}
-
-	preWeeklyClose = iClose(B_WEEKLY_RATES, 1);
-	iTrend3Rules_preDays(pParams, pIndicators, B_MONTHLY_RATES, 2, &pre3KTrend, 1,0);
-
-	iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
-	weekly_baseline = (weeklyHigh + weeklyLow) / 2;
-
-	iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 9, &shortWeeklyHigh, &shortWeeklyLow);
-	weekly_baseline_short = (shortWeeklyHigh + shortWeeklyLow) / 2;
-
-	cmfVolume = getCMFVolume(B_DAILY_RATES, fastMAPeriod, startShift);
-	CMFVolumeGap = getCMFVolumeGap(B_DAILY_RATES, 1, fastMAPeriod, startShift);
-
-	//Volume indicator....
-	//preVolume > MA(10): µ±Ç°µÄvolum > ¹ýÈ¥10ÌìµÄÆ½¾ùvolume
-	volume1 = iVolume(B_PRIMARY_RATES, startShift);
-	volume2 = iVolume(B_PRIMARY_RATES, startShift+1);
-	volume_ma_10 = iMA(4, B_PRIMARY_RATES, 10, startShift);
-
-	//Load MACD
-	iMACDAll(B_PRIMARY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, startShift, &fast1, &slow1, &preHist1);
-	iMACDAll(B_PRIMARY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, startShift + 1, &fast2, &slow2, &preHist2);
-	iMACDAll(B_PRIMARY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, startShift + 2, &fast3, &slow3, &preHist3);
-	iMACDAll(B_PRIMARY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, startShift + 3, &fast4, &slow4, &preHist4);
-	iMACDAll(B_PRIMARY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, startShift + 4, &fast5, &slow5, &preHist5);
-
-	fast = fast1;
-	slow = slow1;
-	preFast = fast2;
-	preSlow = slow2;
-
-
-	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
-		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_PRIMARY_RATES, startShift), fast, slow);
-	pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
-		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_PRIMARY_RATES, startShift+1), preFast, preSlow);
-
-	orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
-
-	//load pBase_Indicators
-	pBase_Indicators->dailyATR = iAtr(B_PRIMARY_RATES, (int)parameter(ATR_AVERAGING_PERIOD), startShift);
-	pBase_Indicators->pDailyMaxATR = 1.5 * pBase_Indicators->dailyATR;
-
-	iASIEasy(B_DAILY_RATES, 0, 10, 5, &asiBull, &asiBear);
-
-	if (fast > level
-		&& (isEnableSlow == FALSE || slow > 0)
-		&& preDailyClose > dailyBaseLine
-		&& fast > slow
-		) // Buy
-	{
-		pIndicators->executionTrend = 1;
-		pIndicators->entryPrice = pParams->bidAsk.ask[0];
-
-		pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->pDailyMaxATR;
-				
-		if (//fast > slow && preFast <= preSlow &&				
-			(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
-			&& fast > preFast
-			&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
-			&& (isVolumeControl == FALSE || volume1 > volume2)
-			&& (isEnableCMFVolume == FALSE || cmfVolume > 0)
-			&& (isEnableCMFVolumeGap == FALSE || CMFVolumeGap > 0)
-			&& (isWeeklyBaseLine == FALSE ||
-			(preWeeklyClose > weekly_baseline && (weekly_baseline_short > weekly_baseline || pre3KTrend == UP))
-			)
-			&& (isEnableASI == FALSE || asiBull > asiBear)
-			)
-		{
-			safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].closeTime);
-			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
-			{
-				pIndicators->entrySignal = 1;
-
-				if ((isVolumeControlRisk == TRUE && volume1 > volume2)
-					|| (isCMFVolumeGapRisk == TRUE && CMFVolumeGap > 0)
-					|| (isCMFVolumeRisk == TRUE && cmfVolume > 0)
-					|| (isAllVolumeRisk == TRUE && CMFVolumeGap > 0 && cmfVolume >  0 && volume1 > volume2)
-					)
-					pIndicators->risk = maxRisk;
-
-				//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
-				//²»ÒªÈë³¡£¬ÔÚ·¢Éú±³ÀëµÄÊ±ºò
-
-				if (isEnableLate == TRUE && preHist1 > histLevel && preHist2 > histLevel && preHist3 > histLevel && preHist4 > histLevel && preHist5 > histLevel
-					&& fast1 > level && fast2 > level && fast3 > level && fast4 > level && fast5 > level
-					&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
-					)
-				{
-					pIndicators->entrySignal = 0;
-				}
-
-				if (isEnableMaxLevel == TRUE
-					&& pIndicators->entrySignal != 0
-					&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
-					&& fast > maxLevel
-					)
-				{
-					pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD exceeds max level",
-						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
-
-					pIndicators->entrySignal = 0;
-				}
-
-				if (isEnableBeiLi == TRUE
-					&& pIndicators->entrySignal != 0
-					&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
-					&& iMACDTrendBeiLiEasy(B_PRIMARY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0.0, BUY, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint))
-				{
-					pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD BeiLi",
-						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
-
-					pIndicators->entrySignal = 0;
-				}
-			}
-
-		}
-		pIndicators->exitSignal = EXIT_SELL;
-
-	}
-
-	if (fast < (level * -1)
-		&& (isEnableSlow == FALSE || slow < 0)
-		//&& dailyTrend < 0			
-		&& preDailyClose < dailyBaseLine
-		&& fast < slow
-		//			&& fast < preFast			
-		) // Sell
-	{
-		pIndicators->executionTrend = -1;
-		pIndicators->entryPrice = pParams->bidAsk.bid[0];
-		pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->pDailyMaxATR;
-
-		if (//fast < slow && preFast >= preSlow &&
-			(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
-			&& fast < preFast
-			&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
-			&& (isVolumeControl == FALSE || volume1 > volume2)
-			&& (isEnableCMFVolume == FALSE || cmfVolume < 0)
-			&& (isEnableCMFVolumeGap == FALSE || CMFVolumeGap > 0)		
-			&& (isWeeklyBaseLine == FALSE ||
-				(preWeeklyClose < weekly_baseline
-				&& (weekly_baseline_short < weekly_baseline || pre3KTrend == DOWN))
-				)
-			&& (isEnableASI == FALSE || asiBull < asiBear)
-			)
-		{
-			safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].closeTime);
-			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
-			{
-				pIndicators->entrySignal = -1;
-			}
-
-			if ((isVolumeControlRisk == TRUE && volume1 < volume2)
-				|| (isCMFVolumeGapRisk == TRUE && CMFVolumeGap < 0)
-				|| (isCMFVolumeRisk == TRUE && cmfVolume < 0)
-				|| (isAllVolumeRisk == TRUE && CMFVolumeGap < 0 && cmfVolume < 0 && volume1 < volume2)
-				)
-				pIndicators->risk = maxRisk;
-
-			//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
-			if (preHist1 < (histLevel*-1) && preHist2 < (histLevel*-1) && preHist3 < (histLevel*-1) && preHist4 < (histLevel*-1) && preHist5 < (histLevel*-1)
-				&& fast1 < (level*-1) && fast2 < (level*-1) && fast3 < (level*-1) && fast4 < (level*-1) && fast5 < (level*-1)
-				&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL
-				)
-			{
-				pIndicators->entrySignal = 0;
-			}
-
-			if (isEnableMaxLevel == TRUE
-				&& pIndicators->entrySignal != 0
-				&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL
-				&& fast < (maxLevel*-1)
-				)
-			{
-				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD exceeds max level",
-					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
-
-				pIndicators->entrySignal = 0;
-			}
-
-			if (isEnableBeiLi == TRUE
-				&& pIndicators->entrySignal != 0
-				&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL
-				&& iMACDTrendBeiLiEasy(B_PRIMARY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0.0, SELL, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint))
-			{
-				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, MACD BeiLi",
-					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
-
-				pIndicators->entrySignal = 0;
-			}
-		}
-
-		pIndicators->exitSignal = EXIT_BUY;
-
-	}
-
-	//¼ÓÈëÈÕÍ¼µÄ³ö³¡ÐÅºÅ:½øÈërange
-	if (isMACDZeroExit == FALSE)
-	{
-		if (fast > slow && preFast <= preSlow) // Exit SELL		
-			pIndicators->exitSignal = EXIT_SELL;
-
-		if (fast < slow && preFast >= preSlow) // Exit SELL		
-			pIndicators->exitSignal = EXIT_BUY;
-	}
-	else{
-		if (pIndicators->fast > 0) // Exit SELL		
-			pIndicators->exitSignal = EXIT_SELL;
-
-		if (pIndicators->fast < 0) // Exit SELL		
-			pIndicators->exitSignal = EXIT_BUY;
-	}
-	
-	//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE && pParams->orderInfo[orderIndex].type == BUY && preDailyClose < ma20Daily)
-	//	pIndicators->exitSignal = EXIT_BUY;
-
-	//if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE && pParams->orderInfo[orderIndex].type == SELL && preDailyClose > ma20Daily)
-	//	pIndicators->exitSignal = EXIT_SELL;
-	//if (dailyTrend == 0)		
-	//	pIndicators->exitSignal = EXIT_ALL;
-	
-
-
-	return SUCCESS;
-}
-
 AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -8125,7 +7404,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, In
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 
 	if (pBase_Indicators->weeklyTrend_Phase > 0)
 		weeklyTrend = 1;
@@ -8151,10 +7430,10 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, In
 	else
 		level = 0.0005; //EURUSD
 
-	//if (timeInfo1.tm_hour == 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+	//if (timeInfo1.tm_hour == 1) // 1:00 start, avoid the first hour
 	{
 		//Volume indicator....
-		//preVolume > MA(3): µ±Ç°µÄvolum > ¹ýÈ¥3ÌìµÄÆ½¾ùvolume
+		// preVolume > MA: current volume > past average volume
 		volume1 = iVolume(B_WEEKLY_RATES, 1);
 		volume2 = iVolume(B_WEEKLY_RATES, 2);
 		volume_ma_3 = iMA(4, B_WEEKLY_RATES, 3, 1);
@@ -8256,7 +7535,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, In
 		}
 
 
-		//¼ÓÈëÈÕÍ¼µÄ³ö³¡ÐÅºÅ:½øÈërange
+		// Exit signal from daily chart: enter range
 
 		if (fast > slow && preFast <= preSlow) // Exit SELL		
 			pIndicators->exitSignal = EXIT_SELL;
@@ -8275,7 +7554,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, In
 Run on daily chart. Ichimoko base line only
 
 1. Trend: 
-Weekly Ichimoko baseline ¾ö¶¨ÄêÄÚ·½Ïò¡£
+Weekly Ichimoko baseline Ú·
 
 2. Entry:
 
@@ -8283,7 +7562,7 @@ For the first trading signal:
 if Trend > 0 && daily close price > daily baseline, buy signal
 if Trend < 0 && daily close price < daily baseline, sell signal
 
-If ¼Û¸ñÀëbase line > 1.5 daily ATR, µÈ´ýÒ»Ìì¡£
+If Û¸base line > 1.5 daily ATR, È´Ò»ì¡£
 
 For the continuous trading signal on daily open:
 Option 1:
@@ -8291,7 +7570,7 @@ if close higher: close(1) - close (2) > 25% daily ATR(20) -> buy signal
 if close closer: close(1) - close (2) < 25% daily ATR(20) *-1  -> sell signal
 
 Option 2:
-¸ù¾ÝAutoBBS µÄtrend phase:
+AutoBBS trend phase:
 if trend phase is up, buy signal
 if trend phase is down, sell signal 
 
@@ -8302,11 +7581,11 @@ if current weekly ATR > weekly max ATR, dont trade
 Option 3: Only it is on a strong trend.
 if price retreats back to 4H MA50 Plus 0.15%, buy or sell signal. 
 
-2. ÈÕÍ¼µÄÒÆ¶¯Ö¹Ëð¡£
+2. Í¼Æ¶Ö¹
 
 If price move against to base line, exit.
 
-SL: it will be max(baseline + 20% ATR(20), max weekly ATR£© 
+SL: it will be max(baseline + 20% ATR(20), max weekly ATR 
 
 3. No TP
 
@@ -8340,7 +7619,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily(StrategyParams* pParams,
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -8370,12 +7649,12 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily(StrategyParams* pParams,
 			dailyOnly = 0;
 	}
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
-	if (timeInfo1.tm_hour >= 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day
+	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
 	{
 
 
-		//¼ÆËãdaily and weekly baseline
+		// Calculate daily and weekly baseline
 		iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 26, &dailyHigh, &dailyLow);
 		daily_baseline = (dailyHigh + dailyLow) / 2;
 
@@ -8409,7 +7688,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily(StrategyParams* pParams,
 				//if (pBase_Indicators->dailyTrend <= 0)
 				//	pIndicators->risk = 0.5;
 		
-				//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+				// If price retreats back, add position
 				if (pIndicators->entryPrice > pBase_Indicators->weeklyR2 
 					||	iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR 
 					//||	pBase_Indicators->dailyTrend_Phase == 0
@@ -8446,7 +7725,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily(StrategyParams* pParams,
 				//if (pBase_Indicators->dailyTrend >= 0)
 				//	pIndicators->risk = 0.5;
 
-				//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+				// If price retreats back, add position
 				if (pIndicators->entryPrice < pBase_Indicators->weeklyS2 
 					|| iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR 
 					//|| pBase_Indicators->dailyTrend_Phase == 0
@@ -8512,7 +7791,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily(StrategyParams* pParams,
 Run on daily chart. Ichimoko base line only
 
 1. Trend:
-Weekly Ichimoko baseline ¾ö¶¨ÄêÄÚ·½Ïò¡£
+Weekly Ichimoko baseline Ú·
 
 2. Entry:
 
@@ -8520,7 +7799,7 @@ For the first trading signal:
 if Trend > 0 && daily close price > daily baseline, buy signal
 if Trend < 0 && daily close price < daily baseline, sell signal
 
-If ¼Û¸ñÀëbase line > 1.5 daily ATR, µÈ´ýÒ»Ìì¡£
+If Û¸base line > 1.5 daily ATR, È´Ò»ì¡£
 
 For the continuous trading signal on daily open:
 Option 1:
@@ -8528,7 +7807,7 @@ if close higher: close(1) - close (2) > 25% daily ATR(20) -> buy signal
 if close closer: close(1) - close (2) < 25% daily ATR(20) *-1  -> sell signal
 
 Option 2:
-¸ù¾ÝAutoBBS µÄtrend phase:
+AutoBBS trend phase:
 if trend phase is up, buy signal
 if trend phase is down, sell signal
 
@@ -8539,11 +7818,11 @@ if current weekly ATR > weekly max ATR, dont trade
 Option 3: Only it is on a strong trend.
 if price retreats back to 4H MA50 Plus 0.15%, buy or sell signal.
 
-2. ÈÕÍ¼µÄÒÆ¶¯Ö¹Ëð¡£
+2. Í¼Æ¶Ö¹
 
 If price move against to base line, exit.
 
-SL: it will be max(baseline + 20% ATR(20), max weekly ATR£©
+SL: it will be max(baseline + 20% ATR(20), max weekly ATR
 
 3. No TP
 
@@ -8577,7 +7856,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V2(StrategyParams* pPara
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -8619,12 +7898,12 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V2(StrategyParams* pPara
 			dailyOnly = 0;
 	}
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
-	if (timeInfo1.tm_hour >= 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day
+	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
 	{
 
 
-		//¼ÆËãdaily and weekly baseline
+		// Calculate daily and weekly baseline
 		iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 26, &dailyHigh, &dailyLow);
 		daily_baseline = (dailyHigh + dailyLow) / 2;
 
@@ -8668,7 +7947,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V2(StrategyParams* pPara
 				//if (pBase_Indicators->dailyTrend <= 0)
 				//	pIndicators->risk = 0.5;
 
-				//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+				// If price retreats back, add position
 				if (pIndicators->entryPrice > pBase_Indicators->weeklyR2
 					|| iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR
 					//||	pBase_Indicators->dailyTrend_Phase == 0
@@ -8710,7 +7989,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V2(StrategyParams* pPara
 				pantheios_logprintf(PANTHEIOS_SEV_WARNING, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s entering short trade",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
-				//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+				// If price retreats back, add position
 				if (pIndicators->entryPrice < pBase_Indicators->weeklyS2
 					|| iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR
 					//|| pBase_Indicators->dailyTrend_Phase == 0
@@ -8802,7 +8081,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V3(StrategyParams* pPara
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -8844,12 +8123,12 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V3(StrategyParams* pPara
 			dailyOnly = 0;
 	}
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
-	if (timeInfo1.tm_hour >= 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day
+	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
 	{
 
 
-		//¼ÆËãdaily and weekly baseline
+		// Calculate daily and weekly baseline
 		iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 26, &dailyHigh, &dailyLow);
 		daily_baseline = (dailyHigh + dailyLow) / 2;
 
@@ -8891,7 +8170,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V3(StrategyParams* pPara
 				//if (pBase_Indicators->dailyTrend <= 0)
 				//	pIndicators->risk = 0.5;
 
-				//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+				// If price retreats back, add position
 				if (pIndicators->entryPrice > pBase_Indicators->weeklyR2
 					|| iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR
 					//||	pBase_Indicators->dailyTrend_Phase == 0
@@ -8931,7 +8210,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V3(StrategyParams* pPara
 				//if (pBase_Indicators->dailyTrend >= 0)
 				//	pIndicators->risk = 0.5;
 
-				//Èç¹ûÊÇÔÚÇ÷ÊÆµÄºó¶Ë£¬²»×ö¡£
+				// If price retreats back, add position
 				if (pIndicators->entryPrice < pBase_Indicators->weeklyS2
 					|| iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR
 					//|| pBase_Indicators->dailyTrend_Phase == 0
@@ -8956,7 +8235,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_V3(StrategyParams* pPara
 Run on daily chart. Ichimoko base line only
 
 1. Trend:
-Weekly Ichimoko baseline ¾ö¶¨ÄêÄÚ·½Ïò¡£
+Weekly Ichimoko baseline Ú·
 
 2. Entry:
 
@@ -8964,7 +8243,7 @@ For the first trading signal:
 if Trend > 0 && daily close price > daily baseline, buy signal
 if Trend < 0 && daily close price < daily baseline, sell signal
 
-If ¼Û¸ñÀëbase line > 1.5 daily ATR, µÈ´ýÒ»Ìì¡£
+If Û¸base line > 1.5 daily ATR, È´Ò»ì¡£
 
 For the continuous trading signal on daily open:
 Option 1:
@@ -8972,7 +8251,7 @@ if close higher: close(1) - close (2) > 25% daily ATR(20) -> buy signal
 if close closer: close(1) - close (2) < 25% daily ATR(20) *-1  -> sell signal
 
 Option 2:
-¸ù¾ÝAutoBBS µÄtrend phase:
+AutoBBS trend phase:
 if trend phase is up, buy signal
 if trend phase is down, sell signal
 
@@ -8983,11 +8262,11 @@ if current weekly ATR > weekly max ATR, dont trade
 Option 3: Only it is on a strong trend.
 if price retreats back to 4H MA50 Plus 0.15%, buy or sell signal.
 
-2. ÈÕÍ¼µÄÒÆ¶¯Ö¹Ëð¡£
+2. Í¼Æ¶Ö¹
 
 If price move against to base line, exit.
 
-SL: it will be max(baseline + 20% ATR(20), max weekly ATR£©
+SL: it will be max(baseline + 20% ATR(20), max weekly ATR
 
 3. No TP
 
@@ -9023,7 +8302,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index(StrategyParams* pP
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 
 	if (pBase_Indicators->dailyTrend_Phase > 0)
 		dailyTrend = 1;
@@ -9065,12 +8344,12 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index(StrategyParams* pP
 			dailyOnly = 0;
 	}
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
-	if (timeInfo1.tm_hour >= 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day
+	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
 	{
 
 
-		//¼ÆËãdaily and weekly baseline
+		// Calculate daily and weekly baseline
 		iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 26, &dailyHigh, &dailyLow);
 		daily_baseline = (dailyHigh + dailyLow) / 2;
 
@@ -9097,7 +8376,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index(StrategyParams* pP
 			pIndicators->executionTrend = 1;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 			
-			pIndicators->stopLossPrice = daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO:ÐèÒªµ÷Õû£¿
+			pIndicators->stopLossPrice = daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO: Need to adjust
 			pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->pWeeklyPredictMaxATR);
 
 			//Option 1:
@@ -9266,8 +8545,8 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 			dailyOnly = 0;
 	}
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á	
-	//¼ÆËãdaily and weekly baseline
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day	
+	// Calculate daily and weekly baseline
 	iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 26, &dailyHigh, &dailyLow);
 	pIndicators->daily_baseline = (dailyHigh + dailyLow) / 2;
 
@@ -9437,7 +8716,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 		is3KBreak = FALSE;
 	}
 
-	//Èç¹ûÊÇ23H£¬¿ÉÒÔ¼ì²éÊÇ·ñ¿ÉÒÔÈë³¡
+	// After 23:00, check if need to enter
 	//if (isEnableEntryEOD == TRUE && timeInfo1.tm_hour == 23)
 	//{		
 	//
@@ -9455,7 +8734,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 	pIndicators->slow = slow1;
 
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day
 	if (timeInfo1.tm_hour >= 1 
 		&& (isDailyOnly == FALSE || timeInfo1.tm_mday != timeInfoPreBar.tm_mday)
 		)
@@ -9487,7 +8766,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 			pIndicators->executionTrend = 1;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 
-			pIndicators->stopLossPrice = pIndicators->daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO:ÐèÒªµ÷Õû£¿		
+			pIndicators->stopLossPrice = pIndicators->daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO: Need to adjust
 
 			//Option 1:
 			if (
@@ -9608,7 +8887,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 Run on daily chart. Ichimoko base line only
 
 1. Trend:
-Weekly Ichimoko baseline ¾ö¶¨ÄêÄÚ·½Ïò¡£
+Weekly Ichimoko baseline Ú·
 
 2. Entry:
 
@@ -9616,7 +8895,7 @@ For the first trading signal:
 if Trend > 0 && daily close price > daily baseline, buy signal
 if Trend < 0 && daily close price < daily baseline, sell signal
 
-If ¼Û¸ñÀëbase line > 1.5 daily ATR, µÈ´ýÒ»Ìì¡£
+If Û¸base line > 1.5 daily ATR, È´Ò»ì¡£
 
 For the continuous trading signal on daily open:
 Option 1:
@@ -9624,7 +8903,7 @@ if close higher: close(1) - close (2) > 25% daily ATR(20) -> buy signal
 if close closer: close(1) - close (2) < 25% daily ATR(20) *-1  -> sell signal
 
 Option 2:
-¸ù¾ÝAutoBBS µÄtrend phase:
+AutoBBS trend phase:
 if trend phase is up, buy signal
 if trend phase is down, sell signal
 
@@ -9635,11 +8914,11 @@ if current weekly ATR > weekly max ATR, dont trade
 Option 3: Only it is on a strong trend.
 if price retreats back to 4H MA50 Plus 0.15%, buy or sell signal.
 
-2. ÈÕÍ¼µÄÒÆ¶¯Ö¹Ëð¡£
+2. Í¼Æ¶Ö¹
 
 If price move against to base line, exit.
 
-SL: it will be max(baseline + 20% ATR(20), max weekly ATR£©
+SL: it will be max(baseline + 20% ATR(20), max weekly ATR
 
 3. No TP
 
@@ -9748,8 +9027,8 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 			dailyOnly = 0;
 	}
 
-	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á	
-	//¼ÆËãdaily and weekly baseline
+	// If previous day close price not exceed 0.2 daily ATR, wait for next day	
+	// Calculate daily and weekly baseline
 	iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 26, &dailyHigh, &dailyLow);
 	daily_baseline = (dailyHigh + dailyLow) / 2;
 
@@ -9913,7 +9192,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 		pIndicators->executionTrend = 1;
 		pIndicators->entryPrice = pParams->bidAsk.ask[0];
 
-		pIndicators->stopLossPrice = daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO:ÐèÒªµ÷Õû£¿
+		pIndicators->stopLossPrice = daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO: Need to adjust
 		//pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->pWeeklyPredictMaxATR);
 
 		//Option 1:
@@ -10078,7 +9357,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 //	safe_gmtime(&timeInfo1, currentTime);
 //	safe_timeString(timeString, currentTime);
 //
-//	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+// Determine trend direction from daily chart
 //
 //	if (pBase_Indicators->dailyTrend_Phase > 0)
 //		dailyTrend = 1;
@@ -10110,8 +9389,8 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 //
 //	openOrderCount = getOrderCountEasy();
 //
-//	//Èç¹û³öÏÖÌø¿Õ£¬²»ÄÜ³¬¹ý 0.2 daily ATR,µÈ´ý»ú»á
-//	if (timeInfo1.tm_hour >= 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+// If previous day close price not exceed 0.2 daily ATR, wait for next day
+//	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
 //	{
 //		
 //		//Work out envelope up and down bound
@@ -10127,7 +9406,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 //			pIndicators->executionTrend = 1;
 //			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 //
-//			pIndicators->stopLossPrice = daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO:ÐèÒªµ÷Õû£¿
+//			pIndicators->stopLossPrice = daily_baseline - pBase_Indicators->dailyATR * 0.25; //TODO: Need to adjust
 //			pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->pWeeklyPredictMaxATR);
 //
 //			//Option 1:
@@ -10207,7 +9486,7 @@ AsirikuyReturnCode workoutExecutionTrend_Test(StrategyParams* pParams, Indicator
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 		
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 
@@ -10228,10 +9507,10 @@ AsirikuyReturnCode workoutExecutionTrend_Test(StrategyParams* pParams, Indicator
 }
 
 /*
-°ë×Ô¶¯µÄ½»Ò×ÏµÍ³£º
-4HµÄshellington
-Ê¹ÓÃ±£ÊØµÄÖ¹Ëð¼ÆËã²ÖÎ»¡£
-Ã»ÓÐ¼ÓÁ¿·´ÊÖµ¥
+Ô¶Ä½ÏµÍ³
+4Hshellington
+Ê¹Ã±ØµÖ¹Î»
+Ã»Ð¼Öµ
 */
 AsirikuyReturnCode workoutExecutionTrend_4H_ShellingtonVer1(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -10283,7 +9562,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_ShellingtonVer1(StrategyParams* pPar
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
 		dailyTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
@@ -10381,11 +9660,11 @@ AsirikuyReturnCode workoutExecutionTrend_4H_ShellingtonVer1(StrategyParams* pPar
 		if (pIndicators->atr_euro_range == 0)
 			pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;
 
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf£º low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
-		if (movement >= pIndicators->atr_euro_range) // 100 pips,ÕâÓ¦¸ÃÊÇ¸ù¾Ýµ±Ê±µÄ²¨·ù¶ø¶¨,40% weekly ATR
+		if (movement >= pIndicators->atr_euro_range) // Should be based on current market conditions, 40% weekly ATR
 		{
 			if (fabs(high_4H - close_4H) < movement / 3)
 			{
@@ -10402,7 +9681,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_ShellingtonVer1(StrategyParams* pPar
 			trend_4H = 1;
 		if (trend_MA < 0 || trend_KeyK == -1)
 			trend_4H = -1;
-		//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+		// Enter order on key support/resistance levels
 
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
@@ -10498,9 +9777,9 @@ AsirikuyReturnCode workoutExecutionTrend_4H_ShellingtonVer1(StrategyParams* pPar
 }
 
 /*
-ÒÔ4HµÄ¾ùÏßÎªÈë³¡£¬³ö³¡
-ÒÆ¶¯Ö¹Ëð
-Ã»ÓÐÖ¹Ó¯
+4HÄ¾Îªë³¡
+Æ¶Ö¹
+Ã»Ö¹Ó¯
 */
 AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
@@ -10552,7 +9831,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	// Âú×ãÈÕÍ¼ÀúÊ·µÄÇ÷ÊÆ·ÖÎö¡£
+	// Determine trend direction from daily chart
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
 		dailyTrend = 0;
 	else if (pBase_Indicators->dailyTrend > 0)
@@ -10734,7 +10013,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 			trend_4H = 1;
 		else if (trend_MA < 0)
 			trend_4H = -1;
-		//Âú×ã¶àÖØÍ¨µÀµ±ÈÕ¶¯Ì¬µÄÇ÷ÊÆ·ÖÎö
+		// Enter order on key support/resistance levels
 
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 		
@@ -10962,9 +10241,9 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 	orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
 
-	if (timeInfo1.tm_hour >= 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
 	{
-		//¼ÆËãdaily and weekly baseline
+		// Calculate daily and weekly baseline
 		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
 		weekly_baseline = (weeklyHigh + weeklyLow) / 2;
 
@@ -11107,9 +10386,9 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 //	orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 //
 //
-//	if (timeInfo1.tm_hour >= 1) // 1:00 ½»Ò×£¬ ±Ü¿ª¿ªÅÌµÄÒ»¸öÐ¡Ê±¡£
+//	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
 //	{
-//		//¼ÆËãdaily and weekly baseline
+// Calculate daily and weekly baseline
 //		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
 //		weekly_baseline = (weeklyHigh + weeklyLow) / 2;
 //
