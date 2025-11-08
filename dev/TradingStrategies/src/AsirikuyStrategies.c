@@ -50,7 +50,6 @@
 #include "StrategyUserInterface.h"
 
 #include "Atipaq.h"
-#include "Ayotl.h"
 #include "Coatl.h"
 #include "Comitl.h"
 #include "GodsGiftATR.h"
@@ -82,7 +81,6 @@ typedef enum strategyId_t
   WATUKUSHAY_FE_BB  = 0,
   WATUKUSHAY_FE_CCI = 1,
   ATIPAQ            = 2,
-  AYOTL             = 3,
   COATL             = 4,
   COMITL_BB         = 5,
   COMITL_KC         = 6,
@@ -129,11 +127,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case ATIPAQ:
     {
       *runStrategyFunc            = &runAtipaq;
-      return SUCCESS;
-    }
-  case AYOTL:
-    {
-      *runStrategyFunc            = &runAyotl;
       return SUCCESS;
     }
   case COATL:

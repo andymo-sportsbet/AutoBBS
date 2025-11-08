@@ -239,7 +239,7 @@ AsirikuyReturnCode runSapaq(StrategyParams* pParams)
   returnCode = handleTradeExits(pParams, takeProfit);
   if(returnCode != SUCCESS)
   {
-    return logAsirikuyError("runAtipaq()", returnCode);
+    return logAsirikuyError("runSapaq()", returnCode);
   }
 
   return SUCCESS;
