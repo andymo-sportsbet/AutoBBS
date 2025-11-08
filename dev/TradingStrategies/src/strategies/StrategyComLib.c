@@ -1409,8 +1409,6 @@ static AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams *pPara
 	case RANGE_PHASE:
 		// Execute hedge strategy for range-bound trading
 		workoutExecutionTrend_Hedge(pParams, pIndicators, pBase_Indicators);
-		// if (pIndicators->entrySignal == 0)
-		//	workoutExecutionTrend_ATR_Hedge(pParams, pIndicators, pBase_Indicators);
 		break;
 	case BEGINNING_UP_PHASE:
 	case BEGINNING_DOWN_PHASE:
@@ -1791,104 +1789,6 @@ static AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams *pParams, In
 				pIndicators->exitSignal = EXIT_BUY;
 			}
 
-			return SUCCESS;
-		}
-
-		// [Comment removed - encoding corrupted]
-		static AsirikuyReturnCode workoutExecutionTrend_ATR_Hedge(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
-		{
-			double closestR;
-			int shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-			int shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
-			time_t currentTime;
-			struct tm timeInfo1;
-			char timeString1[MAX_TIME_STRING_SIZE] = "";
-			double currentLow = iLow(B_DAILY_RATES, 0);
-			double currentHigh = iHigh(B_DAILY_RATES, 0);
-
-			double down_gap = pIndicators->entryPrice - pBase_Indicators->pMaxDailyLow;
-			double up_gap = pBase_Indicators->pMaxDailyHigh - pIndicators->entryPrice;
-
-			double ATR0 = iAtr(B_DAILY_RATES, 1, 0);
-			double ATR20 = iAtr(B_DAILY_RATES, 20, 1);
-			double pMaxATR = max(pBase_Indicators->pDailyATR, ATR20);
-
-			double preOpen = iOpen(B_PRIMARY_RATES, 1);
-			double preClose = iClose(B_PRIMARY_RATES, 1);
-			double intradayClose = iClose(B_DAILY_RATES, 0), intradayHigh = iHigh(B_DAILY_RATES, 0), intradayLow = iLow(B_DAILY_RATES, 0);
-
-			currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
-			safe_gmtime(&timeInfo1, currentTime);
-
-			if (timeInfo1.tm_hour == 23 && timeInfo1.tm_min > 25)
-			{
-				pIndicators->exitSignal = EXIT_ALL;
-				return SUCCESS;
-			}
-			// closeAllWithNegativeEasy(1, currentTime, 3);
-
-			shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-
-			pIndicators->risk = 1;
-			pIndicators->tpMode = 0;
-			pIndicators->splitTradeMode = 15;
-
-			// if (pBase_Indicators->dailyTrend_Phase > 0)
-			//{
-			//	pIndicators->executionTrend = -1;
-			//	pIndicators->entryPrice = pParams->bidAsk.bid[0];
-			//	pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->dailyATR;
-
-			// [Comment removed - encoding corrupted]
-			//	if (up_gap <= pBase_Indicators->pDailyATR / 3 && ATR0 >= pMaxATR && preClose < preOpen && intradayHigh - intradayClose >= ATR0 * 0.1
-			//		&& timeInfo1.tm_hour < 23
-			//		&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
-			//		)
-			//		pIndicators->entrySignal = -1;
-
-			//	pIndicators->exitSignal = EXIT_BUY;
-
-			//}
-			// else if (pBase_Indicators->dailyTrend_Phase < 0)
-			//{
-		//	pIndicators->executionTrend = 1;
-		//	pIndicators->entryPrice = pParams->bidAsk.ask[0];
-		//	pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
-
-		//	// Hedge strategy execution
-		//	if (down_gap <= pBase_Indicators->pDailyATR / 3 && ATR0 >= pMaxATR && preClose > preOpen && intradayClose - intradayLow >= ATR0 * 0.1
-		//		&& timeInfo1.tm_hour < 23
-		//		&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
-		//		)
-		//		pIndicators->entrySignal = 1;			//	pIndicators->exitSignal = EXIT_SELL;
-			//}
-			// else
-			{
-				// [Comment removed - encoding corrupted]
-				if (up_gap <= pBase_Indicators->pDailyATR / 3)
-				{
-					pIndicators->executionTrend = -1;
-					pIndicators->entryPrice = pParams->bidAsk.bid[0];
-					pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->dailyATR;
-
-					if (ATR0 >= pMaxATR && preClose < preOpen && intradayHigh - intradayClose >= ATR0 * 0.1 && timeInfo1.tm_hour < 23 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))
-						pIndicators->entrySignal = -1;
-
-					pIndicators->exitSignal = EXIT_BUY;
-				}
-				else if (down_gap <= pBase_Indicators->pDailyATR / 3)
-				{
-					pIndicators->executionTrend = 1;
-					pIndicators->entryPrice = pParams->bidAsk.ask[0];
-					pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
-
-					// [Comment removed - encoding corrupted]
-					if (ATR0 >= pMaxATR && preClose > preOpen && intradayClose - intradayLow >= ATR0 * 0.1 && timeInfo1.tm_hour < 23 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))
-						pIndicators->entrySignal = 1;
-
-					pIndicators->exitSignal = EXIT_SELL;
-				}
-			}
 			return SUCCESS;
 		}
 
