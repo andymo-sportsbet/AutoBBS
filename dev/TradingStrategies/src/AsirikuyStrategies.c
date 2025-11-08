@@ -60,7 +60,6 @@
 #include "WatukushayFE.h"
 #include "RecordBars.h"
 #include "Munay.h"
-#include "RenkoTest.h"
 #include "Screening.h"
 #include "TakeOver.h"
 #include "Screening.h"
@@ -81,7 +80,6 @@ typedef enum strategyId_t
   KANTU             = 18,
   RECORD_BARS       = 19,
   MUNAY				= 20,
-  RENKO_TEST		= 21,
   KANTU_ML          = 22,
   TAKEOVER			= 26,
   SCREENING			= 27,
@@ -152,11 +150,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case MUNAY:
     {
       *runStrategyFunc            = &runMunay;
-      return SUCCESS;
-    }
- case RENKO_TEST:
-    {
-      *runStrategyFunc            = &runRenkoTest;
       return SUCCESS;
     }
   case KANTU_ML:
