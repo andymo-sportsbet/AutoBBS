@@ -52,7 +52,6 @@
 #include "Atipaq.h"
 #include "Coatl.h"
 #include "GodsGiftATR.h"
-#include "eurchf_grid.h"
 #include "Qallaryi.h"
 #include "Quimichi.h"
 #include "Ruphay.h"
@@ -88,7 +87,6 @@ typedef enum strategyId_t
   WATUKUSHAY_FE_RSI = 14,
   RUPHAY            = 15,
   TEST_EA           = 16,
-  EURCHF_GRID       = 17,
   KANTU             = 18,
   RECORD_BARS       = 19,
   MUNAY				= 20,
@@ -168,12 +166,7 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
       *runStrategyFunc            = &runTestEA;
       return SUCCESS;
     }
-  case EURCHF_GRID:
-    {
-      *runStrategyFunc            = &runEURCHF_grid;
-      return SUCCESS;
-    }
-	case KANTU:
+  case KANTU:
     {
       *runStrategyFunc            = &runKantu;
       return SUCCESS;
