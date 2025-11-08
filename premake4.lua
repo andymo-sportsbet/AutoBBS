@@ -92,7 +92,6 @@ else
 	  "dev/AsirikuyTechnicalAnalysis/include", 
 	  "dev/AsirikuyImageLib/include", 
 	  "dev/OrderManager/include", 
-	  "dev/AsirikuyMachineLearning/include", 
 	  "dev/TradingStrategies/include", 
 	  "dev/TradingStrategies/include/strategies", 
 	  "dev/AsirikuyEasyTrade/include",
@@ -223,7 +222,6 @@ else
 	include "dev/AsirikuyTechnicalAnalysis"
 	include "dev/AsirikuyImageLib"
 	include "dev/OrderManager"
-	include "dev/AsirikuyMachineLearning"
 	include "dev/TradingStrategies"
 	include "dev/NTPClient"
 	include "dev/AsirikuyFrameworkAPI"
