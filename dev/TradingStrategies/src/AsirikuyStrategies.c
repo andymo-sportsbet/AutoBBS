@@ -65,7 +65,6 @@
 #include "RenkoTest.h"
 #include "Screening.h"
 #include "Kelpie.h"
-#include "BBS.h"
 #include "TakeOver.h"
 #include "Screening.h"
 #include "KeyK.h"
@@ -91,7 +90,6 @@ typedef enum strategyId_t
   RENKO_TEST		= 21,
   KANTU_ML          = 22,
   KELPIE			= 24,
-  BBS				= 25,
   TAKEOVER			= 26,
   SCREENING			= 27,
   KEYK				= 28,
@@ -189,11 +187,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
       *runStrategyFunc            = &runKelpie;
       return SUCCESS;
     }
-  case BBS:
-  {
-	  *runStrategyFunc = &runBBS;
-	  return SUCCESS;
-  }
   case TAKEOVER:
   {
 	  *runStrategyFunc = &runTakeOver;
