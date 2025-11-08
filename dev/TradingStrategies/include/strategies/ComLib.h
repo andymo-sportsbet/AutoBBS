@@ -22,12 +22,12 @@ extern "C" {
 		AUTOBBS_KEYK = ADDITIONAL_PARAM_7, // 1: use KeyK, 0: no KeyK
 		AUTOBBS_RANGE = ADDITIONAL_PARAM_8, // 0: Exit all in Range, 1: Exit only when both weekly and daily ranges
 		AUTOBBS_MAX_STRATEGY_RISK = ADDITIONAL_PARAM_9,
-		AUTOBBS_MACRO_TREND = ADDITIONAL_PARAM_10, //À´×ÔÕûÄêµÄ³¤ÆÚÇ÷ÊÆµÄ»ù±¾Ãæ·ÖÎö
-		AUTOBBS_EXECUTION_RATES = ADDITIONAL_PARAM_11, // Ã÷È·Ö¸³öBBSµÄÖ´ÐÐÊ±¼ä¿ò¼Ü£¬ÀýÈç15£¬30
+		AUTOBBS_MACRO_TREND = ADDITIONAL_PARAM_10, //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÆµÄ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		AUTOBBS_EXECUTION_RATES = ADDITIONAL_PARAM_11, // ï¿½ï¿½È·Ö¸ï¿½ï¿½BBSï¿½ï¿½Ö´ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½15ï¿½ï¿½30
 		AUTOBBS_ONE_SIDE = ADDITIONAL_PARAM_12,  // 1: Buy only, -1: Sell only, 0: either	
 		AUTOBBS_IS_AUTO_MODE = ADDITIONAL_PARAM_13,  // 1: apply for the filter for daily trading, 0: ignore the filter, that is manual mode
-		AUTOBBS_IS_ATREURO_RANGE = ADDITIONAL_PARAM_14, //XAUUSD Ò»°ãÊÇ8
-		AUTOBBS_STARTHOUR = ADDITIONAL_PARAM_15, //ÊÖ¹¤Ñ¡Ôñ²ßÂÔ¿ªÊ¼Ê±¼ä¡£
+		AUTOBBS_IS_ATREURO_RANGE = ADDITIONAL_PARAM_14, //XAUUSD Ò»ï¿½ï¿½ï¿½ï¿½8
+		AUTOBBS_STARTHOUR = ADDITIONAL_PARAM_15, //ï¿½Ö¹ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½Ô¿ï¿½Ê¼Ê±ï¿½ä¡£
 		AUTOBBS_VIRTUAL_BALANCE_TOPUP = ADDITIONAL_PARAM_16  // virtual balance top up
 	} AdditionalSettings;
 
@@ -175,6 +175,18 @@ extern "C" {
 	AsirikuyReturnCode addMoreOrdersOnLongTermTrend(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int oldestOpenOrderIndex);
 
 	BOOL XAUUSD_not_full_trading_day(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
+	BOOL XAUUSD_not_full_trading_day(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
+
+	AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators);
+	AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators);
+	AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators);
+
+	void splitBuyOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss);
+	void splitSellOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss);
+	void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss);
+	void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss);
+	void splitBuyOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss);
+	void splitSellOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss);
 
 #ifdef __cplusplus
 } /* extern "C" */

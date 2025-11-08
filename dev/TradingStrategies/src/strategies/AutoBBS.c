@@ -72,7 +72,7 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 		case 22:
 			break;			
 		case 23:
-			splitBuyOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+			// splitBuyOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 			break;
 		case 24:
 			splitBuyOrders_MACDDaily(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -87,10 +87,10 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			splitBuyOrders_4HSwing_Shellington(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
 		case 28:
-			splitBuyOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+			// splitBuyOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 			break;
 		case 29:
-			splitBuyOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+			// splitBuyOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 			break;
 		case 30:
 			break;
@@ -164,7 +164,7 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 	case 22:
 		break;
 	case 23:
-		splitSellOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		// splitSellOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 		break;
 	case 24:
 		splitSellOrders_MACDDaily(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
@@ -179,10 +179,10 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		splitSellOrders_4HSwing_Shellington(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
 	case 28:
-		splitSellOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		// splitSellOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 		break;
 	case 29:
-		splitSellOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
+		// splitSellOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 		break;
 	case 30:
 		break;
@@ -234,7 +234,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_WeeklyAuto(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 13:
-		workoutExecutionTrend_Weekly_Swing_New(pParams, pIndicators, pBase_Indicators);
+		// workoutExecutionTrend_Weekly_Swing_New(pParams, pIndicators, pBase_Indicators); // Function removed
 		break;
 	case 14:
 		workoutExecutionTrend_Auto_Hedge(pParams, pIndicators, pBase_Indicators);
@@ -243,25 +243,25 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 		workoutExecutionTrend_XAUUSD_DayTrading(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 16:
-		workoutExecutionTrend_GBPJPY_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators);
+		// workoutExecutionTrend_GBPJPY_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators); // Function removed
 		break;
 	case 17:
-		workoutExecutionTrend_WeeklyATR_Prediction(pParams, pIndicators, pBase_Indicators);
+		// workoutExecutionTrend_WeeklyATR_Prediction(pParams, pIndicators, pBase_Indicators); // Function removed
 		break;
 	case 18:
 		workoutExecutionTrend_4HBBS_Swing_BoDuan(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 19:		
-		workoutExecutionTrend_DayTrading_ExecutionOnly(pParams, pIndicators, pBase_Indicators);
+		// workoutExecutionTrend_DayTrading_ExecutionOnly(pParams, pIndicators, pBase_Indicators); // Function removed
 		break;
 	case 20:
 		workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 21:				
-		workoutExecutionTrend_MultipleDay(pParams, pIndicators, pBase_Indicators);
+		// workoutExecutionTrend_MultipleDay(pParams, pIndicators, pBase_Indicators); // Function removed
 		break;
 	case 22:		
-		workoutExecutionTrend_MultipleDay_V2(pParams, pIndicators, pBase_Indicators);
+		// workoutExecutionTrend_MultipleDay_V2(pParams, pIndicators, pBase_Indicators); // Function removed
 		break;
 	case 23:
 		workoutExecutionTrend_MACD_Daily(pParams, pIndicators, pBase_Indicators);

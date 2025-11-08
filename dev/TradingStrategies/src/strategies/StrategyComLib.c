@@ -5,19 +5,12 @@
 #include "EasyTradeCWrapper.hpp"
 #include "base.h"
 #include "StrategyUserInterface.h"
+#include "AsirikuyTime.h" /* Added for safe_gmtime/safe_timeString prototypes */
 
 #define USE_INTERNAL_SL FALSE
-#define USE_INTERNAL_TP FALSEF
+#define USE_INTERNAL_TP FALSE /* Fixed typo FALSEF -> FALSE */
 
-typedef enum exitSignal_t
-{
-	EXIT_BUY = 0,
-	EXIT_SELL = 1,
-	EXIT_ALL = 2,
-	EXIT_BUY_SHORT = 3,
-	EXIT_SELL_SHORT = 4,
-	EXIT_NONE = 3
-} ExitSignal;
+/* exitSignal_t enum removed - already defined in base.h */
 
 typedef enum additionalSettings_t
 {
@@ -487,16 +480,16 @@ static AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pInd
 	time_t currentTime;
 	double stopLoss2;
 
-	shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
+		if (totalOpenOrders(pParams, BUY) > 0)
+			modifyTradeEasy_new(BUY, -1, stopLoss, -1, tpMode, TRUE);
 
 	if ((int)pParams->settings[TIMEFRAME] >= 60 && isNewDay(pParams, currentTime))
 	{
 		setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
 		tpMode = 1;
 	}
-
-	if (orderType == BUY)
+		if (totalOpenOrders(pParams, SELL) > 0)
+			modifyTradeEasy_new(SELL, -1, stopLoss, -1, tpMode, TRUE);
 	{
 		if (totalOpenOrders(pParams, BUY) > 0)
 		{
@@ -504,7 +497,7 @@ static AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pInd
 			{
 				// stopLoss2 = fabs(pIndicators->entryPrice - pIndicators->bbsStopPrice_primary) + pIndicators->adjust;
 
-				modifyTradeEasy_DayTrading(BUY, -1, stopLoss, pIndicators->bbsStopPrice_primary, -1, tpMode, currentTime, pIndicators->adjust);
+				modifyTradeEasy_DayTrading(BUY, -1, stopLoss, pIndicators->bbsStopPrice_primary, -1, tpMode, currentTime, pIndicators->adjust, TRUE);
 			}
 			// [Comment removed - encoding corrupted]
 			//{
@@ -512,7 +505,7 @@ static AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pInd
 			//	modifyTradeEasy_new(BUY, -1, stopLoss, takePrice, tpMode);
 			// }
 			else
-				modifyTradeEasy_new(BUY, -1, stopLoss, -1, tpMode); // New day TP change as
+				modifyTradeEasy_new(BUY, -1, stopLoss, -1, tpMode, TRUE); // Updated with stopMovingBackSL flag
 		}
 	}
 
@@ -523,7 +516,7 @@ static AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pInd
 			if ((int)parameter(AUTOBBS_TREND_MODE) == 5) // Day Trading, override the stop loss to primary bbs on the new day.
 			{
 				// stopLoss2 = fabs(pIndicators->entryPrice - pIndicators->bbsStopPrice_primary) + pIndicators->adjust;
-				modifyTradeEasy_DayTrading(SELL, -1, stopLoss, pIndicators->bbsStopPrice_primary, -1, tpMode, currentTime, pIndicators->adjust);
+				modifyTradeEasy_DayTrading(SELL, -1, stopLoss, pIndicators->bbsStopPrice_primary, -1, tpMode, currentTime, pIndicators->adjust, TRUE);
 			}
 			// [Comment removed - encoding corrupted]
 			//{
@@ -531,7 +524,7 @@ static AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pInd
 			//	modifyTradeEasy_new(SELL, -1, stopLoss, takePrice, tpMode);
 			// }
 			else
-				modifyTradeEasy_new(SELL, -1, stopLoss, -1, tpMode); // New day TP change as
+				modifyTradeEasy_new(SELL, -1, stopLoss, -1, tpMode, TRUE); // Updated with stopMovingBackSL flag
 		}
 	}
 }
@@ -677,105 +670,8 @@ static void splitSellOrders_Weekly_Beginning(StrategyParams *pParams, Indicators
 	}
 }
 
-// Short & Long term trades
-// split into 3 trades
-// 50% 1:1
-// 25% 2:1
-// 25% no tp.
-static void splitBuyOrders_MediumTerm(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
 
-	if (pIndicators->entryPrice <= pBase_Indicators->dailyR1)
-	{
-		takePrice = takePrice_primary;
-		openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 2);
-
-		if (pBase_Indicators->dailyPivot - pIndicators->entryPrice > 0)
-			takePrice = 2 * takePrice_primary;
-		else
-		{
-			takePrice = fabs(pBase_Indicators->dailyR2 - pIndicators->adjust - pIndicators->entryPrice);
-			if (takePrice > 2 * takePrice_primary)
-				takePrice = 2 * takePrice_primary;
-			if (takePrice < takePrice_primary)
-				takePrice = takePrice_primary;
-		}
-
-		openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 4);
-
-		if ((int)parameter(AUTOBBS_TP_MODE) == 1)
-		{
-			// [Comment removed - encoding corrupted]
-			if (pBase_Indicators->dailyPivot - pIndicators->entryPrice > 0)
-				takePrice = 3 * takePrice_primary;
-			else
-			{
-				takePrice = fabs(pBase_Indicators->dailyR3 - pIndicators->adjust - pIndicators->entryPrice);
-				if (takePrice > 3 * takePrice_primary)
-					takePrice = 3 * takePrice_primary;
-			}
-
-			openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 4);
-		}
-		else
-		{
-			takePrice = 0;
-			openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 4);
-		}
-	}
-}
-
-// Short & Long term trades
-// split into 3 trades
-// 50% 1:1
-// 25% 2:1
-// 25% no tp or 3:1
-static void splitSellOrders_MediumTerm(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
-
-	if (pIndicators->entryPrice >= pBase_Indicators->dailyS1)
-	{
-		// 1:1 ratio
-		takePrice = takePrice_primary;
-		openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 2);
-
-		if (pBase_Indicators->dailyPivot - pIndicators->entryPrice > 0)
-		{
-			takePrice = fabs(pIndicators->entryPrice - (pBase_Indicators->dailyS2 + pIndicators->adjust));
-			if (takePrice > 2 * takePrice_primary)
-				takePrice = 2 * takePrice_primary;
-			if (takePrice < takePrice_primary)
-				takePrice = takePrice_primary;
-		}
-		else
-			takePrice = 2 * takePrice_primary;
-
-		openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 4);
-
-		if ((int)parameter(AUTOBBS_TP_MODE) == 1)
-		{
-			if (pBase_Indicators->dailyPivot - pIndicators->entryPrice > 0)
-			{
-				takePrice = fabs(pIndicators->entryPrice - (pBase_Indicators->dailyS3 + pIndicators->adjust));
-				if (takePrice > 3 * takePrice_primary)
-					takePrice = 3 * takePrice_primary;
-			}
-			else
-				takePrice = 3 * takePrice_primary;
-
-			openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 4);
-		}
-		else
-		{
-			takePrice = 0;
-			openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 4);
-		}
-	}
-}
-
-static void splitBuyOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
+void splitBuyOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
 	double pATR = pBase_Indicators->pDailyATR;
@@ -809,7 +705,7 @@ static void splitBuyOrders_Daily_Swing(StrategyParams *pParams, Indicators *pInd
 	}
 }
 
-static void splitSellOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
+void splitSellOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 	double takePrice;
 	double pATR = pBase_Indicators->pDailyATR;
@@ -907,7 +803,7 @@ static void splitBuyOrders_ShortTerm(StrategyParams *pParams, Indicators *pIndic
 	}
 }
 
-static void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
+void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 
 	double takePrice;
@@ -929,7 +825,7 @@ static void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicato
 	}
 }
 
-static void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
+void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 
 	double takePrice;
@@ -951,7 +847,7 @@ static void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicat
 	}
 }
 
-static void splitBuyOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
+void splitBuyOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 
 	double takePrice;
@@ -973,7 +869,7 @@ static void splitBuyOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *
 	}
 }
 
-static void splitSellOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
+void splitSellOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
 {
 
 	double takePrice;
@@ -1393,7 +1289,7 @@ static AsirikuyReturnCode workoutExecutionTrend_KeyK(StrategyParams *pParams, In
 	return returnCode;
 }
 
-static AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators)
+AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators)
 {
 	double stopLoss;
 	double riskPNL;
@@ -1496,12 +1392,12 @@ static AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams *pParams, In
 				if (totalOpenOrders(pParams, BUY) > 0)
 				{
 					stopLoss = fabs(pParams->bidAsk.ask[0] - pBase_Indicators->dailyS) + pIndicators->adjust;
-					modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0);
+					modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0, TRUE);
 				}
 				if (totalOpenOrders(pParams, SELL) > 0)
 				{
 					stopLoss = fabs(pParams->bidAsk.bid[0] - pBase_Indicators->dailyR) + pIndicators->adjust;
-					modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0);
+					modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0, TRUE);
 				}
 			}
 		}
@@ -1754,12 +1650,12 @@ if (pIndicators->executionTrend == 0)
 	if (totalOpenOrders(pParams, BUY) > 0)
 	{
 		stopLoss = fabs(pParams->bidAsk.ask[0] - pBase_Indicators->weeklyS) + pIndicators->adjust;
-		modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0);
+		modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0, TRUE);
 	}
 	if (totalOpenOrders(pParams, SELL) > 0)
 	{
 		stopLoss = fabs(pParams->bidAsk.bid[0] - pBase_Indicators->weeklyR) + pIndicators->adjust;
-		modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0);
+		modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0, TRUE);
 	}
 }
 
@@ -2076,9 +1972,6 @@ if (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE || (ignored && pBase
 return SUCCESS;
 }
 
-// [Comment removed - encoding corrupted]
-// [Comment removed - encoding corrupted]
-// [Comment removed - encoding corrupted]
 static AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
 {
 double closestR;
@@ -2175,12 +2068,12 @@ case RANGE_PHASE:
 		if (totalOpenOrders(pParams, BUY) > 0)
 		{
 			stopLoss = fabs(pParams->bidAsk.ask[0] - pBase_Indicators->weeklyS) + pIndicators->adjust;
-			modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0);
+			modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0, TRUE);
 		}
 		if (totalOpenOrders(pParams, SELL) > 0)
 		{
 			stopLoss = fabs(pParams->bidAsk.bid[0] - pBase_Indicators->weeklyR) + pIndicators->adjust;
-			modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0);
+			modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0, TRUE);
 		}
 	}
 	else
@@ -2617,7 +2510,7 @@ MA15(50) < MA15(200): DOWN
  BBS15stoploss, BBS
 
 */
-static AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
+AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
 {
 double closestR;
 int shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
