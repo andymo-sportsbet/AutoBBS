@@ -51,7 +51,6 @@
 
 #include "Atipaq.h"
 #include "Coatl.h"
-#include "GodsGiftATR.h"
 #include "Qallaryi.h"
 #include "Quimichi.h"
 #include "Ruphay.h"
@@ -79,7 +78,6 @@ typedef enum strategyId_t
   WATUKUSHAY_FE_CCI = 1,
   ATIPAQ            = 2,
   COATL             = 4,
-  GODS_GIFT_ATR     = 8,
   QALLARYI          = 9,
   QUIMICHI          = 10,
   SAPAQ             = 11,
@@ -124,11 +122,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case COATL:
     {
       *runStrategyFunc            = &runCoatl;
-      return SUCCESS;
-    }
-  case GODS_GIFT_ATR:
-    {
-      *runStrategyFunc            = &runGodsGiftATR;
       return SUCCESS;
     }
   case QALLARYI:
