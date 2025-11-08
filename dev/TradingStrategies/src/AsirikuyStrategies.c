@@ -63,7 +63,6 @@
 #include "KantuML.h"
 #include "AsirikuyBrain.h"
 #include "TestEA.h"
-#include "Teyacanani.h"
 #include "WatukushayFE.h"
 #include "RecordBars.h"
 #include "Munay.h"
@@ -93,7 +92,6 @@ typedef enum strategyId_t
   QUIMICHI          = 10,
   SAPAQ             = 11,
   ASIRIKUY_BRAIN    = 12,
-  TEYACANANI        = 13,
   WATUKUSHAY_FE_RSI = 14,
   RUPHAY            = 15,
   TEST_EA           = 16,
@@ -178,14 +176,9 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
       *runStrategyFunc            = &runSapaq;
       return SUCCESS;
     }
-  case ASIRIKUY_BRAIN:
+    case ASIRIKUY_BRAIN:
     {
       *runStrategyFunc            = &runAsirikuyBrain;
-      return SUCCESS;
-    }
-  case TEYACANANI:
-    {
-      *runStrategyFunc            = &runTeyacanani;
       return SUCCESS;
     }
   case WATUKUSHAY_FE_RSI:

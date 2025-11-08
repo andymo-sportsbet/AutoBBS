@@ -463,13 +463,13 @@ AsirikuyReturnCode runQallaryi(StrategyParams* pParams)
   returnCode = handleTradeEntries(pParams, &indicators, stopLoss, takeProfit);
   if(returnCode != SUCCESS)
   {
-    return logAsirikuyError("runTeyacanani()", returnCode);
+    return logAsirikuyError("runQallaryi()", returnCode);
   }
   
   returnCode = handleTradeExits(pParams, &indicators, takeProfit);
   if(returnCode != SUCCESS)
   {
-    return logAsirikuyError("runTeyacanani()", returnCode);
+    return logAsirikuyError("runQallaryi()", returnCode);
   }
   
   return SUCCESS;
