@@ -71,9 +71,6 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			break;
 		case 22:
 			break;			
-		case 23:
-			// splitBuyOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
-			break;
 		case 24:
 			splitBuyOrders_MACDDaily(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 			break;
@@ -85,12 +82,6 @@ static void splitBuyOrders(StrategyParams* pParams, Indicators* pIndicators, Bas
 			break;
 		case 27:
 			splitBuyOrders_4HSwing_Shellington(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
-			break;
-		case 28:
-			// splitBuyOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
-			break;
-		case 29:
-			// splitBuyOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 			break;
 		case 30:
 			break;
@@ -163,9 +154,6 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		break;
 	case 22:
 		break;
-	case 23:
-		// splitSellOrders_MultiDays_GBPJPY_Swing(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
-		break;
 	case 24:
 		splitSellOrders_MACDDaily(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
 		break;
@@ -177,12 +165,6 @@ static void splitSellOrders(StrategyParams* pParams, Indicators* pIndicators, Ba
 		break;
 	case 27:
 		splitSellOrders_4HSwing_Shellington(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss);
-		break;
-	case 28:
-		// splitSellOrders_MACD_BEILI(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
-		break;
-	case 29:
-		// splitSellOrders_Daily_Swing_ExecutionOnly(pParams, pIndicators, pBase_Indicators, takePrice_primary, stopLoss); // Function removed
 		break;
 	case 30:
 		break;
