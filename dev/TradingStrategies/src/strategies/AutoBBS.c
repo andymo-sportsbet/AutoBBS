@@ -327,9 +327,6 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	case 36:
 		//workoutExecutionTrend_BTCUSD_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 100:
-		workoutExecutionTrend_MACD_Daily_Chart_RegressionTest(pParams, pIndicators, pBase_Indicators);
-		break;
 	case 101:
 		workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(pParams, pIndicators, pBase_Indicators);
 		break;
@@ -675,7 +672,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 
 	pIndicators->total_lose_pips = 0;
 
-	pIndicators->maxTradeTime = 3; //��������Σ�����?
+	pIndicators->maxTradeTime = 3; //��������Σ�����?
 
 	pIndicators->startHour = (int) parameter(AUTOBBS_STARTHOUR);
 
@@ -818,7 +815,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 	if (strcmp(timeString, "22/11/21 15:00") == 0)
 		pantheios_logprintf(PANTHEIOS_SEV_DEBUG, "hit a point");
 
-	if ((int)parameter(AUTOBBS_TREND_MODE) == 16) // GBPJPY Daily Swing strategy, �����ֻ��Ҫ���ڵ�ָ��?
+	if ((int)parameter(AUTOBBS_TREND_MODE) == 16) // GBPJPY Daily Swing strategy, �����ֻ��Ҫ���ڵ�ָ��?
 		base_Indicators.strategy_mode = 0;
 	else
 		base_Indicators.strategy_mode = 1;
