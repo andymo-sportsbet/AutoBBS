@@ -50,7 +50,6 @@
 #include "StrategyUserInterface.h"
 
 #include "Coatl.h"
-#include "Kantu.h"
 #include "RecordBars.h"
 #include "Munay.h"
 #include "Screening.h"
@@ -62,7 +61,6 @@
 typedef enum strategyId_t
 {
   COATL             = 4,
-  KANTU             = 18,
   RECORD_BARS       = 19,
   MUNAY				= 20,
   TAKEOVER			= 26,
@@ -79,11 +77,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case COATL:
     {
       *runStrategyFunc            = &runCoatl;
-      return SUCCESS;
-    }
-  case KANTU:
-    {
-      *runStrategyFunc            = &runKantu;
       return SUCCESS;
     }
   case RECORD_BARS:
