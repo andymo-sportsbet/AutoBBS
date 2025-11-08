@@ -3,7 +3,9 @@
 ## Overview
 
 **Duration**: 4 weeks  
-**Goal**: Migrate all 33+ strategies from C to C++ classes
+**Goal**: Migrate 6 direct strategies + AutoBBS dispatcher + ~30+ workoutExecutionTrend_* functions from C to C++ classes
+
+**Note**: After cleanup, only 6 direct strategies remain. AutoBBS dispatcher routes to ~30+ workoutExecutionTrend_* functions in TrendStrategy.c.
 
 **Approach**: Incremental migration, one strategy at a time, with side-by-side testing
 
@@ -11,14 +13,14 @@
 
 ## Week 3: Simple Strategies (Foundation)
 
-### Strategy: AtipaqStrategy
+### Strategy: RecordBarsStrategy
 
 #### Tasks
-- [ ] Create `include/strategies/AtipaqStrategy.hpp`
+- [ ] Create `include/strategies/RecordBarsStrategy.hpp`
   - [ ] Inherit from BaseStrategy
   - [ ] Define class structure
-- [ ] Create `src/strategies/AtipaqStrategy.cpp`
-  - [ ] Migrate logic from `runAtipaq()` in `Atipaq.c`
+- [ ] Create `src/strategies/RecordBarsStrategy.cpp`
+  - [ ] Migrate logic from `runRecordBars()` in `RecordBars.c`
   - [ ] Implement `loadIndicators()`
   - [ ] Implement `executeStrategy()`
   - [ ] Implement `updateResults()`
@@ -37,63 +39,63 @@
 - [ ] Performance acceptable
 
 #### Deliverables
-- AtipaqStrategy class implemented
+- RecordBarsStrategy class implemented
 - Tests passing
 - Validated against C version
 
 ---
 
-### Strategy: AyotlStrategy
+### Strategy: TakeOverStrategy
 
 #### Tasks
-- [ ] Create `include/strategies/AyotlStrategy.hpp`
-- [ ] Create `src/strategies/AyotlStrategy.cpp`
-  - [ ] Migrate from `runAyotl()`
+- [ ] Create `include/strategies/TakeOverStrategy.hpp`
+- [ ] Create `src/strategies/TakeOverStrategy.cpp`
+  - [ ] Migrate from `runTakeOver()`
 - [ ] Register in factory
 - [ ] Write tests
 - [ ] Validate
 - [ ] Remove C code
 
 #### Deliverables
-- AyotlStrategy implemented and validated
+- TakeOverStrategy implemented and validated
 
 ---
 
-### Strategy: CoatlStrategy
+### Strategy: ScreeningStrategy
 
 #### Tasks
-- [ ] Create `include/strategies/CoatlStrategy.hpp`
-- [ ] Create `src/strategies/CoatlStrategy.cpp`
-  - [ ] Migrate from `runCoatl()`
+- [ ] Create `include/strategies/ScreeningStrategy.hpp`
+- [ ] Create `src/strategies/ScreeningStrategy.cpp`
+  - [ ] Migrate from `runScreening()`
 - [ ] Register in factory
 - [ ] Write tests
 - [ ] Validate
 - [ ] Remove C code
 
 #### Deliverables
-- CoatlStrategy implemented and validated
+- ScreeningStrategy implemented and validated
 
 ---
 
-### Strategy: TestEAStrategy
+### Strategy: TrendLimitStrategy
 
 #### Tasks
-- [ ] Create `include/strategies/TestEAStrategy.hpp`
-- [ ] Create `src/strategies/TestEAStrategy.cpp`
-  - [ ] Migrate from `runTestEA()`
+- [ ] Create `include/strategies/TrendLimitStrategy.hpp`
+- [ ] Create `src/strategies/TrendLimitStrategy.cpp`
+  - [ ] Migrate from `runTrendLimit()`
 - [ ] Register in factory
 - [ ] Write tests
 - [ ] Validate
 - [ ] Remove C code
 
 #### Deliverables
-- TestEAStrategy implemented and validated
+- TrendLimitStrategy implemented and validated
 
 ---
 
 ### Week 3 Completion
 
-- [ ] 4 simple strategies migrated
+- [ ] 4 direct strategies migrated (RecordBars, TakeOver, Screening, TrendLimit)
 - [ ] All tests passing
 - [ ] All validations complete
 - [ ] Pattern established for remaining strategies
@@ -105,7 +107,7 @@
 ### Analysis Phase
 
 #### Tasks
-- [ ] Analyze `TrendStrategy.c` (10,475 lines)
+- [ ] Analyze `TrendStrategy.c` (~9,286 lines, post-cleanup)
 - [ ] Identify all `workoutExecutionTrend_*` functions
 - [ ] Group related functions:
   - [ ] MACD functions → MACD strategies
@@ -276,35 +278,23 @@
 
 ---
 
-### Remaining Simple Strategies
+### AutoBBS Strategy (Dispatcher)
 
-Migrate remaining strategies following established pattern:
+**Note**: AutoBBS is a dispatcher that routes to workoutExecutionTrend_* functions based on strategy_mode. The actual strategy implementations are in TrendStrategy.c.
 
-- [ ] WatukushayFE_BBStrategy
-- [ ] WatukushayFE_CCIStrategy
-- [ ] WatukushayFE_RSIStrategy
-- [ ] Comitl_BBStrategy
-- [ ] Comitl_KCStrategy
-- [ ] Comitl_PAStrategy
-- [ ] GodsGiftATRStrategy
-- [ ] QallaryiStrategy
-- [ ] QuimichiStrategy
-- [ ] SapaqStrategy
-- [ ] AsirikuyBrainStrategy
-- [ ] TeyacananiStrategy
-- [ ] RuphayStrategy
-- [ ] EURCHF_gridStrategy
-- [ ] KantuStrategy
-- [ ] RecordBarsStrategy
-- [ ] MunayStrategy
-- [ ] RenkoTestStrategy
-- [ ] KantuMLStrategy
-- [ ] KelpieStrategy
-- [ ] BBSStrategy
-- [ ] TakeOverStrategy
-- [ ] ScreeningStrategy
-- [ ] TrendLimitStrategy
-- [ ] BuDanStrategy
+#### Tasks
+- [ ] Create `include/strategies/AutoBBSStrategy.hpp`
+- [ ] Create `src/strategies/AutoBBSStrategy.cpp`
+  - [ ] Migrate `runAutoBBS()` dispatcher logic
+  - [ ] Use factory to create sub-strategies based on strategy_mode
+  - [ ] Route to appropriate workoutExecutionTrend_* function
+- [ ] Register in factory
+- [ ] Write tests
+- [ ] Validate
+- [ ] Remove C code
+
+#### Deliverables
+- AutoBBSStrategy implemented as dispatcher
 
 #### Pattern for Each
 1. Create header and source files
@@ -390,7 +380,9 @@ void validateStrategy(StrategyId id, StrategyParams* params) {
 ## Phase 2 Completion Criteria
 
 ### Functional Requirements
-- [ ] All 33+ strategies migrated to C++
+- [ ] All 6 direct strategies migrated to C++ (RecordBars, TakeOver, Screening, AutoBBS, AutoBBSWeekly, TrendLimit)
+- [ ] AutoBBS dispatcher migrated
+- [ ] All ~30+ workoutExecutionTrend_* functions migrated to C++ classes
 - [ ] All strategies registered in factory
 - [ ] TrendStrategy.c broken down into classes
 - [ ] Order splitting migrated to OrderBuilder
@@ -430,7 +422,9 @@ void validateStrategy(StrategyId id, StrategyParams* params) {
 ## Deliverables Summary
 
 1. **Code**
-   - All 33+ strategy classes implemented
+   - All 6 direct strategy classes implemented
+   - AutoBBS dispatcher implemented
+   - All ~30+ workoutExecutionTrend_* functions migrated to C++ classes
    - TrendStrategy.c broken down
    - Order splitting migrated
    - All strategies registered

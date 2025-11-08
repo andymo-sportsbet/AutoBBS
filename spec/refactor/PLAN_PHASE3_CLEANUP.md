@@ -13,10 +13,14 @@
 
 #### Remove C Strategy Implementations
 - [ ] Remove migrated strategy C files:
-  - [ ] `Atipaq.c` → AtipaqStrategy.cpp
-  - [ ] `Ayotl.c` → AyotlStrategy.cpp
-  - [ ] `Coatl.c` → CoatlStrategy.cpp
+  - [ ] `RecordBars.c` → RecordBarsStrategy.cpp
+  - [ ] `TakeOver.c` → TakeOverStrategy.cpp
+  - [ ] `Screening.c` → ScreeningStrategy.cpp
+  - [ ] `TrendLimit.c` → TrendLimitStrategy.cpp
+  - [ ] `AutoBBS.c` → AutoBBSStrategy.cpp (dispatcher)
   - [ ] ... (all migrated strategies)
+  
+**Note**: Many strategies were already removed during cleanup (Kantu, KantuML, Coatl, Munay, AsirikuyBrain, etc.)
 - [ ] Remove C strategy headers (if no longer needed)
 - [ ] Remove `TrendStrategy.c` (replaced by multiple classes)
 - [ ] Remove `AsirikuyStrategies.c` (replaced by wrapper)

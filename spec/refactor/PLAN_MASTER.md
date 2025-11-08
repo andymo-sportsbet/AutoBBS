@@ -47,7 +47,9 @@ Week 8: Testing & Validation
 
 ## Success Criteria
 
-- [ ] All 33+ strategies migrated to C++
+- [ ] All 6 direct strategies migrated to C++ (RECORD_BARS, TAKEOVER, SCREENING, AUTOBBS, AUTOBBSWEEKLY, TRENDLIMIT)
+- [ ] AutoBBS dispatcher migrated (routes to ~30+ workoutExecutionTrend_* functions)
+- [ ] All workoutExecutionTrend_* functions in TrendStrategy.c migrated to C++ classes
 - [ ] DLL exports unchanged
 - [ ] Backtesting results match original
 - [ ] Performance within 5% of original

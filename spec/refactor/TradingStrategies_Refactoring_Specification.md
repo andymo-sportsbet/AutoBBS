@@ -7,12 +7,15 @@ This document provides a detailed refactoring specification for the TradingStrat
 
 **Key Principle**: The DLL exports remain pure C with `__stdcall` convention, while the internal implementation uses modern C++ patterns.
 
-**Current State:**
-- 33+ trading strategies implemented in C
-- ~38 source files, ~10,475 lines in TrendStrategy.c alone
-- Function pointer-based strategy dispatch via large switch statements
+**Current State (Post-Cleanup):**
+- 6 direct trading strategies implemented in C (RECORD_BARS, TAKEOVER, SCREENING, AUTOBBS, AUTOBBSWEEKLY, TRENDLIMIT)
+- AutoBBS dispatcher routes to ~30+ workoutExecutionTrend_* functions in TrendStrategy.c
+- 10 source files in strategies directory, ~9,286 lines in TrendStrategy.c (reduced from 10,475)
+- Function pointer-based strategy dispatch via switch statements
 - DLL exports: `mql4_runStrategy`, `mql5_runStrategy`, `c_runStrategy`, `jf_runStrategy`
 - Called from MetaTrader (MQL4/MQL5) via DLL
+- **Cleanup completed**: Removed 20+ unused/outdated strategies (Kantu, KantuML, Coatl, Munay, AsirikuyBrain, etc.)
+- **Modules removed**: AsirikuyMachineLearning, AsirikuyImageLib (dead code, unused)
 
 **Target State:**
 - C++ class-based architecture internally
@@ -513,7 +516,7 @@ void StrategyFactory::initializeRegistry() {
     registry[MACD_DAILY] = []() { 
         return std::make_unique<MACDDailyStrategy>(); 
     };
-    // ... register all 33+ strategies
+    // ... register all 6 direct strategies + AutoBBS dispatcher
     
     initialized = true;
 }
@@ -829,7 +832,7 @@ Migrate 3-4 simple strategies to establish pattern:
 5. Switch factory to use C++ version
 
 #### Week 4-5: Trend Strategy Breakdown
-Break down `TrendStrategy.c` (10,475 lines) into classes:
+Break down `TrendStrategy.c` (~9,286 lines, post-cleanup) into classes:
 
 - [ ] Identify all `workoutExecutionTrend_*` functions
 - [ ] Group related functions:
@@ -1085,7 +1088,7 @@ TradingStrategies/
 ## 9. Success Criteria
 
 ### 9.1 Functional Requirements
-- [ ] All 33+ strategies work identically to C version
+- [ ] All 6 direct strategies + AutoBBS dispatcher + ~30+ workoutExecutionTrend_* functions work identically to C version
 - [ ] Backtesting results match original (within rounding)
 - [ ] DLL exports unchanged
 - [ ] MQL integration works without modification
@@ -1133,14 +1136,20 @@ TradingStrategies/
 
 ### A.1. Strategy ID Mapping
 
-Current strategy IDs (from `AsirikuyStrategies.c`):
-- WATUKUSHAY_FE_BB = 0
-- ATIPAQ = 2
-- AYOTL = 3
-- COATL = 4
-- ... (33+ total)
+Current strategy IDs (from `AsirikuyStrategies.c` - post-cleanup):
+- RECORD_BARS = 19
+- TAKEOVER = 26
+- SCREENING = 27
+- AUTOBBS = 29
+- AUTOBBSWEEKLY = 30
+- TRENDLIMIT = 31
 
-These remain unchanged. The C++ factory uses the same IDs.
+**Note**: AutoBBS (ID 29) is a dispatcher that routes to ~30+ workoutExecutionTrend_* functions in TrendStrategy.c based on strategy_mode parameter.
+
+**Removed strategies** (cleaned up before refactoring):
+- WATUKUSHAY_FE_BB/CCI/RSI, ATIPAQ, AYOTL, COATL, COMITL variants, GODS_GIFT_ATR, QALLARYI, QUIMICHI, SAPAQ, ASIRIKUY_BRAIN, TEYACANANI, RUPHAY, TEST_EA, EURCHF_GRID, KANTU, KANTU_ML, KELPIE, KEYK, BUDAN, MUNAY, RENKO_TEST
+
+These IDs remain unchanged. The C++ factory uses the same IDs.
 
 ### A.2. Key C Structures (Unchanged)
 

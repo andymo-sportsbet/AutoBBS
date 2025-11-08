@@ -123,7 +123,7 @@ namespace trading {
 - [ ] Implement `src/StrategyFactory.cpp`
   - [ ] Registry initialization
   - [ ] Strategy creation logic
-  - [ ] Registration for all 33+ strategies (stubs initially)
+  - [ ] Registration for all 6 direct strategies + AutoBBS dispatcher (stubs initially)
 - [ ] Write unit tests
   - [ ] Test factory creation
   - [ ] Test invalid IDs

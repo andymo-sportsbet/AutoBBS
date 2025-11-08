@@ -271,7 +271,7 @@ TradingStrategies/
 
 ### Key Improvements
 1. **Break Monolithic Files**
-   - Split `TrendStrategy.c` (10,475 lines) into:
+   - Split `TrendStrategy.c` (~9,286 lines, post-cleanup) into:
      - `trend/MACD.c`
      - `trend/KeyK.c`
      - `trend/BBS.c`

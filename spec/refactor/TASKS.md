@@ -46,7 +46,7 @@ This document tracks all tasks for the TradingStrategies refactoring project (Op
 #### StrategyFactory Implementation
 - ⬜ Create `include/StrategyFactory.hpp`
 - ⬜ Implement `src/StrategyFactory.cpp`
-- ⬜ Register all 33+ strategies (stubs)
+- ⬜ Register all 6 direct strategies (stubs) + AutoBBS dispatcher
 - ⬜ Write unit tests
 
 #### C API Wrapper
@@ -77,38 +77,38 @@ This document tracks all tasks for the TradingStrategies refactoring project (Op
 
 ### Week 3: Simple Strategies
 
-#### AtipaqStrategy
-- ⬜ Create `include/strategies/AtipaqStrategy.hpp`
-- ⬜ Create `src/strategies/AtipaqStrategy.cpp`
-- ⬜ Migrate logic from `runAtipaq()`
+#### RecordBarsStrategy
+- ⬜ Create `include/strategies/RecordBarsStrategy.hpp`
+- ⬜ Create `src/strategies/RecordBarsStrategy.cpp`
+- ⬜ Migrate logic from `runRecordBars()`
 - ⬜ Register in factory
 - ⬜ Write unit tests
 - ⬜ Side-by-side testing
 - ⬜ Validate backtesting
 - ⬜ Remove C implementation
 
-#### AyotlStrategy
-- ⬜ Create `include/strategies/AyotlStrategy.hpp`
-- ⬜ Create `src/strategies/AyotlStrategy.cpp`
-- ⬜ Migrate logic from `runAyotl()`
+#### TakeOverStrategy
+- ⬜ Create `include/strategies/TakeOverStrategy.hpp`
+- ⬜ Create `src/strategies/TakeOverStrategy.cpp`
+- ⬜ Migrate logic from `runTakeOver()`
 - ⬜ Register in factory
 - ⬜ Write unit tests
 - ⬜ Validate
 - ⬜ Remove C code
 
-#### CoatlStrategy
-- ⬜ Create `include/strategies/CoatlStrategy.hpp`
-- ⬜ Create `src/strategies/CoatlStrategy.cpp`
-- ⬜ Migrate logic from `runCoatl()`
+#### ScreeningStrategy
+- ⬜ Create `include/strategies/ScreeningStrategy.hpp`
+- ⬜ Create `src/strategies/ScreeningStrategy.cpp`
+- ⬜ Migrate logic from `runScreening()`
 - ⬜ Register in factory
 - ⬜ Write unit tests
 - ⬜ Validate
 - ⬜ Remove C code
 
-#### TestEAStrategy
-- ⬜ Create `include/strategies/TestEAStrategy.hpp`
-- ⬜ Create `src/strategies/TestEAStrategy.cpp`
-- ⬜ Migrate logic from `runTestEA()`
+#### TrendLimitStrategy
+- ⬜ Create `include/strategies/TrendLimitStrategy.hpp`
+- ⬜ Create `src/strategies/TrendLimitStrategy.cpp`
+- ⬜ Migrate logic from `runTrendLimit()`
 - ⬜ Register in factory
 - ⬜ Write unit tests
 - ⬜ Validate
@@ -117,7 +117,7 @@ This document tracks all tasks for the TradingStrategies refactoring project (Op
 ### Week 4-5: Trend Strategy Breakdown
 
 #### Analysis
-- ⬜ Analyze `TrendStrategy.c` (10,475 lines)
+- ⬜ Analyze `TrendStrategy.c` (~9,286 lines, post-cleanup)
 - ⬜ Identify all `workoutExecutionTrend_*` functions
 - ⬜ Group related functions
 - ⬜ Create breakdown document
@@ -193,50 +193,18 @@ This document tracks all tasks for the TradingStrategies refactoring project (Op
 
 ### Week 6: Remaining Strategies
 
-#### AutoBBS Strategy
+#### AutoBBS Strategy (Dispatcher)
 - ⬜ Create `include/strategies/AutoBBSStrategy.hpp`
 - ⬜ Create `src/strategies/AutoBBSStrategy.cpp`
 - ⬜ Migrate `runAutoBBS()` dispatcher logic
+- ⬜ Route to workoutExecutionTrend_* functions based on strategy_mode
+- ⬜ Use factory to create sub-strategies
 - ⬜ Register in factory
 - ⬜ Write tests
 - ⬜ Validate
 - ⬜ Remove C code
 
-#### Remaining Simple Strategies
-For each strategy:
-- ⬜ Create header and source files
-- ⬜ Migrate logic from C function
-- ⬜ Register in factory
-- ⬜ Write tests
-- ⬜ Validate
-- ⬜ Remove C code
-
-**Strategies:**
-- ⬜ WatukushayFE_BBStrategy
-- ⬜ WatukushayFE_CCIStrategy
-- ⬜ WatukushayFE_RSIStrategy
-- ⬜ Comitl_BBStrategy
-- ⬜ Comitl_KCStrategy
-- ⬜ Comitl_PAStrategy
-- ⬜ GodsGiftATRStrategy
-- ⬜ QallaryiStrategy
-- ⬜ QuimichiStrategy
-- ⬜ SapaqStrategy
-- ⬜ AsirikuyBrainStrategy
-- ⬜ TeyacananiStrategy
-- ⬜ RuphayStrategy
-- ⬜ EURCHF_gridStrategy
-- ⬜ KantuStrategy
-- ⬜ RecordBarsStrategy
-- ⬜ MunayStrategy
-- ⬜ RenkoTestStrategy
-- ⬜ KantuMLStrategy
-- ⬜ KelpieStrategy
-- ⬜ BBSStrategy
-- ⬜ TakeOverStrategy
-- ⬜ ScreeningStrategy
-- ⬜ TrendLimitStrategy
-- ⬜ BuDanStrategy
+**Note**: AutoBBS is a dispatcher that routes to ~30+ workoutExecutionTrend_* functions in TrendStrategy.c. These functions will be migrated separately.
 
 ---
 
