@@ -74,7 +74,6 @@
 #include "KeyK.h"
 #include "AutoBBS.h"
 #include "TrendLimit.h"
-#include "BuDan.h"
 
 typedef enum strategyId_t
 {
@@ -106,8 +105,7 @@ typedef enum strategyId_t
   KEYK				= 28,
   AUTOBBS			= 29,
   AUTOBBSWEEKLY		= 30,
-  TRENDLIMIT		= 31,
-  BUDAN				= 32
+  TRENDLIMIT		= 31
 } StrategyId;
 
 AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnCode(**runStrategyFunc)(StrategyParams*))
@@ -257,11 +255,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case TRENDLIMIT:
   {
 	  *runStrategyFunc = &runTrendLimit;
-	  return SUCCESS;
-  }
-  case BUDAN:
-  {
-	  *runStrategyFunc = &runBuDan;
 	  return SUCCESS;
   }
   default:
