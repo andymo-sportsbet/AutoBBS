@@ -51,7 +51,6 @@
 
 #include "Atipaq.h"
 #include "Coatl.h"
-#include "Quimichi.h"
 #include "Ruphay.h"
 #include "Sapaq.h"
 #include "Kantu.h"
@@ -74,7 +73,6 @@ typedef enum strategyId_t
   WATUKUSHAY_FE_CCI = 1,
   ATIPAQ            = 2,
   COATL             = 4,
-  QUIMICHI          = 10,
   SAPAQ             = 11,
   ASIRIKUY_BRAIN    = 12,
   WATUKUSHAY_FE_RSI = 14,
@@ -114,11 +112,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
   case COATL:
     {
       *runStrategyFunc            = &runCoatl;
-      return SUCCESS;
-    }
-  case QUIMICHI:
-    {
-      *runStrategyFunc            = &runQuimichi;
       return SUCCESS;
     }
   case SAPAQ:
