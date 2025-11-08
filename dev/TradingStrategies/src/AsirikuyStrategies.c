@@ -49,7 +49,6 @@
 #include "OrderManagement.h"
 #include "StrategyUserInterface.h"
 
-#include "Atipaq.h"
 #include "Coatl.h"
 #include "Kantu.h"
 #include "KantuML.h"
@@ -64,7 +63,6 @@
 
 typedef enum strategyId_t
 {
-  ATIPAQ            = 2,
   COATL             = 4,
   ASIRIKUY_BRAIN    = 12,
   KANTU             = 18,
@@ -82,11 +80,6 @@ AsirikuyReturnCode getStrategyFunctions(StrategyParams* pParams, AsirikuyReturnC
 {
   switch((int)pParams->settings[INTERNAL_STRATEGY_ID])
   {
-  case ATIPAQ:
-    {
-      *runStrategyFunc            = &runAtipaq;
-      return SUCCESS;
-    }
   case COATL:
     {
       *runStrategyFunc            = &runCoatl;
