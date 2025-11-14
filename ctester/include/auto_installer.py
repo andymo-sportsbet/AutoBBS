@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 from subprocess import check_output
 import platform
 
@@ -12,14 +12,14 @@ def installIfNeeded(moduleName, nameOnPip=None, notes="", log=print):
         log("Installing " + moduleName + notes + " Library for Python")
         if moduleName == 'numpy' and system == "Windows":
             import requests
-            user = raw_input("Please enter your asirikuy username")
-            password = raw_input("Please enter your asirikuy password")
+            user = input("Please enter your asirikuy username")
+            password = input("Please enter your asirikuy password")
             data = {'username': user, 'password': password}
             url = 'https://asirikuy.com/newsite/asirikuyfiles/numpy.whl'
             r = requests.get(url, data=data, stream=True)
             check_output("pip install numpy.whl", shell=True)
         elif moduleName == 'fastcsv' and system == "Windows":
-            check_output("copy fastcsv\*fast* C:\Python27\Lib\site-packages" + moduleName, shell=True)
+            check_output(r"copy fastcsv\*fast* C:\Python27\Lib\site-packages" + moduleName, shell=True)
         else:
             if system == "Windows":
                 check_output("pip install " + moduleName, shell=True)

@@ -8,11 +8,11 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4 import QtGui,  QtCore, Qt
 
-from Ui_mainwindow import Ui_MainWindow
+from .Ui_mainwindow import Ui_MainWindow
 
 from ctypes import *
 from time import *
-import datetime, ctypes, os, platform, ConfigParser, math, csv, calendar, argparse, sys,  subprocess,  shutil
+import datetime, ctypes, os, platform, configparser, math, csv, calendar, argparse, sys,  subprocess,  shutil
 sys.path.insert(0, os.path.join(os.getcwd(), "include"))
 #sys.path.insert(0, 'E:\\FX\\Asirikuy\\asirikuy_python_tester_v56_new\\asirikuy_python_tester_v56/include')
 from include.asirikuy import *
@@ -49,7 +49,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #print Version
         clearScreen();
-        print "New Strategy Tester (NST) " + VERSION
+        print("New Strategy Tester (NST) " + VERSION)
         
         for strategy in strategies:
             self.comboStrategy.addItem(strategy)
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.asfdll = loadLibrary('libAsirikuyFrameworkAPI.dylib')
             self.astdll = loadLibrary('libCTesterFrameworkAPI.dylib')
         else:
-            print "No shared library loading support for OS %s" % (system)
+            print("No shared library loading support for OS %s" % (system))
             return False
         self.labelVersions.setText ('ASKF v' +  getASKFrameworkVersion(self.asfdll) + '  CTester v' + getASTFrameworkVersion(self.astdll))
 
@@ -222,18 +222,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.comboCrossoverMode.setCurrentIndex(config.getint('optimization', 'crossoverMode')) 
             
         except NameError as e:
-            print e
+            print(e)
         except AttributeError as e:
-            print e
+            print(e)
         except TypeError as e:
-            print e
-        except ConfigParser.NoOptionError as e:
-            print e
+            print(e)
+        except configparser.NoOptionError as e:
+            print(e)
         except:
-            print "Error loading parameteres from config file:", sys.exc_info()[0]
+            print("Error loading parameteres from config file:", sys.exc_info()[0])
         
     def saveConfigFile(self):
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         
         config.add_section('misc')
         config.set('misc', 'logSeverity', str(self.logSeverity))
@@ -386,7 +386,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for index, s in enumerate(setFilePaths):
             sets.append(MT4Set(s))
             if not sets[index].content:
-                print "Error reading set file %s" % (s)
+                print("Error reading set file %s" % (s))
                 return False
         
         self.tableTest.setSortingEnabled(False)
@@ -456,7 +456,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             optimizationParams.append(OptimizationParamType())
             
             numOptimizationParams.append(0)
-            for key, value in optimizationArrays[i].iteritems():
+            for key, value in optimizationArrays[i].items():
                 #print numOptimizationParams[i]
                 #print key
                 #print value
@@ -534,7 +534,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 	for symbol in list(set(self.symbols)):
 	
-	    print "Generating quote files..."
+	    print("Generating quote files...")
 	    symbolList = list(symbol)
 	    baseName=symbolList[0]+symbolList[1]+symbolList[2]
             termName=symbolList[3]+symbolList[4]+symbolList[5]
@@ -945,7 +945,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 retcode = subprocess.call("open " + str(self.setFilePath), shell=True)
                 
-        except OSError, e:
+        except OSError as e:
             QtGui.QMessageBox.information(self, 'Error', "Execution failed:", e) 
     
     @pyqtSignature("")
@@ -1113,7 +1113,7 @@ class OptimizationThread(QThread):
                     c_int(self.numPairs), ctypes.pointer(self.ratesArray), c_double(self.minLotSize),  optimizationUpdate_c, optimizationFinished_c, 
                     byref(error_c)
                 ):
-                print error_c.value
+                print(error_c.value)
                 
         self.optimizationFilePath.close()
     

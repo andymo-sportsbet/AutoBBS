@@ -1,18 +1,40 @@
 from ctypes import *
 from time import *
 import ntpath
-import re, os, ctypes,  csv,  calendar, datetime, ConfigParser
-import fastcsv
+import re, os, ctypes,  csv,  calendar, datetime, configparser
+from include.fastcsv import fastcsv
 import io
+import base64
 import pandas as pd
 
 VERSION = "0.56"
 
 def loadLibrary(library):
+    """Load a shared library, checking multiple possible locations."""
     if os.name == 'nt':
-        return windll.LoadLibrary(library)
+        # Windows: try current directory and build directories
+        possible_paths = [
+            library,
+            f"../bin/gmake/x64/Debug/{library}",
+            f"../bin/gmake/x64/Release/{library}",
+        ]
+        for path in possible_paths:
+            if os.path.exists(path):
+                return windll.LoadLibrary(path)
+        return windll.LoadLibrary(library)  # Fallback to system search
     elif os.name == 'posix':
-        return cdll.LoadLibrary(library)
+        # Unix/Linux/macOS: try current directory and build directories
+        possible_paths = [
+            library,
+            f"../bin/gmake/x64/Debug/{library}",
+            f"../bin/gmake/x64/Release/{library}",
+            f"./bin/gmake/x64/Debug/{library}",
+            f"./bin/gmake/x64/Release/{library}",
+        ]
+        for path in possible_paths:
+            if os.path.exists(path):
+                return cdll.LoadLibrary(path)
+        return cdll.LoadLibrary(library)  # Fallback to system search
     else:
         return None
 
@@ -24,7 +46,7 @@ def csvToHTML(csvFile, htmlFile, testResult, imageFile):
     htmlfile.write('<script src="http://ajax.aspnetcdn.com/ajax/jquery.dataTables/1.9.4/jquery.dataTables.min.js"></script>')
     htmlfile.write('<script>\n\n' + open('include/ast.js', 'rb').read() + '</script>')
     htmlfile.write('<style>\n\n' + open('include/ast.css', 'rb').read() + '</style>')
-    data_uri = open(imageFile, 'rb').read().encode('base64').replace('\n', '')
+    data_uri = base64.b64encode(open(imageFile, 'rb').read()).decode('utf-8').replace('\n', '')
     htmlfile.write ('<img src="data:image/png;base64,{0}">'.format(data_uri))
     htmlfile.write('<table id=summary><thead>')
     htmlfile.write('<th>Total trades</th>')
@@ -71,10 +93,10 @@ def path_leaf(path):
 
 def makeRatesCoherent(historyFilePathsInput):
 
-    print "Making rates coherent"
+    print("Making rates coherent")
     historyFilePaths = list(set(historyFilePathsInput))
 
-    print "Processing {0} rate files".format(len(historyFilePaths))
+    print("Processing {0} rate files".format(len(historyFilePaths)))
     #add swap rates if needed
     for historyFilePath1 in historyFilePaths:
         with fastcsv.Reader(io.open(historyFilePath1)) as reader:
@@ -97,7 +119,7 @@ def makeRatesCoherent(historyFilePathsInput):
 
     for index, historyFilePath1 in enumerate(historyFilePaths):
 
-        print "loading {}".format(historyFilePath1)
+        print("loading {}".format(historyFilePath1))
         loaded_series = pd.read_csv(historyFilePath1, index_col=0, parse_dates=True, dayfirst=True)
         loaded_series.columns = ["open_{}".format(index), "high_{}".format(index), "low_{}".format(index), "close_{}".format(index), "volume_{}".format(index), "swap0_{}".format(index), "swap1_{}".format(index)]
         
@@ -123,7 +145,7 @@ def loadRates(historyFilePath1, arbitraryNum, symbol, updateQuotes):
     with fastcsv.Reader(io.open(historyFilePath1)) as reader:
         if arbitraryNum == 0:
             numCandles = sum(1 for row in reader)
-            print numCandles
+            print(numCandles)
         else:\
             numCandles = arbitraryNum
 
@@ -175,10 +197,10 @@ def addSwapToRates(historyFilePath1,  baseFilePath, termFilePath):
     import datetime
 
     if os.path.exists(baseFilePath) == False or os.path.exists(termFilePath) == False:
-        print "Cannot generate swap information, no available interest rate data for base or term currencies"
+        print("Cannot generate swap information, no available interest rate data for base or term currencies")
         return
 
-    print "Loading rates for swap generation.."
+    print("Loading rates for swap generation..")
     with fastcsv.Reader(io.open(historyFilePath1)) as reader:
         numCandles = sum(1 for row in reader)
 
@@ -192,10 +214,10 @@ def addSwapToRates(historyFilePath1,  baseFilePath, termFilePath):
         termBid = []
         termAsk = []
         timeString = []
-        ratesTermBid = range(numCandles)
-        ratesTermAsk = range(numCandles)
-        ratesBaseBid = range(numCandles)
-        ratesBaseAsk = range(numCandles)
+        ratesTermBid = list(range(numCandles))
+        ratesTermAsk = list(range(numCandles))
+        ratesBaseBid = list(range(numCandles))
+        ratesBaseAsk = list(range(numCandles))
         i=0
         for row in reader:
             if i < numCandles:
@@ -249,10 +271,10 @@ def addSwapToRates(historyFilePath1,  baseFilePath, termFilePath):
                 termAsk.append(float(row[1]))
                 termDataSize += 1
 
-        print "Using %d interest rate changes for base currency" % baseDataSize
-        print "Using %d interest rate changes for term currency" % termDataSize
+        print("Using %d interest rate changes for base currency" % baseDataSize)
+        print("Using %d interest rate changes for term currency" % termDataSize)
 
-        print "Generating all long/short swap data for each candle..."
+        print("Generating all long/short swap data for each candle...")
         for j in range(0, numCandles):
             ratesTermBid[j]=termBid[0]
             ratesTermAsk[j]=termAsk[0]
@@ -268,7 +290,7 @@ def addSwapToRates(historyFilePath1,  baseFilePath, termFilePath):
                 if rates[j].time > baseTime[i] and i>0:
                     ratesBaseBid[j]=baseBid[i-1]
                     ratesBaseAsk[j]=baseAsk[i-1]
-        print "Saving data back to file..."
+        print("Saving data back to file...")
 
         from datetime import datetime
         with open(historyFilePath1, 'wb') as f:
@@ -283,18 +305,18 @@ def checkRates(historyFilePath1):
 
 def readConfigFile(file):
     try:
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.read(file)
         return config
     except Exception as e:
-        print e
+        print(e)
     except:
         return False
 
 def readSetFile(file):
     try:
-        config = ConfigParser.RawConfigParser()
-        config.readfp(FakeSecHead(open(file)))
+        config = configparser.RawConfigParser()
+        config.read_file(FakeSecHead(open(file)))
         return config
     except:
         return False
@@ -613,7 +635,8 @@ paramIndexes = dict(
     ORDERINFO_ARRAY_SIZE = 63
 )
 
-MA_SHORT_PERIOD=0
+
+MA_SHORT_PERIOD=0
 SELECTED_STRATEGY_ID=0
 ADDITIONAL_PARAM_1 = 0
 MA_LONG_PERIOD=1

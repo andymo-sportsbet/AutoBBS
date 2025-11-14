@@ -31,4 +31,4 @@ if args.portfolio_file != None:
     fileName, fileExtension = os.path.splitext(args.portfolio_file)
     plotPortfolioTestResult(args.portfolio_file, pdf = args.pdf, show = args.show)
 
-print "File saved to: " + fileName + ".png"
+print("File saved to: " + fileName + ".png")

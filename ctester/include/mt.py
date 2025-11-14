@@ -1,15 +1,15 @@
-import re, ConfigParser
-from asirikuy import *
+import re, configparser
+from include.asirikuy import *
 from collections import OrderedDict
 
 def readSetFile(filePath):
     try:
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.optionxform = str
-        config.readfp(ModifiedSetFile(open(filePath)))
+        config.read_file(ModifiedSetFile(open(filePath)))
         return config
     except IOError as e:
-        print e
+        print(e)
         return False
     except:
         return False
@@ -40,7 +40,7 @@ class MT4Set():
         self.optimizationArray = {}
         global paramIndexes
 
-        for k,v in OrderedDict(self.content.items('main')).iteritems():            
+        for k,v in OrderedDict(self.content.items('main')).items():            
         
             #Add the params names avoiding the optimization line
             if k.find(",") == -1:
@@ -63,7 +63,7 @@ class MT4Set():
         i = 0
 
         
-        for k,v in OrderedDict(self.content.items('additional')).items():
+        for k,v in list(OrderedDict(self.content.items('additional')).items()):
         
             #Add the params names avoiding the optimization line
             if k.find(",") == -1:

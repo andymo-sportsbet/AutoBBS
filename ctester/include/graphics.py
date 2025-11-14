@@ -102,13 +102,13 @@ def plotTestResult(tradesFile,  regressionType = LINEAR_REGRESSION, show = False
     try:
         plt.savefig(fileName+'.png', bbox_inches=0, dpi=100)
     except IOError as e:
-        print e
+        print(e)
 
     if pdf:
         try:
             plt.savefig(fileName+'.pdf', bbox_inches=0, dpi=100)
         except IOError as e:
-            print e
+            print(e)
 
     if show:
         plt.show()
@@ -166,7 +166,7 @@ def plotMultipleTestResults(pairs,  show = False,  resolution = {"x": 800, 'y': 
     try:
         plt.savefig('multipleResults.png', bbox_inches=0, dpi=100)
     except IOError as e:
-        print e
+        print(e)
 
     if show:
         plt.show()
@@ -258,13 +258,13 @@ def plotPortfolioTestResult(tradesFile,  show = False,  resolution = {"x": 800, 
     try:
         plt.savefig(fileName+'.png', bbox_inches=0, dpi=100)
     except IOError as e:
-        print e
+        print(e)
 
     if pdf:
         try:
             plt.savefig(fileName+'.pdf', bbox_inches=0, dpi=100)
         except IOError as e:
-            print e
+            print(e)
 
     if show:
         plt.show()
@@ -298,13 +298,13 @@ def plotOptimizationResult(resultsFile, optimizationGoal = 0, show = False, reso
     try:
         plt.savefig(fileName+'.png', bbox_inches=0, dpi=100)
     except IOError as e:
-        print e
+        print(e)
 
     if pdf:
         try:
             plt.savefig(fileName+'.pdf', bbox_inches=0, dpi=100)
         except IOError as e:
-            print e
+            print(e)
 
     if show:
         plt.show()

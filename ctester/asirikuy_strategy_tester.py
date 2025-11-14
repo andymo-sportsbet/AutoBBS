@@ -1,4 +1,4 @@
-#!/usr/bin/env python#
+#!/usr/bin/env python3
 import ast
 from include.auto_installer import *
 
@@ -12,7 +12,7 @@ from include.mt import *
 from time import *
 from include.misc import *
 import decimal
-import datetime, ctypes, os, platform, ConfigParser, math, csv, calendar, argparse,  sys,  signal, shutil
+import datetime, ctypes, os, platform, configparser, math, csv, calendar, argparse,  sys,  signal, shutil
 import xml.etree.ElementTree as ET
 from include.asirikuy import *
 
@@ -68,7 +68,7 @@ def main():
     elif (system == "Darwin"):
         astdll = loadLibrary('libCTesterFrameworkAPI.dylib')
     else:
-        print "No shared library loading support for OS %s" % (system)
+        print("No shared library loading support for OS %s" % (system))
         return False
 
     from include.graphics import plotTestResult, plotMultipleTestResults, plotOptimizationResult, plotPortfolioTestResult
@@ -101,7 +101,7 @@ def main():
     global config
     config = readConfigFile(configFilePath)
     if not config:
-        print "Error reading config file %s" % (configFilePath)
+        print("Error reading config file %s" % (configFilePath))
         return False
 
     #Get portfolio data
@@ -117,13 +117,15 @@ def main():
     timeframeRequirements = []
     passedTimeFrame = []
 
-    for s in config.get("strategy", "set").split(','):
+    # Support both "set" and "setFile" for backward compatibility
+    set_key = "setFile" if config.has_option("strategy", "setFile") else "set"
+    for s in config.get("strategy", set_key).split(','):
         if os.path.exists(s):
             setFilePaths.append(s)
         else:
             setFilePaths.append("./sets/%s" % (s))
     for index,s in enumerate(config.get("strategy", "pair").split(',')):
-        symbols[index] = s
+        symbols[index] = s.encode('utf-8')  # Python 3: encode string to bytes
 
     for s in config.get("strategy", "strategyID").split(','): strategyIDs.append(int(s))
     for s in config.get("account", "spread").split(','): spreads.append(float(s))
@@ -138,18 +140,18 @@ def main():
 
     if numSystemsInPortfolio > 1:
         if numSystemsInPortfolio != len(digits) or numSystemsInPortfolio != len(strategyIDs) or numSystemsInPortfolio != len(spreads) or numSystemsInPortfolio != len(rateRequirements) or numSystemsInPortfolio != len(symbolRequirements) or numSystemsInPortfolio != len(timeframeRequirements) or numSystemsInPortfolio != len(minimumStops):
-            print numSystemsInPortfolio
-            print len(digits)
-            print len(strategyIDs)
-            print len(spreads)
-            print len(rateRequirements)
+            print(numSystemsInPortfolio)
+            print(len(digits))
+            print(len(strategyIDs))
+            print(len(spreads))
+            print(len(rateRequirements))
 
 
-            print "You must have the same number of items for minimum stops, requirement arrays, setFile, pair, spread, digits, and strategyID"
+            print("You must have the same number of items for minimum stops, requirement arrays, setFile, pair, spread, digits, and strategyID")
             return False
     else:
         if len(symbols) != len(digits) or len(symbols) != len(spreads) or len(spreads) != len(digits) or len(minimumStops) != len(digits):
-            print "For multi-instrument tests the number of symbols, minimum stop values, digits and spreads must be equal."
+            print("For multi-instrument tests the number of symbols, minimum stop values, digits and spreads must be equal.")
             return False
 
     numPairs = len(symbols)
@@ -185,14 +187,16 @@ def main():
         ratesNeededTF[strategyIDs[i]] = timeframeRequirementItems
 
     #init tester    
-    astdll.initCTesterFramework(asirikuyCtesterLogPath, config.getint("misc", "logSeverity"))
+    # Handle inline comments in config values (Python 3 configparser is stricter)
+    log_severity_str = config.get("misc", "logSeverity").split(';')[0].strip()  # Remove inline comment
+    astdll.initCTesterFramework(asirikuyCtesterLogPath.encode('utf-8'), int(log_severity_str))
 
     #Read set files
     sets = []
     for index, s in enumerate(setFilePaths):
         sets.append(MT4Set(s))
         if not sets[index].content:
-            print "Error reading set file %s" % (s)
+            print("Error reading set file %s" % (s))
             return False
 
         
@@ -284,7 +288,7 @@ def main():
         optimizationParams.append(OptimizationParamType())
 
         numOptimizationParams.append(0)
-        for key, value in optimizationArrays[i].iteritems():
+        for key, value in list(optimizationArrays[i].items()):
             optimizationParams[i][numOptimizationParams[i]].index = key
             optimizationParams[i][numOptimizationParams[i]].start = value[0]
             optimizationParams[i][numOptimizationParams[i]].step  = value[1]
@@ -296,7 +300,7 @@ def main():
         testSettings[i].is_calculate_expectancy = is_calculate_expectancy
 
     if numOptimizationParams[0] == 0 and optimize:
-        print "Nothing to optimize. Check your set file."
+        print("Nothing to optimize. Check your set file.")
         return True
 
     #Account info values
@@ -356,7 +360,7 @@ def main():
 
     for symbol in list(set(symbols)):
 
-        print "Generating quote files..."
+        print("Generating quote files...")
         symbolList = list(symbol)
         baseName=symbolList[0]+symbolList[1]+symbolList[2]
         termName=symbolList[3]+symbolList[4]+symbolList[5]
@@ -373,9 +377,9 @@ def main():
 
     for i in range(numPairs):
         if not os.path.isfile(historyFilePaths[i]):
-            print "Can't find history file: %s" % historyFilePaths[i]
+            print("Can't find history file: %s" % historyFilePaths[i])
             return False
-        print "Loading rates for %s..." % (symbols[i])
+        print("Loading rates for %s..." % (symbols[i]))
 
         if numSystemsInPortfolio == 1:
             n = 0
@@ -393,7 +397,7 @@ def main():
                 ratesInfoArray[i][j].totalBarsRequired = 0
 
                 if ratesNeededSymbol[strategyIDs[n]][j] != "D":
-                    print "Loading additional rates, symbol %s..." % (ratesNeededSymbol[strategyIDs[n]][j])
+                    print("Loading additional rates, symbol %s..." % (ratesNeededSymbol[strategyIDs[n]][j]))
                     additionalRatePath = historyPath + ratesNeededSymbol[strategyIDs[n]][j] + '_' + str(passedTimeFrame[i]) + '.csv'
                     symbolUsed=ratesNeededSymbol[strategyIDs[n]][j]
                 else:
@@ -404,7 +408,7 @@ def main():
 
                     #requested and passed rates sanity check
                     if int(settings[n][TIMEFRAME]) < int(passedTimeFrame[i]):
-                        print "passedTimeFrame needs to be below required time frame for proper refactoring."
+                        print("passedTimeFrame needs to be below required time frame for proper refactoring.")
                         return False
 
                     result = loadRates(additionalRatePath, numCandles, symbolUsed, False)
@@ -414,7 +418,7 @@ def main():
 
                     #requested and passed rates sanity check
                     if int(ratesNeededTF[strategyIDs[n]][j]) < int(passedTimeFrame[i]):
-                        print "passedTimeFrame needs to be below required time frame for proper refactoring."
+                        print("passedTimeFrame needs to be below required time frame for proper refactoring.")
                         return False
 
                     result = loadRates(additionalRatePath, numCandles, symbolUsed, False)
@@ -520,23 +524,23 @@ def main():
                 optimizationFinished_c,
                 byref(error_c)
         ):
-            print "Error executing framework: " + str(error_c.value)
+            print("Error executing framework: " + str(error_c.value))
         else:
             if execUnderMPI == True:
                 lines = comm.gather(lines, root = 0)
                 if rank == 0:
-                    print "Waiting results from other MPI instances"
+                    print("Waiting results from other MPI instances")
                     for i in range(size):
-                        print "Getting data from instance %d" % (i)
+                        print("Getting data from instance %d" % (i))
                         f.write(lines[i])
-                    print "Optimization finished!"
+                    print("Optimization finished!")
 
         elapsed = (time() - start)
 
         f.close()
 
     else:
-        print "Running test..."
+        print("Running test...")
         if (numSystemsInPortfolio == 1): #Simple Test
             TEST_UPDATE = CFUNCTYPE(c_void_p, c_int, c_double, OrderInfo, c_double, c_char_p)
             testUpdate_c = TEST_UPDATE(testUpdate)
@@ -577,7 +581,7 @@ def main():
                     c_int(1), ctypes.pointer(_ratesArray), c_double(minLotSize), testUpdate_c, None, signalUpdate_c
                 )
                 if result.testId == 0:
-                    print "Error executing framework: " + str(error_c.value)
+                    print("Error executing framework: " + str(error_c.value))
                 else:
                     testFinished(result)
                 f.close()
@@ -619,11 +623,11 @@ def main():
                 ctypes.pointer(testSettings), ctypes.pointer(ratesInfoArray), c_int(numCandles), c_int(numSystemsInPortfolio), ctypes.pointer(ratesArray), c_double(minLotSize),
                 testUpdate_c, None, signalUpdate_c
             )
-            print "finished executing"
+            print("finished executing")
             if result.testId == 0:
-                print "Error executing framework: " + str(error_c.value)
+                print("Error executing framework: " + str(error_c.value))
             else:
-                print "finished trying to execute testFinished"
+                print("finished trying to execute testFinished")
                 testFinished(result)
             f.close()
             systems = []
@@ -635,9 +639,9 @@ def main():
         elapsed = (time() - start)
 
     if execUnderMPI == False or (execUnderMPI == True and rank ==0):
-        print "Time elapsed:", str(datetime.timedelta(seconds = elapsed))
+        print("Time elapsed:", str(datetime.timedelta(seconds = elapsed)))
 
-    print "total wall time: {}".format((datetime.datetime.now()-main_start_time).total_seconds())
+    print("total wall time: {}".format((datetime.datetime.now()-main_start_time).total_seconds()))
 
 
 ##################################
@@ -656,15 +660,15 @@ def version():
         asfdll = loadLibrary('libAsirikuyFrameworkAPI.dylib')
         astdll = loadLibrary('libCTesterFrameworkAPI.dylib')
     else:
-        print "No shared library loading support for OS %s" % (system)
+        print("No shared library loading support for OS %s" % (system))
         return False
 
     ASKFrameworkVersion = getASKFrameworkVersion(asfdll)
     ASTFrameworkVersion = getASTFrameworkVersion(astdll)
 
-    print "AsirikuyFrameworkAPI v"+ASKFrameworkVersion
-    print "CTesterFrameworkAPI v"+ASTFrameworkVersion
-    print "New Strategy Tester v" + VERSION
+    print("AsirikuyFrameworkAPI v"+ASKFrameworkVersion)
+    print("CTesterFrameworkAPI v"+ASTFrameworkVersion)
+    print("New Strategy Tester v" + VERSION)
     quit()
 
 
@@ -673,7 +677,7 @@ def optimizationUpdate(testResults, settings, numSettings):
 
     if execUnderMPI == False:
         iterationNumber+=1
-        print "Iteration %d finished" % (iterationNumber)
+        print("Iteration %d finished" % (iterationNumber))
 
     parameters = []
     lines = ""
@@ -701,19 +705,19 @@ def optimizationUpdate(testResults, settings, numSettings):
             iterationNumber+=1
             iterationString = "%d," % (iterationNumber)
             lines = iterationString + line
-            print "Iteration %d finished, %d" % (iterationNumber, rank)
+            print("Iteration %d finished, %d" % (iterationNumber, rank))
             for i in range(2, size):
                 iterationNumber+=1
                 iterationString = "%d," % (iterationNumber)
                 lines = lines + iterationString + comm.recv(source=i, tag=11)
-                print "Iteration %d finished, %d" % (iterationNumber, rank)
+                print("Iteration %d finished, %d" % (iterationNumber, rank))
             f.write(lines)
         else:
             comm.send(line, dest=1, tag=11)
 
 def optimizationFinished():
     if execUnderMPI == False:
-        print "Optimization finished!!"
+        print("Optimization finished!!")
 
 def testUpdate(testId, percentageOfTestCompleted, lastTrade, currentBalance, symbol):
     #print "Test running %.2lf%%" % (percentageOfTestCompleted)
@@ -750,21 +754,21 @@ def signalUpdate(tradeSignal):
 def testFinished(testResult):
     global xmlRoot, outputXMLPath, numSystemsInPortfolio,configFilePath, write_xml
 
-    print ' '
+    print(' ')
 
     with open(configFilePath, 'r') as fin:
-        print fin.read()
+        print(fin.read())
 
-    print ' '
-    print 'Test finished!!'
-    print 'Total trades: %d' % (testResult.totalTrades)
-    print 'Longs: %d Shorts: %d' % (testResult.numLongs, testResult.numShorts)
-    print 'Final balance: %.2lf$' % (testResult.finalBalance)
-    print 'Max DD: %.2lf$' % (testResult.maxDDDepth)
-    print 'Max DD Length: %d' % (int(testResult.maxDDLength/60/60/24))
-    print 'PF: %.2lf' % (testResult.pf)
-    print 'R2: %.2lf' % (testResult.r2)
-    print 'Ulcer Index: %.2lf' % (testResult.ulcerIndex)
+    print(' ')
+    print('Test finished!!')
+    print('Total trades: %d' % (testResult.totalTrades))
+    print('Longs: %d Shorts: %d' % (testResult.numLongs, testResult.numShorts))
+    print('Final balance: %.2lf$' % (testResult.finalBalance))
+    print('Max DD: %.2lf$' % (testResult.maxDDDepth))
+    print('Max DD Length: %d' % (int(testResult.maxDDLength/60/60/24)))
+    print('PF: %.2lf' % (testResult.pf))
+    print('R2: %.2lf' % (testResult.r2))
+    print('Ulcer Index: %.2lf' % (testResult.ulcerIndex))
 
     if write_xml:
         f = open(outputXMLPath, "w")
@@ -782,11 +786,11 @@ def stopOptimization(signal, frame):
 
     if config.getboolean("optimization", "optimize"):
         if config.getint("optimization", "optimizationType") == OPTI_BRUTE_FORCE:
-            print 'Stopping optimization...'
+            print('Stopping optimization...')
             sys.stdout.flush()
             astdll.stopOptimization()
         elif config.getint("optimization", "optimizationType") == OPTI_GENETIC:
-            print 'The optimization will stop when then current generation is finished'
+            print('The optimization will stop when then current generation is finished')
             sys.stdout.flush()
             astdll.stopOptimization()
 
