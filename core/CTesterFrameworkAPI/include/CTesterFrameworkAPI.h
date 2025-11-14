@@ -16,6 +16,9 @@ extern "C" {
 void __stdcall getCTesterFrameworkVersion(int* pMajor, int* pMinor, int* pBugfix);
 int  __stdcall initCTesterFramework(char* pAsirikuyTesterLog, int severityLevel);
 
+// Include common logger (available after initCTesterFramework is called)
+#include "AsirikuyLogger.h"
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

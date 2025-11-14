@@ -38,6 +38,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "EquityLog.h"
 #include "Logging.h"
 #include "AsirikuyTime.h"
@@ -58,11 +59,11 @@ void initEquityLog(BOOL enableEquityLog, const char* folderName)
 
   if(gEnableEquityLog)
   {
-    fprintf(stderr, "[NOTICE] Equity log enabled. Path = %s\n", gEquityLogPath);
+    logNotice("Equity log enabled. Path = %s\n", gEquityLogPath);
   }
   else
   {
-    fprintf(stderr, "[NOTICE] Equity log disabled.\n");
+    logNotice("Equity log disabled.\n");
   }
 }
 

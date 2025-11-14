@@ -9,6 +9,7 @@ Primary rate: 1H
 #include "base.h"
 #include "AsirikuyTime.h"
 #include "InstanceStates.h"
+#include "AsirikuyLogger.h"
 #include <stdio.h>
 
 #define USE_INTERNAL_SL FALSE
@@ -98,7 +99,7 @@ AsirikuyReturnCode runScreening(StrategyParams* pParams)
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] runScreening() failed. pParams = NULL\n\n");
+		logCritical("runScreening() failed. pParams = NULL\n\n");
 		return NULL_POINTER;
 	}
 
@@ -121,7 +122,7 @@ static AsirikuyReturnCode loadMonthlyIndicators(StrategyParams* pParams, Indicat
 	safe_timeString(timeString, pParams->ratesBuffers->rates[S_WEEKLY_RATES].time[shift0Index]);
 	iSRLevels_Screening(pParams, pIndicators, S_WEEKLY_RATES, 8, 8, &(pIndicators->monthlyHigh), &(pIndicators->monthlyLow));
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, 8weeksHigh=%lf, 8weeksLow = %lf\n",
+	logInfo("System InstanceID = %d, BarTime = %s, 8weeksHigh=%lf, 8weeksLow = %lf\n",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->monthlyHigh, pIndicators->monthlyLow);
 	return SUCCESS;
 }
@@ -140,14 +141,14 @@ static AsirikuyReturnCode loadWeeklyIndicators_Screening(StrategyParams* pParams
 
 	iSRLevels_Screening(pParams, pIndicators, S_WEEKLY_RATES, 2, 2, &(pIndicators->weeklyHigh), &(pIndicators->weeklyLow));
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, weeklyHLTrend = %ld,weeklyMATrend=%ld",
+	logInfo("System InstanceID = %d, BarTime = %s, weeklyHLTrend = %ld,weeklyMATrend=%ld",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->weeklyHLTrend, pIndicators->weeklyMATrend);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, weekly3RulesTrend = %ld,weeklyHigh=%lf, weeklyLow = %lf",
+	logInfo("System InstanceID = %d, BarTime = %s, weekly3RulesTrend = %ld,weeklyHigh=%lf, weeklyLow = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->weekly3RulesTrend, pIndicators->weeklyHigh, pIndicators->weeklyLow);
 
 	workoutWeeklyTrend_Screening(pParams, pIndicators);
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, weeklyTrend=%ld, weeklySupport = %lf,weeklyResistance = %lf,weeklyTP=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, weeklyTrend=%ld, weeklySupport = %lf,weeklyResistance = %lf,weeklyTP=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->weeklyTrend, pIndicators->weeklyS, pIndicators->weeklyR, pIndicators->weeklyTP);
 
 	return SUCCESS;
@@ -167,14 +168,14 @@ static AsirikuyReturnCode loadDailyIndicators(StrategyParams* pParams, Indicator
 
 	iSRLevels_Screening(pParams, pIndicators, S_DAILY_RATES, 2, 2, &(pIndicators->dailyHigh), &(pIndicators->dailyLow));
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyHLTrend = %ld,dailyMATrend=%ld",
+	logInfo("System InstanceID = %d, BarTime = %s, dailyHLTrend = %ld,dailyMATrend=%ld",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->dailyHLTrend, pIndicators->dailyMATrend);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, daily3RulesTrend = %ld,dailyHigh=%lf, dailyLow = %lf",
+	logInfo("System InstanceID = %d, BarTime = %s, daily3RulesTrend = %ld,dailyHigh=%lf, dailyLow = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->daily3RulesTrend, pIndicators->dailyHigh, pIndicators->dailyLow);
 
 	workoutDailyTrend_Screening(pParams, (Base_Indicators*)pIndicators);
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyTrend=%ld, dailySupport = %lf,dailyResistance = %lf��dailyTP=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, dailyTrend=%ld, dailySupport = %lf,dailyResistance = %lf��dailyTP=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->dailyTrend, pIndicators->dailyS, pIndicators->dailyR, pIndicators->dailyTP);
 
 	return SUCCESS;
@@ -202,7 +203,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 	pIndicators->ma4H50M = iMA(3, S_FOURHOURLY_RATES, 50, 1);
 	pIndicators->ma4H200M = iMA(3, S_FOURHOURLY_RATES, 200, 1);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, MA1H200M = %lf,MA4H200M=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, MA1H200M = %lf,MA4H200M=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->ma1H200M, pIndicators->ma4H200M);
 
 	iPivot(S_DAILY_RATES, 1, &(pIndicators->dailyPivot),
@@ -211,7 +212,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 		&(pIndicators->dailyS3), &(pIndicators->dailyR3));
 
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyPivot = %lf,dailyS1=%lf, dailyR1 = %lf,dailyS2=%lf, dailyR2 = %lf,dailyS3=%lf, dailyR3 = %lf",
+	logInfo("System InstanceID = %d, BarTime = %s, dailyPivot = %lf,dailyS1=%lf, dailyR1 = %lf,dailyS2=%lf, dailyR2 = %lf,dailyS3=%lf, dailyR3 = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->dailyPivot, pIndicators->dailyS1, pIndicators->dailyR1, pIndicators->dailyS2, pIndicators->dailyR2, pIndicators->dailyS3, pIndicators->dailyR3);
 
 	iPivot(S_WEEKLY_RATES, 1, &(pIndicators->weeklyPivot),
@@ -219,7 +220,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 		&(pIndicators->weeklyS2), &(pIndicators->weeklyR2),
 		&(pIndicators->weeklyS3), &(pIndicators->weeklyR3));
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, weeklyPivot = %lf,weeklyS1=%lf, weeklyR1 = %lf,weeklyS2=%lf, weeklyR2 = %lf,weeklyS3=%lf, weeklyR3 = %lf",
+	logInfo("System InstanceID = %d, BarTime = %s, weeklyPivot = %lf,weeklyS1=%lf, weeklyR1 = %lf,weeklyS2=%lf, weeklyR2 = %lf,weeklyS3=%lf, weeklyR3 = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->weeklyPivot, pIndicators->weeklyS1, pIndicators->weeklyR1, pIndicators->weeklyS2, pIndicators->weeklyR2, pIndicators->weeklyS3, pIndicators->weeklyR3);
 
 	loadMonthlyIndicators(pParams, pIndicators);

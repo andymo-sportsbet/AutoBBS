@@ -8,6 +8,7 @@
 #include "base.h"
 #include "AsirikuyTime.h"
 #include "InstanceStates.h"
+#include "AsirikuyLogger.h"
 
 #define USE_INTERNAL_SL FALSE
 #define USE_INTERNAL_TP FALSE
@@ -68,7 +69,7 @@ AsirikuyReturnCode runTakeOver(StrategyParams* pParams)
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] runTakeOver() failed. pParams = NULL\n");
+		logCritical("runTakeOver() failed. pParams = NULL\n");
 		return NULL_POINTER;
 	}
 
@@ -78,11 +79,11 @@ AsirikuyReturnCode runTakeOver(StrategyParams* pParams)
 
 	setUIValues(pParams, &indicators);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,BBSTrend=%ld,BBStopPrice=%lf, BBSIndex = %ld", 
+	logInfo("System InstanceID = %d, BarTime = %s,BBSTrend=%ld,BBStopPrice=%lf, BBSIndex = %ld", 
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.bbsTrend, indicators.bbsStopPrice, indicators.bbsIndex);
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, preHigh = %lf,preLow=%lf, preClose = %lf",
+	logInfo("System InstanceID = %d, BarTime = %s, preHigh = %lf,preLow=%lf, preClose = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.preHigh, indicators.preLow, indicators.preClose);
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, buySLP = %lf,sellSLP=%lf, DSL= %d",
+	logInfo("System InstanceID = %d, BarTime = %s, buySLP = %lf,sellSLP=%lf, DSL= %d",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.buyStopLossPrice, indicators.sellStopLossPrice, indicators.dsl_type);
 	
 
@@ -220,13 +221,13 @@ static AsirikuyReturnCode modifyOrders(StrategyParams* pParams, Indicators* pInd
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeExits() failed. pParams = NULL\n");
+		logCritical("handleTradeExits() failed. pParams = NULL\n");
 		return NULL_POINTER;
 	}
 
 	if (pIndicators == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeExits() failed. pIndicators = NULL\n");
+		logCritical("handleTradeExits() failed. pIndicators = NULL\n");
 		return NULL_POINTER;
 	}
 

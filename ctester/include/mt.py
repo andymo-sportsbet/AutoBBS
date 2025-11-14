@@ -28,6 +28,14 @@ class ModifiedSetFile(object):
             line = self.fp.readline()
         #Add [additional] section
         return re.sub('^SECTION_3.*$', '[additional]', line)
+    
+    def __iter__(self):
+        # Make the object iterable for Python 3 configparser
+        if self.sechead:
+            yield self.sechead
+            self.sechead = None
+        for line in self.fp:
+            yield re.sub('^SECTION_3.*$', '[additional]', line)
 
 class MT4Set():
     def __init__(self, filePath):

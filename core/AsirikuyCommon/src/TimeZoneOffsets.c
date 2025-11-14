@@ -41,6 +41,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "TimeZoneOffsets.h"
 #include "Broker-tz.h"
 
@@ -65,31 +66,31 @@ static AsirikuyReturnCode checkTZValidity(time_t brokerTime, time_t referenceTim
   
   if(!isMatchingTime(adjustedLocalTime, referenceTime))
   {
-    fprintf(stderr, "[ERROR] checkTZValidity() Local Timezone mismatch");
-    fprintf(stderr, "[ERROR] checkTZValidity() Local time(UTC)      = %s", safe_timeString(timeString, localTimeUTC));
-    fprintf(stderr, "[ERROR] checkTZValidity() broker time          = %s", safe_timeString(timeString, brokerTime));
-    fprintf(stderr, "[ERROR] checkTZValidity() reference time       = %s", safe_timeString(timeString, referenceTime));
-    fprintf(stderr, "[ERROR] checkTZValidity() adjusted local time  = %s", safe_timeString(timeString, adjustedLocalTime));
-    fprintf(stderr, "[ERROR] checkTZValidity() adjusted broker time = %s", safe_timeString(timeString, adjustedBrokerTime));
+    logError("checkTZValidity() Local Timezone mismatch");
+    logError("checkTZValidity() Local time(UTC)      = %s", safe_timeString(timeString, localTimeUTC));
+    logError("checkTZValidity() broker time          = %s", safe_timeString(timeString, brokerTime));
+    logError("checkTZValidity() reference time       = %s", safe_timeString(timeString, referenceTime));
+    logError("checkTZValidity() adjusted local time  = %s", safe_timeString(timeString, adjustedLocalTime));
+    logError("checkTZValidity() adjusted broker time = %s", safe_timeString(timeString, adjustedBrokerTime));
     return LOCAL_TZ_MISMATCH;
   }
   else if(!isMatchingTime(adjustedBrokerTime, referenceTime))
   {
-    fprintf(stderr, "[ERROR] checkTZValidity() Broker Timezone mismatch");
-    fprintf(stderr, "[ERROR] checkTZValidity() Local time(UTC)      = %s", safe_timeString(timeString, localTimeUTC));
-    fprintf(stderr, "[ERROR] checkTZValidity() broker time          = %s", safe_timeString(timeString, brokerTime));
-    fprintf(stderr, "[ERROR] checkTZValidity() reference time       = %s", safe_timeString(timeString, referenceTime));
-    fprintf(stderr, "[ERROR] checkTZValidity() adjusted local time  = %s", safe_timeString(timeString, adjustedLocalTime));
-    fprintf(stderr, "[ERROR] checkTZValidity() adjusted broker time = %s", safe_timeString(timeString, adjustedBrokerTime));
+    logError("checkTZValidity() Broker Timezone mismatch");
+    logError("checkTZValidity() Local time(UTC)      = %s", safe_timeString(timeString, localTimeUTC));
+    logError("checkTZValidity() broker time          = %s", safe_timeString(timeString, brokerTime));
+    logError("checkTZValidity() reference time       = %s", safe_timeString(timeString, referenceTime));
+    logError("checkTZValidity() adjusted local time  = %s", safe_timeString(timeString, adjustedLocalTime));
+    logError("checkTZValidity() adjusted broker time = %s", safe_timeString(timeString, adjustedBrokerTime));
     return BROKER_TZ_MISMATCH;
   }
   else if(1)  // Always log debug messages (replaced Pantheios check)
   {
-    fprintf(stderr, "[DEBUG] checkTZValidity() Local time(UTC)      = %s", safe_timeString(timeString, localTimeUTC));
-    fprintf(stderr, "[DEBUG] checkTZValidity() broker time          = %s", safe_timeString(timeString, brokerTime));
-    fprintf(stderr, "[DEBUG] checkTZValidity() reference time       = %s", safe_timeString(timeString, referenceTime));
-    fprintf(stderr, "[DEBUG] checkTZValidity() adjusted local time  = %s", safe_timeString(timeString, adjustedLocalTime));
-    fprintf(stderr, "[DEBUG] checkTZValidity() adjusted broker time = %s", safe_timeString(timeString, adjustedBrokerTime));
+    logDebug("checkTZValidity() Local time(UTC)      = %s", safe_timeString(timeString, localTimeUTC));
+    logDebug("checkTZValidity() broker time          = %s", safe_timeString(timeString, brokerTime));
+    logDebug("checkTZValidity() reference time       = %s", safe_timeString(timeString, referenceTime));
+    logDebug("checkTZValidity() adjusted local time  = %s", safe_timeString(timeString, adjustedLocalTime));
+    logDebug("checkTZValidity() adjusted broker time = %s", safe_timeString(timeString, adjustedBrokerTime));
   }
   
   return SUCCESS;
@@ -103,13 +104,13 @@ AsirikuyReturnCode calculateOffsets(time_t currentTime, int *pTZOffsets, Timezon
 
   if(pTZOffsets == NULL)
   {
-    fprintf(stderr, "[CRITICAL] calculateTimeOffsets() failed. pTZOffsets = NULL");
+    logCritical("calculateTimeOffsets() failed. pTZOffsets = NULL");
     return NULL_POINTER;
   }
 
   if(pTZInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] calculateTimeOffsets() failed. pTZInfo = NULL");
+    logCritical("calculateTimeOffsets() failed. pTZInfo = NULL");
     return NULL_POINTER;
   }
 
@@ -138,13 +139,13 @@ AsirikuyReturnCode getTimeOffsets(time_t currentBrokerTime, AccountInfo* pAccoun
 
   if(pAccountInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] getTimeOffsets() failed. pAccountInfo = NULL");
+    logCritical("getTimeOffsets() failed. pAccountInfo = NULL");
     return NULL_POINTER;
   }
 
   if(pTZOffsets == NULL)
   {
-    fprintf(stderr, "[CRITICAL] getTimeOffsets() failed. pTZOffsets = NULL");
+    logCritical("getTimeOffsets() failed. pTZOffsets = NULL");
     return NULL_POINTER;
   }
   
@@ -162,14 +163,20 @@ AsirikuyReturnCode getTimeOffsets(time_t currentBrokerTime, AccountInfo* pAccoun
     return returnCode;
   }
   
+  // Debug: Log the reference name before lookup
+  logDebug("getTimeOffsets() Looking up referenceName = '%s' (length=%zu)", 
+           pAccountInfo->referenceName ? pAccountInfo->referenceName : "(NULL)", 
+           pAccountInfo->referenceName ? strlen(pAccountInfo->referenceName) : 0);
+  
   returnCode = getTimezoneInfo(pAccountInfo->referenceName, &referenceTZ);
   if(returnCode != SUCCESS)
   {
     logAsirikuyError("getTimeOffsets()", returnCode);
+    logError("getTimeOffsets() Failed to find timezone for referenceName = '%s'", pAccountInfo->referenceName ? pAccountInfo->referenceName : "(NULL)");
     return returnCode;
   }
   
-  fprintf(stderr, "[DEBUG] getTimeOffsets() Calculating local time offsets.");
+  logDebug("getTimeOffsets() Calculating local time offsets.");
   returnCode = calculateOffsets(currentBrokerTime, pTZOffsets->localTZOffsets, localTZ);
   if(returnCode != SUCCESS)
   {
@@ -177,7 +184,7 @@ AsirikuyReturnCode getTimeOffsets(time_t currentBrokerTime, AccountInfo* pAccoun
     return returnCode;
   }
   
-  fprintf(stderr, "[DEBUG] getTimeOffsets() Calculating broker time offsets.");
+  logDebug("getTimeOffsets() Calculating broker time offsets.");
   returnCode = calculateOffsets(currentBrokerTime, pTZOffsets->brokerTZOffsets, brokerTZ);
   if(returnCode != SUCCESS)
   {
@@ -185,7 +192,7 @@ AsirikuyReturnCode getTimeOffsets(time_t currentBrokerTime, AccountInfo* pAccoun
     return returnCode;
   }
   
-  fprintf(stderr, "[DEBUG] getTimeOffsets() Calculating reference time offsets.");
+  logDebug("getTimeOffsets() Calculating reference time offsets.");
   returnCode = calculateOffsets(currentBrokerTime, pTZOffsets->referenceTZOffsets, referenceTZ);
   if(returnCode != SUCCESS)
   {
@@ -213,7 +220,7 @@ time_t getAdjustedBrokerTime(time_t brokerTime, TZOffsets* pTZOffsets)
 
   if(pTZOffsets == NULL)
   {
-    fprintf(stderr, "[CRITICAL] getAdjustedBrokerTime() failed. pTZOffsets = NULL");
+    logCritical("getAdjustedBrokerTime() failed. pTZOffsets = NULL");
     return NULL_POINTER;
   }
   
@@ -224,8 +231,8 @@ time_t getAdjustedBrokerTime(time_t brokerTime, TZOffsets* pTZOffsets)
   {
     char sourceTime[MAX_TIME_STRING_SIZE] = "";
     char destTime[MAX_TIME_STRING_SIZE] = "";
-    fprintf(stderr, "[DEBUG] getAdjustedBrokerTime() Day of year = %d, Reference offset = %d. Broker offset = %d", timeInfo.tm_yday, pTZOffsets->referenceTZOffsets[timeInfo.tm_yday], pTZOffsets->brokerTZOffsets[timeInfo.tm_yday]);
-    fprintf(stderr, "[DEBUG] getAdjustedBrokerTime() Original time = %s. Adjusted time = %s", safe_timeString(sourceTime, brokerTime), safe_timeString(destTime, adjustedBrokerTime));
+    logDebug("getAdjustedBrokerTime() Day of year = %d, Reference offset = %d. Broker offset = %d", timeInfo.tm_yday, pTZOffsets->referenceTZOffsets[timeInfo.tm_yday], pTZOffsets->brokerTZOffsets[timeInfo.tm_yday]);
+    logDebug("getAdjustedBrokerTime() Original time = %s. Adjusted time = %s", safe_timeString(sourceTime, brokerTime), safe_timeString(destTime, adjustedBrokerTime));
   }
 
   return adjustedBrokerTime;
@@ -238,7 +245,7 @@ time_t getAdjustedLocalTime(time_t localTimeUTC, TZOffsets* pTZOffsets)
 
   if(pTZOffsets == NULL)
   {
-    fprintf(stderr, "[CRITICAL] getAdjustedLocalTime() failed. pTZOffsets = NULL");
+    logCritical("getAdjustedLocalTime() failed. pTZOffsets = NULL");
     return NULL_POINTER;
   }
 
@@ -249,8 +256,8 @@ time_t getAdjustedLocalTime(time_t localTimeUTC, TZOffsets* pTZOffsets)
   {
     char sourceTime[MAX_TIME_STRING_SIZE] = "";
     char destTime[MAX_TIME_STRING_SIZE] = "";
-    fprintf(stderr, "[DEBUG] getAdjustedLocalTime() Day of year = %d, Reference offset = %d. Local offset = %d", timeInfo.tm_yday, pTZOffsets->referenceTZOffsets[timeInfo.tm_yday], pTZOffsets->localTZOffsets[timeInfo.tm_yday]);
-    fprintf(stderr, "[DEBUG] getAdjustedLocalTime() Original time = %s. Adjusted time = %s", safe_timeString(sourceTime, localTimeUTC), safe_timeString(destTime, adjustedLocalTime));
+    logDebug("getAdjustedLocalTime() Day of year = %d, Reference offset = %d. Local offset = %d", timeInfo.tm_yday, pTZOffsets->referenceTZOffsets[timeInfo.tm_yday], pTZOffsets->localTZOffsets[timeInfo.tm_yday]);
+    logDebug("getAdjustedLocalTime() Original time = %s. Adjusted time = %s", safe_timeString(sourceTime, localTimeUTC), safe_timeString(destTime, adjustedLocalTime));
   }
 
   return adjustedLocalTime;

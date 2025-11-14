@@ -37,6 +37,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 
 #if defined __APPLE__ || defined __linux__
   #include <sys/time.h>
@@ -144,7 +145,7 @@ static int initFramework(char* pAsirikuyConfig, char* pAccountName)
   // pantheios_init();
   // pantheios_be_file_setFilePath((PAN_CHAR_T*)pantheiosLogPath, 0, 0, PANTHEIOS_BEID_ALL);
   // pantheios_fe_simple_setSeverityCeiling(config.loggingConfig.severityLevel);
-  fprintf(stderr, "[NOTICE] AsirikuyFramework initialized.\n");
+  logNotice("AsirikuyFramework initialized.\n");
 
   retCode = TA_Initialize();
   if(retCode != TA_SUCCESS)
@@ -153,7 +154,7 @@ static int initFramework(char* pAsirikuyConfig, char* pAccountName)
     initializing = FALSE;
     return (int)TA_LIB_ERROR;
   }
-  fprintf(stderr, "[NOTICE] TA-Lib initialized.\n");
+  logNotice("TA-Lib initialized.\n");
 
   strcat(brokerTZPath, config.configFilePaths.configFolderPath);
   strcat(brokerTZPath, "/");
@@ -165,11 +166,11 @@ static int initFramework(char* pAsirikuyConfig, char* pAccountName)
     initializing = FALSE;
     return (int)result;
   }
-  fprintf(stderr, "[NOTICE] Loaded broker timezone configuration.\n");
+  logNotice("Loaded broker timezone configuration.\n");
 
   setExtendedBufferSize(config.ratesBufferExtension);
   resetAllRatesBuffers();
-  fprintf(stderr, "[NOTICE] Rates buffers initialized.\n");
+  logNotice("Rates buffers initialized.\n");
 
   initEquityLog(config.loggingConfig.enableEquityLog, config.loggingConfig.logFolder);
   initializeInstanceStates(config.tempFileFolderPath);
@@ -179,14 +180,14 @@ static int initFramework(char* pAsirikuyConfig, char* pAccountName)
   setNtpUpdateInterval(config.ntpConfig.updateInterval);
   setNtpTimeout(config.ntpConfig.timeout);
   setTotalNtpReferenceTimes(config.ntpConfig.totalReferenceTimes);
-  fprintf(stderr, "[NOTICE] NTPClient initialized.\n");
+  logNotice("NTPClient initialized.\n");
 
   setTempFileFolderPath(config.tempFileFolderPath);
   setTradingWeekBoundaries(config.cropMondayHours, config.cropFridayHours);
 
   initialized  = TRUE;
   initializing = FALSE;
-  fprintf(stderr, "[NOTICE] Framework initialization complete.\n");
+  logNotice("Framework initialization complete.\n");
   return (int)SUCCESS;
 }
 
@@ -210,7 +211,7 @@ static int initInstance(int instanceId, int isTesting, char* pAsirikuyConfig, ch
     loadInstanceState(instanceId);
   }
 
-  fprintf(stderr, "[NOTICE] Initialized instance ID: %d.\n", instanceId);
+  logNotice("Initialized instance ID: %d.\n", instanceId);
 
   return returnCode;
 }

@@ -48,6 +48,7 @@
 #include "TradingWeekBoundaries.h"
 #include "OrderManagement.h"
 #include "StrategyUserInterface.h"
+#include "AsirikuyLogger.h"
 #include "AsirikuyTime.h"
 
 #include "RecordBars.h"
@@ -112,91 +113,91 @@ static AsirikuyReturnCode validateCommonStrategySettings(StrategyParams* pParams
 {
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] validateCommonStrategySettings() failed. pParams = NULL\n\n");
+    logCritical("validateCommonStrategySettings() failed. pParams = NULL");
     return NULL_POINTER;
   }
 
   if((int)pParams->settings[MAX_OPEN_ORDERS] <= -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. MAX_OPEN_ORDERS must be greater than 0. MAX_OPEN_ORDERS = ", (int)pParams->settings[MAX_OPEN_ORDERS]);
+    logError("validateCommonStrategySettings() failed. MAX_OPEN_ORDERS must be greater than 0. MAX_OPEN_ORDERS = %d", (int)pParams->settings[MAX_OPEN_ORDERS]);
     return INVALID_PARAMETER;
   }
 
   if(((int)pParams->settings[IS_BACKTESTING] != TRUE) && ((int)pParams->settings[IS_BACKTESTING] != FALSE))
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. IS_BACKTESTING must be set to 0 or 1. IS_BACKTESTING = %d", (int)pParams->settings[IS_BACKTESTING]);
+    logError("validateCommonStrategySettings() failed. IS_BACKTESTING must be set to 0 or 1. IS_BACKTESTING = %d", (int)pParams->settings[IS_BACKTESTING]);
     return INVALID_PARAMETER;
   }
 
   if(((int)pParams->settings[DISABLE_COMPOUNDING] != TRUE) && ((int)pParams->settings[DISABLE_COMPOUNDING] != FALSE))
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. DISABLE_COMPOUNDING must be set to 0 or 1. DISABLE_COMPOUNDING = %d", (int)pParams->settings[DISABLE_COMPOUNDING]);
+    logError("validateCommonStrategySettings() failed. DISABLE_COMPOUNDING must be set to 0 or 1. DISABLE_COMPOUNDING = %d", (int)pParams->settings[DISABLE_COMPOUNDING]);
     return INVALID_PARAMETER;
   }
 
   if((int)pParams->settings[TIMED_EXIT_BARS] < -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. TIMED_EXIT_BARS must be greater than or equal to 0. TIMED_EXIT_BARS = %d", (int)pParams->settings[TIMED_EXIT_BARS]);
+    logError("validateCommonStrategySettings() failed. TIMED_EXIT_BARS must be greater than or equal to 0. TIMED_EXIT_BARS = %d", (int)pParams->settings[TIMED_EXIT_BARS]);
     return INVALID_PARAMETER;
   }
 
   if(((int)pParams->settings[OPERATIONAL_MODE] < MODE_DISABLE) || ((int)pParams->settings[OPERATIONAL_MODE] > MODE_MONITOR))
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. OPERATIONAL_MODE must be set to 0, 1, or 2. OPERATIONAL_MODE = %d", (int)pParams->settings[OPERATIONAL_MODE]);
+    logError("validateCommonStrategySettings() failed. OPERATIONAL_MODE must be set to 0, 1, or 2. OPERATIONAL_MODE = %d", (int)pParams->settings[OPERATIONAL_MODE]);
     return INVALID_PARAMETER;
   }
 
   if((int)pParams->settings[STRATEGY_INSTANCE_ID] < -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. STRATEGY_INSTANCE_ID must be greater than or equal to 0. STRATEGY_INSTANCE_ID = ", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+    logError("validateCommonStrategySettings() failed. STRATEGY_INSTANCE_ID must be greater than or equal to 0. STRATEGY_INSTANCE_ID = ", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
     return INVALID_PARAMETER;
   }
 
   if((int)pParams->settings[TIMEFRAME] <= -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. TIMEFRAME must be greater than 0. TIMEFRAME = %d", (int)pParams->settings[TIMEFRAME]);
+    logError("validateCommonStrategySettings() failed. TIMEFRAME must be greater than 0. TIMEFRAME = %d", (int)pParams->settings[TIMEFRAME]);
     return INVALID_PARAMETER;
   }
 
   if(pParams->settings[ACCOUNT_RISK_PERCENT] <= -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. ACCOUNT_RISK_PERCENT must be greater than 0. ACCOUNT_RISK_PERCENT = %lf", pParams->settings[ACCOUNT_RISK_PERCENT]);
+    logError("validateCommonStrategySettings() failed. ACCOUNT_RISK_PERCENT must be greater than 0. ACCOUNT_RISK_PERCENT = %lf", pParams->settings[ACCOUNT_RISK_PERCENT]);
     return INVALID_PARAMETER;
   }
 
   if(pParams->settings[MAX_DRAWDOWN_PERCENT] <= -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. MAX_DRAWDOWN_PERCENT must be greater than 0. MAX_DRAWDOWN_PERCENT = %lf", pParams->settings[MAX_DRAWDOWN_PERCENT]);
+    logError("validateCommonStrategySettings() failed. MAX_DRAWDOWN_PERCENT must be greater than 0. MAX_DRAWDOWN_PERCENT = %lf", pParams->settings[MAX_DRAWDOWN_PERCENT]);
     return INVALID_PARAMETER;
   }
 
   if(pParams->settings[MAX_SPREAD] <= -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. MAX_SPREAD must be greater than 0. MAX_SPREAD = %lf", pParams->settings[MAX_SPREAD]);
+    logError("validateCommonStrategySettings() failed. MAX_SPREAD must be greater than 0. MAX_SPREAD = %lf", pParams->settings[MAX_SPREAD]);
     return INVALID_PARAMETER;
   }
 
   if(pParams->settings[SL_ATR_MULTIPLIER] < -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. SL_ATR_MULTIPLIER must be greater than or equal to 0. SL_ATR_MULTIPLIER = %lf", pParams->settings[SL_ATR_MULTIPLIER]);
+    logError("validateCommonStrategySettings() failed. SL_ATR_MULTIPLIER must be greater than or equal to 0. SL_ATR_MULTIPLIER = %lf", pParams->settings[SL_ATR_MULTIPLIER]);
     return INVALID_PARAMETER;
   }
 
   if(pParams->settings[TP_ATR_MULTIPLIER] < -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. TP_ATR_MULTIPLIER must be greater than or equal to 0. TP_ATR_MULTIPLIER = %lf", pParams->settings[TP_ATR_MULTIPLIER]);
+    logError("validateCommonStrategySettings() failed. TP_ATR_MULTIPLIER must be greater than or equal to 0. TP_ATR_MULTIPLIER = %lf", pParams->settings[TP_ATR_MULTIPLIER]);
     return INVALID_PARAMETER;
   }
 
   if((int)pParams->settings[ATR_AVERAGING_PERIOD] < -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. ATR_AVERAGING_PERIOD must be greater than 0. ATR_AVERAGING_PERIOD = %d", (int)pParams->settings[ATR_AVERAGING_PERIOD]);
+    logError("validateCommonStrategySettings() failed. ATR_AVERAGING_PERIOD must be greater than 0. ATR_AVERAGING_PERIOD = %d", (int)pParams->settings[ATR_AVERAGING_PERIOD]);
     return INVALID_PARAMETER;
   }
 
   if((int)pParams->settings[ORDERINFO_ARRAY_SIZE] < -EPSILON)
   {
-    fprintf(stderr, "[ERROR] validateCommonStrategySettings() failed. ORDERINFO_ARRAY_SIZE must be greater than or equal to 0. ORDERINFO_ARRAY_SIZE = %d", (int)pParams->settings[ORDERINFO_ARRAY_SIZE]);
+    logError("validateCommonStrategySettings() failed. ORDERINFO_ARRAY_SIZE must be greater than or equal to 0. ORDERINFO_ARRAY_SIZE = %d", (int)pParams->settings[ORDERINFO_ARRAY_SIZE]);
     return INVALID_PARAMETER;
   }
 
@@ -212,14 +213,14 @@ AsirikuyReturnCode runStrategy(StrategyParams* pParams)
   char   timeString[MAX_TIME_STRING_SIZE] = "";
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] runStrategy() failed. pParams = NULL\n\n");
+    logCritical("runStrategy() failed. pParams = NULL\n\n");
     return NULL_POINTER;
   }
 
   /* Check that Bid/Ask are not zero */
   if(pParams->bidAsk.bid[0] < EPSILON || pParams->bidAsk.ask[0] < EPSILON)
   {
-	fprintf(stderr, "[CRITICAL] runStrategy() failed. Bid or Ask is zero\n\n");
+	logCritical("runStrategy() failed. Bid or Ask is zero\n\n");
     return BID_ASK_IS_ZERO;
   }
 
@@ -233,7 +234,7 @@ AsirikuyReturnCode runStrategy(StrategyParams* pParams)
 
 	  if (timeInfo1.tm_hour == 1 && timeInfo1.tm_min < 2)
 	  {
-		  fprintf(stderr, "[INFO] Start skiping tick on XAUUSD on %s", timeString);
+		  logInfo("Start skiping tick on XAUUSD on %s", timeString);
 		  return SUCCESS;
 	  }
 
@@ -243,7 +244,7 @@ AsirikuyReturnCode runStrategy(StrategyParams* pParams)
   {
 
     safe_timeString(timeString, pParams->currentBrokerTime);
-    fprintf(stderr, "[CRITICAL] runStrategy() failed. Invalid trading time: %s", timeString);
+    logCritical("runStrategy() failed. Invalid trading time: %s", timeString);
 	return SUCCESS;
   }
     
@@ -312,7 +313,7 @@ AsirikuyReturnCode clearStrategyResults(StrategyParams* pParams)
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] clearStrategyResults() failed. pParams = NULL\n\n");
+    logCritical("clearStrategyResults() failed. pParams = NULL\n\n");
     return NULL_POINTER;
   }
 

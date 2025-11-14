@@ -202,8 +202,11 @@ def main():
         
     #Optimization 
     optimize            = config.getboolean("optimization", "optimize")
-    optimizationType    = config.getint("optimization", "optimizationType")
-    numCores            = config.getint("optimization", "numCores")
+    # Handle inline comments in config values (Python 3 configparser is stricter)
+    optimization_type_str = config.get("optimization", "optimizationType").split(';')[0].strip()
+    optimizationType    = int(optimization_type_str)
+    num_cores_str = config.get("optimization", "numCores").split(';')[0].strip()
+    numCores            = int(num_cores_str)
 
     #Config values
     accountCurrency = config.get("account", "currency")
@@ -212,8 +215,11 @@ def main():
     #brokerName        = config.get("account", "brokerName")
     #refBrokerName     = config.get("account", "refBrokerName")
     
-    brokerName        = "Pepperstone Group Limited"
-    refBrokerName     = "Pepperstone Group Limited"
+    # IMPORTANT: Encode to bytes to ensure the string buffer persists
+    # ctypes creates temporary buffers for Python strings, which can be freed
+    # Encoding to bytes and keeping a reference ensures the buffer stays alive
+    brokerName        = "Pepperstone Group Limited".encode('utf-8')
+    refBrokerName     = "Pepperstone Group Limited".encode('utf-8')
     
     
     #passedTimeFrame   = config.get("strategy", "passedTimeFrame")
@@ -279,9 +285,12 @@ def main():
         index = 0
         for param in sets[i].content.items("additional"):
             if param[0].find(",") == -1:
-                settings[i][paramIndexes[param[0].upper()]] = float(param[1])
-                paramNamesArray[i][index] = param[0].upper()
-                index += 1
+                param_key = param[0].upper()
+                if param_key in paramIndexes:
+                    settings[i][paramIndexes[param_key]] = float(param[1])
+                    paramNamesArray[i][index] = param_key
+                    index += 1
+                # Skip unknown parameters (they may be for other strategies)
 
 
         OptimizationParamType = OptimizationParam * len(optimizationArrays[i])
@@ -330,8 +339,20 @@ def main():
     clearScreen();
 
     #Load Rates 
-    fromDate = calendar.timegm(strptime(config.get("strategy", "fromDate"),"%Y-%m-%d"))
-    toDate = calendar.timegm(strptime(config.get("strategy", "toDate"),"%Y-%m-%d"))
+    # Handle inline comments and date format (dd/mm/yy or YYYY-MM-DD)
+    from_date_str = config.get("strategy", "fromDate").split(';')[0].strip()
+    to_date_str = config.get("strategy", "toDate").split(';')[0].strip()
+    
+    # Try dd/mm/yy format first (legacy format), then YYYY-MM-DD
+    try:
+        fromDate = calendar.timegm(strptime(from_date_str, "%d/%m/%y"))
+    except ValueError:
+        fromDate = calendar.timegm(strptime(from_date_str, "%Y-%m-%d"))
+    
+    try:
+        toDate = calendar.timegm(strptime(to_date_str, "%d/%m/%y"))
+    except ValueError:
+        toDate = calendar.timegm(strptime(to_date_str, "%Y-%m-%d"))
     for i in range(numPairs):
         testSettings[i].fromDate = fromDate
         testSettings[i].toDate = toDate
@@ -344,7 +365,9 @@ def main():
     
     
     for i in range(numPairs):
-        historyFilePaths.append(historyPath + symbols[i] + '_' + str(passedTimeFrame[i]) + '.csv')
+        # Python 3: symbols[i] is bytes, decode to string for concatenation
+        symbol_str = symbols[i].decode('utf-8') if isinstance(symbols[i], bytes) else symbols[i]
+        historyFilePaths.append(historyPath + symbol_str + '_' + str(passedTimeFrame[i]) + '.csv')
         result = checkRates(historyFilePaths[i])
         numCandles = max(result['numCandles'], numCandles)
 
@@ -361,11 +384,13 @@ def main():
     for symbol in list(set(symbols)):
 
         print("Generating quote files...")
-        symbolList = list(symbol)
+        # Python 3: symbol is bytes, decode to string for string operations
+        symbol_str = symbol.decode('utf-8') if isinstance(symbol, bytes) else symbol
+        symbolList = list(symbol_str)
         baseName=symbolList[0]+symbolList[1]+symbolList[2]
         termName=symbolList[3]+symbolList[4]+symbolList[5]
         additionalName= ''.join(symbolList[6:])
-        quoteRatePath = historyPath + symbol + '_' + str(passedTimeFrame[i]) + '.csv'
+        quoteRatePath = historyPath + symbol_str + '_' + str(passedTimeFrame[i]) + '.csv'
         loadRates(quoteRatePath, numCandles, symbol, True)
 
         if accountCurrency != baseName and accountCurrency != termName:
@@ -373,7 +398,9 @@ def main():
             for newSymbol in newSymbolsList:
                 quoteRatePath = historyPath + newSymbol + '_' + str(passedTimeFrame[i]) + '.csv'
                 if os.path.isfile(quoteRatePath):
-                    loadRates(quoteRatePath, numCandles, newSymbol, True)
+                    # Convert newSymbol to bytes for loadRates if needed
+                    newSymbol_bytes = newSymbol.encode('utf-8') if isinstance(symbol, bytes) else newSymbol
+                    loadRates(quoteRatePath, numCandles, newSymbol_bytes, True)
 
     for i in range(numPairs):
         if not os.path.isfile(historyFilePaths[i]):

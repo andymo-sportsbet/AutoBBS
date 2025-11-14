@@ -26,6 +26,10 @@ project "CTesterFrameworkAPI"
       (os.getenv("HOMEBREW_PREFIX") or "/opt/homebrew") .. "/opt/mpich/lib",
       "/Users/andym/homebrew/opt/mpich/lib"
     }
+    linkoptions{
+      "-L" .. ((os.getenv("HOMEBREW_PREFIX") or "/opt/homebrew") .. "/opt/mpich/lib"),
+      "-L/Users/andym/homebrew/opt/mpich/lib"
+    }
   configuration{"not windows"}
     excludes {
       "src/**.def"
@@ -34,7 +38,7 @@ project "CTesterFrameworkAPI"
     linkoptions{"/DEF:../../../core/CTesterFrameworkAPI/src/CTesterFrameworkAPI.def"}
     links{"mpi"}
   configuration{"macosx"}
-    links{"mpich", "pmpich", "mpl"}
+    links{"mpi", "pmpi", "mpl"}
   configuration{"linux"}
     links{"mpich", "mpl"}
   os.chdir("../..")

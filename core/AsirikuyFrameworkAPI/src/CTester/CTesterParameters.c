@@ -37,6 +37,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "ContiguousRatesCircBuf.h"
 #include "TimeZoneOffsets.h"
 #include "AsirikuyTime.h"
@@ -78,7 +79,7 @@ static AsirikuyReturnCode getOldTickVolume(int instanceId, OldTickVolume** ppOld
     }
 
     oldTickVolumeInitialized = TRUE;
-    fprintf(stderr, "[NOTICE] getOldTickVolume() Initialized old tick volume.\n");
+    logNotice("getOldTickVolume() Initialized old tick volume.\n");
   }
 
   for(i = 0; i < MAX_INSTANCES; i++)
@@ -100,7 +101,7 @@ static AsirikuyReturnCode getOldTickVolume(int instanceId, OldTickVolume** ppOld
   else
   {
     *ppOldTickVolume = NULL;
-    fprintf(stderr, "[CRITICAL] getOldTickVolume() Failed to find oldTickVolume for instance Id: %d\n\n\n", instanceId);
+    logCritical("getOldTickVolume() Failed to find oldTickVolume for instance Id: %d\n\n\n", instanceId);
     returnCode = TOO_MANY_INSTANCES;
   }
   
@@ -111,19 +112,19 @@ static AsirikuyReturnCode copyBarC(const CRates* pSource, Rates* pDest, int dest
 {
   if(pSource == NULL)
   {
-    fprintf(stderr, "[CRITICAL] copyBar() failed. pSource = NULL\n");
+    logCritical("copyBar() failed. pSource = NULL\n");
     return NULL_POINTER;
   }
 
   if(pDest == NULL)
   {
-    fprintf(stderr, "[CRITICAL] copyBar() failed. pDest = NULL\n");
+    logCritical("copyBar() failed. pDest = NULL\n");
     return NULL_POINTER;
   }
 
   if(pDest->time == NULL)
   {
-    fprintf(stderr, "[CRITICAL] copyBar() failed. pDest->time = NULL\n");
+    logCritical("copyBar() failed. pDest->time = NULL\n");
     return NULL_POINTER;
   }
 
@@ -134,38 +135,38 @@ static AsirikuyReturnCode copyBarC(const CRates* pSource, Rates* pDest, int dest
     // if(1)
     {
       char timeString[MAX_TIME_STRING_SIZE];
-      // fprintf(stderr, "[DEBUG] "copyBar() time[%d] = %s\n\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]));
+      // logDebug(""copyBar() time[%d] = %s\n\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]));
     }
   }
 
   if(pDest->open)
   {
     pDest->open[destIndex] = pSource->open;
-    // fprintf(stderr, "[DEBUG] "copyBar() open[%d] = %f\n\n", destIndex, pDest->open[destIndex]);
+    // logDebug(""copyBar() open[%d] = %f\n\n", destIndex, pDest->open[destIndex]);
   }
 
   if(pDest->high)
   {
     pDest->high[destIndex] = pSource->high;
-    // fprintf(stderr, "[DEBUG] "copyBar() high[%d] = %f\n\n", destIndex, pDest->high[destIndex]);
+    // logDebug(""copyBar() high[%d] = %f\n\n", destIndex, pDest->high[destIndex]);
   }
 
   if(pDest->low)
   {
     pDest->low[destIndex] = pSource->low;
-    // fprintf(stderr, "[DEBUG] "copyBar() low[%d] = %f\n\n", destIndex, pDest->low[destIndex]);
+    // logDebug(""copyBar() low[%d] = %f\n\n", destIndex, pDest->low[destIndex]);
   }
 
   if(pDest->close)
   {
     pDest->close[destIndex] = pSource->close;
-    // fprintf(stderr, "[DEBUG] "copyBar() close[%d] = %f\n\n", destIndex, pDest->close[destIndex]);
+    // logDebug(""copyBar() close[%d] = %f\n\n", destIndex, pDest->close[destIndex]);
   }
 
   if(pDest->volume)
   {
     pDest->volume[destIndex] = pSource->volume;
-    // fprintf(stderr, "[DEBUG] "copyBar() volume[%d] = %f\n\n", destIndex, pDest->volume[destIndex]);
+    // logDebug(""copyBar() volume[%d] = %f\n\n", destIndex, pDest->volume[destIndex]);
   }
 
   return SUCCESS;
@@ -184,19 +185,19 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
 
   if(pSource == NULL)
   {
-    fprintf(stderr, "[CRITICAL] mergeBar() failed. pSource = NULL");
+    logCritical("mergeBar() failed. pSource = NULL");
     return NULL_POINTER;
   }
 
   if(pDest == NULL)
   {
-    fprintf(stderr, "[CRITICAL] mergeBar() failed. pDest = NULL");
+    logCritical("mergeBar() failed. pDest = NULL");
     return NULL_POINTER;
   }
 
   if(pDest->time == NULL)
   {
-    fprintf(stderr, "[CRITICAL] mergeBar() failed. pDest->time = NULL");
+    logCritical("mergeBar() failed. pDest->time = NULL");
     return NULL_POINTER;
   }
 
@@ -214,7 +215,7 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
     // if(1)
     {
       char timeString[MAX_TIME_STRING_SIZE];
-      // fprintf(stderr, "[DEBUG] "mergeBar() time[%d] = %s\n\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]));
+      // logDebug(""mergeBar() time[%d] = %s\n\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]));
     }
   }
 
@@ -224,7 +225,7 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
     {
       pDest->open[destIndex] = pSource->open;
     }
-    // fprintf(stderr, "[DEBUG] "mergeBar() open[%d] = %lf\n\n", destIndex, pDest->open[destIndex]);
+    // logDebug(""mergeBar() open[%d] = %lf\n\n", destIndex, pDest->open[destIndex]);
   }
 
   if(pDest->high)
@@ -233,7 +234,7 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
     {
       pDest->high[destIndex] = pSource->high;
     }
-    // fprintf(stderr, "[DEBUG] "mergeBar() high[%d] = %lf\n\n", destIndex, pDest->high[destIndex]);
+    // logDebug(""mergeBar() high[%d] = %lf\n\n", destIndex, pDest->high[destIndex]);
   }
 
   if(pDest->low)
@@ -242,7 +243,7 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
     {
       pDest->low[destIndex] = pSource->low;
     }
-    // fprintf(stderr, "[DEBUG] "mergeBar() low[%d] = %lf\n\n", destIndex, pDest->low[destIndex]);
+    // logDebug(""mergeBar() low[%d] = %lf\n\n", destIndex, pDest->low[destIndex]);
   }
 
   if(pDest->close)
@@ -251,7 +252,7 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
     {
       pDest->close[destIndex] = pSource->close;
     }
-    // fprintf(stderr, "[DEBUG] "mergeBar() close[%d] = %lf\n\n", destIndex, pDest->close[destIndex]);
+    // logDebug(""mergeBar() close[%d] = %lf\n\n", destIndex, pDest->close[destIndex]);
   }
 
   if(pDest->volume)
@@ -270,7 +271,7 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
     }
     pOldTickVolume->oldTime[ratesIndex]   = CTime;
     pOldTickVolume->oldVolume[ratesIndex] = pSource->volume;
-    // fprintf(stderr, "[DEBUG] "mergeBar() volume[%d] = %lf\n\n", destIndex, pDest->volume[destIndex]);
+    // logDebug(""mergeBar() volume[%d] = %lf\n\n", destIndex, pDest->volume[destIndex]);
   }
 
   return SUCCESS;
@@ -289,7 +290,7 @@ static AsirikuyReturnCode reprocessConvertedBar(StrategyParams* pParams,int inst
     epochOffset = EPOCH_WEEK_OFFSET;
   }
   
-  // fprintf(stderr, "[DEBUG] reprocessConvertedBar() ratesIndex = %d, convertedRatesIndex = %d\n", ratesIndex, convertedRatesIndex);
+  // logDebug("reprocessConvertedBar() ratesIndex = %d, convertedRatesIndex = %d\n", ratesIndex, convertedRatesIndex);
 
   returnCode = copyBarC(&pCRates[ratesBufferIndex], pConvertedRates, convertedRatesIndex, tzOffsets);
   if(returnCode != SUCCESS)
@@ -338,7 +339,7 @@ static AsirikuyReturnCode convertCurrentCBar(StrategyParams* pParams, TZOffsets*
 
    if (CTime0 < 0 || CTime1 < 0)
   {
-	   // fprintf(stderr, "[DEBUG] Discarding candle with invalid timestamp\n");
+	   // logDebug("Discarding candle with invalid timestamp\n");
 	  return SUCCESS;
   }
 
@@ -350,7 +351,7 @@ static AsirikuyReturnCode convertCurrentCBar(StrategyParams* pParams, TZOffsets*
 
   if (!isValidTradingTime(pParams,CTime0))
   {
-    // fprintf(stderr, "[DEBUG] "convertCurrentCBar() Discarding unusable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime0));
+    // logDebug(""convertCurrentCBar() Discarding unusable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime0));
     return SUCCESS;
   }
 
@@ -422,7 +423,7 @@ static AsirikuyReturnCode fillEmptyRatesBuffer(StrategyParams* pParams, TZOffset
 
 	  CTime = getAdjustedBrokerTime(pCRates[CRatesBufferIndex].time, tzOffsets);
 
-      // fprintf(stderr, "[DEBUG] "fillEmptyRatesBuffer() Discarding unusuable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime));
+      // logDebug(""fillEmptyRatesBuffer() Discarding unusuable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime));
     }
 
 	returnCode = copyBarC(&pCRates[CRatesBufferIndex], &pParams->ratesBuffers->rates[ratesIndex], convertedRatesBufferIndex, tzOffsets);
@@ -450,7 +451,7 @@ static AsirikuyReturnCode fillEmptyRatesBuffer(StrategyParams* pParams, TZOffset
 
 	  CTime = getAdjustedBrokerTime(pCRates[CRatesBufferIndex].time, tzOffsets);
 
-      // fprintf(stderr, "[DEBUG] "fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime));
+      // logDebug(""fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime));
     }
 
     while((CRatesBufferIndex >= 0) && (((CTime + epochOffset) / TIME_FRAME_IN_SECONDS) == ((pParams->ratesBuffers->rates[ratesIndex].time[convertedRatesBufferIndex] + epochOffset) / TIME_FRAME_IN_SECONDS)))
@@ -477,7 +478,7 @@ static AsirikuyReturnCode fillEmptyRatesBuffer(StrategyParams* pParams, TZOffset
           pParams->ratesBuffers->rates[ratesIndex].info.isBufferFull = TRUE;
           return SUCCESS;
         }
-        // fprintf(stderr, "[DEBUG] "fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime));
+        // logDebug(""fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n\n", safe_timeString(timeString, CTime));
 		
 		CTime = getAdjustedBrokerTime(pCRates[CRatesBufferIndex].time, tzOffsets);
 	  }
@@ -494,12 +495,12 @@ AsirikuyReturnCode convertRatesArrayC(StrategyParams* pParams, TZOffsets* tzOffs
   {
     if(!pParams->ratesBuffers->rates[ratesIndex].info.isBufferFull)
     {
-      // fprintf(stderr, "[DEBUG] "convertRatesArray() Filling empty rates buffer.");
+      // logDebug(""convertRatesArray() Filling empty rates buffer.");
       return fillEmptyRatesBuffer(pParams, tzOffsets, pCRatesInfo, pCRates, ratesIndex);
     }
     else
     {
-      // fprintf(stderr, "[DEBUG] "convertRatesArray() Converting new C bar.");
+      // logDebug(""convertRatesArray() Converting new C bar.");
       return convertCurrentCBar(pParams, tzOffsets, pCRatesInfo, pCRates, ratesIndex);
     }
   }
@@ -542,7 +543,7 @@ AsirikuyReturnCode convertRatesArraysC(
 
     if((int)pCRatesInfo[i].ratesArraySize < (int)(pCRatesInfo[i].totalBarsRequired * WEEKEND_BAR_MULTIPLIER * pCRatesInfo[i].requiredTimeframe / pCRatesInfo[i].actualTimeframe))
     {
-      fprintf(stderr, "[ERROR] convertRatesArrays() failed. Not enough rates data. C rates index = %d, array size = %d, required = %d\n\n", i, (int)pCRatesInfo[i].ratesArraySize, (int)(pCRatesInfo[i].totalBarsRequired * WEEKEND_BAR_MULTIPLIER * pCRatesInfo[i].requiredTimeframe / pCRatesInfo[i].actualTimeframe));
+      logError("convertRatesArrays() failed. Not enough rates data. C rates index = %d, array size = %d, required = %d\n\n", i, (int)pCRatesInfo[i].ratesArraySize, (int)(pCRatesInfo[i].totalBarsRequired * WEEKEND_BAR_MULTIPLIER * pCRatesInfo[i].requiredTimeframe / pCRatesInfo[i].actualTimeframe));
       return NOT_ENOUGH_RATES_DATA;
     }
 
@@ -706,6 +707,10 @@ void copyBidAskC(BidAsk* pBidAsk, double* pCBidAsk)
 */
 void copyAccountInfoC(AccountInfo* pInfo, char* pAccountCurrency, char* pBrokerName, char* pReferenceName, double* pCAccountInfo)
 {
+  // Debug: Log what we're receiving
+  logDebug("copyAccountInfoC() pBrokerName = '%s' (length=%zu)", pBrokerName ? pBrokerName : "(NULL)", pBrokerName ? strlen(pBrokerName) : 0);
+  logDebug("copyAccountInfoC() pReferenceName = '%s' (length=%zu)", pReferenceName ? pReferenceName : "(NULL)", pReferenceName ? strlen(pReferenceName) : 0);
+  
   pInfo->brokerName                = pBrokerName;
   pInfo->referenceName             = pReferenceName;
   pInfo->currency                  = pAccountCurrency;
@@ -802,109 +807,109 @@ AsirikuyReturnCode convertCParameters(
 
   if(pCSettings == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCSettings = NULL");
+    logCritical("convertCParameters() failed. pCSettings = NULL");
     return NULL_POINTER;
   }
 
   if(pCTradeSymbol == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCTradeSymbol = NULL");
+    logCritical("convertCParameters() failed. pCTradeSymbol = NULL");
     return NULL_POINTER;
   }
 
   if(pCAccountCurrency == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCAccountCurrency = NULL");
+    logCritical("convertCParameters() failed. pCAccountCurrency = NULL");
     return NULL_POINTER;
   }
 
   if(pCBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCBrokerName = NULL");
+    logCritical("convertCParameters() failed. pCBrokerName = NULL");
     return NULL_POINTER;
   }
 
   if(pCRefBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCRefBrokerName = NULL");
+    logCritical("convertCParameters() failed. pCRefBrokerName = NULL");
     return NULL_POINTER;
   }
 
   if(pCCurrentBrokerTime == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCCurrentBrokerTime = NULL");
+    logCritical("convertCParameters() failed. pCCurrentBrokerTime = NULL");
     return NULL_POINTER;
   }
 
   if(pCOpenOrdersCount == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCOpenOrdersCount = NULL");
+    logCritical("convertCParameters() failed. pCOpenOrdersCount = NULL");
     return NULL_POINTER;
   }
 
   if(pCOrderInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCOrderInfo = NULL");
+    logCritical("convertCParameters() failed. pCOrderInfo = NULL");
     return NULL_POINTER;
   }
 
   if(pCAccountInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCAccountInfo = NULL");
+    logCritical("convertCParameters() failed. pCAccountInfo = NULL");
     return NULL_POINTER;
   }
 
   if(pCBidAsk == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCBidAsk = NULL");
+    logCritical("convertCParameters() failed. pCBidAsk = NULL");
     return NULL_POINTER;
   }
 
   if(pCRatesInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCRatesInfo = NULL");
+    logCritical("convertCParameters() failed. pCRatesInfo = NULL");
     return NULL_POINTER;
   }
 
   if(pCRates_0 == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCRates_0 = NULL");
+    logCritical("convertCParameters() failed. pCRates_0 = NULL");
     return NULL_POINTER;
   }
 
   if(pCResults == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCResults = NULL");
+    logCritical("convertCParameters() failed. pCResults = NULL");
     return NULL_POINTER;
   }
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pParams = NULL");
+    logCritical("convertCParameters() failed. pParams = NULL");
     return NULL_POINTER;
   }
 
   if(pCTradeSymbol == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCTradeSymbol->string = NULL");
+    logCritical("convertCParameters() failed. pCTradeSymbol->string = NULL");
     return NULL_POINTER;
   }
 
   if(pCAccountCurrency == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCAccountCurrency->string = NULL");
+    logCritical("convertCParameters() failed. pCAccountCurrency->string = NULL");
     return NULL_POINTER;
   }
 
   if(pCBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCBrokerName->string = NULL");
+    logCritical("convertCParameters() failed. pCBrokerName->string = NULL");
     return NULL_POINTER;
   }
 
   if(pCRefBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertCParameters() failed. pCRefBrokerName->string = NULL");
+    logCritical("convertCParameters() failed. pCRefBrokerName->string = NULL");
     return NULL_POINTER;
   }
 
@@ -934,7 +939,7 @@ AsirikuyReturnCode allocateOrderInfoC(StrategyParams* pParams, int orderInfoArra
 {
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] allocateOrderInfo() failed. pParams = NULL");
+    logCritical("allocateOrderInfo() failed. pParams = NULL");
     return NULL_POINTER;
   }
 
@@ -947,7 +952,7 @@ AsirikuyReturnCode freeOrderInfoC(StrategyParams* pParams)
 {
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] freeOrderInfo() failed. pParams = NULL");
+    logCritical("freeOrderInfo() failed. pParams = NULL");
     return NULL_POINTER;
   }
 

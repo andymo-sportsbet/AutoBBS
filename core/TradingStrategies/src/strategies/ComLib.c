@@ -10,6 +10,7 @@
 #include "ComLib.h"
 #include "StrategyUserInterface.h"
 #include "InstanceStates.h"
+#include "AsirikuyLogger.h"
 #include <stdio.h>
 
 #define USE_INTERNAL_SL FALSE
@@ -168,14 +169,14 @@ void profitManagement_base(StrategyParams* pParams, Indicators* pIndicators, Bas
 
 	if (pIndicators->entrySignal != 0 && pIndicators->strategyRiskWithoutLockedProfit  < pIndicators->strategyMaxRisk)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, strategyRisk %lf�� strategyRiskWithoutLockedProfit %lf, skip this entry signal=%d",
+		logWarning("System InstanceID = %d, BarTime = %s, strategyRisk %lf�� strategyRiskWithoutLockedProfit %lf, skip this entry signal=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->strategyMaxRisk, pIndicators->strategyRiskWithoutLockedProfit, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
 
 	if (pIndicators->riskPNL <  pIndicators->limitRiskPNL && pIndicators->entrySignal != 0)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, PNL riks %lf��riskPNLWithoutLockedProfit %lf, skip this entry signal=%d",
+		logWarning("System InstanceID = %d, BarTime = %s, PNL riks %lf��riskPNLWithoutLockedProfit %lf, skip this entry signal=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->riskPNL, pIndicators->riskPNLWithoutLockedProfit, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -208,7 +209,7 @@ void profitManagementWeekly(StrategyParams* pParams, Indicators* pIndicators, Ba
 		&& pParams->bidAsk.ask[0] > pBase_Indicators->weeklyR2
 		&& pIndicators->riskPNL > targetPNL)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, PNL riks %lf��riskPNLWithoutLockedProfit %lf",
+		logWarning("System InstanceID = %d, BarTime = %s, PNL riks %lf��riskPNLWithoutLockedProfit %lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->riskPNL, pIndicators->riskPNLWithoutLockedProfit);
 
 		closeWinningPositionsEasy(pIndicators->riskPNL, targetPNL);
@@ -217,7 +218,7 @@ void profitManagementWeekly(StrategyParams* pParams, Indicators* pIndicators, Ba
 		&& pParams->bidAsk.bid[0] < pBase_Indicators->weeklyS2
 		&& pIndicators->riskPNL > targetPNL)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, PNL riks %lf��riskPNLWithoutLockedProfit %lf",
+		logWarning("System InstanceID = %d, BarTime = %s, PNL riks %lf��riskPNLWithoutLockedProfit %lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->riskPNL, pIndicators->riskPNLWithoutLockedProfit);
 		closeWinningPositionsEasy(pIndicators->riskPNL, targetPNL);
 	}
@@ -244,7 +245,7 @@ void profitManagement(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 
 	if (noTPOrderDaysNumber >= 4 && pIndicators->entrySignal != 0)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, SamePricePendingNoTPOrdersDays %d, skip this entry signal=%d",
+		logWarning("System InstanceID = %d, BarTime = %s, SamePricePendingNoTPOrdersDays %d, skip this entry signal=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, noTPOrderDaysNumber, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -254,7 +255,7 @@ void profitManagement(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 	{
 		if (pIndicators->entrySignal != 0)
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, over dailyR3 skip this entry signal=%d",
+			logWarning("System InstanceID = %d, BarTime = %s, over dailyR3 skip this entry signal=%d",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entrySignal);
 			pIndicators->entrySignal = 0;
 		}
@@ -265,7 +266,7 @@ void profitManagement(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 	{
 		if (pIndicators->entrySignal != 0)
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, under dailyS3 skip this entry signal=%d",
+			logWarning("System InstanceID = %d, BarTime = %s, under dailyS3 skip this entry signal=%d",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entrySignal);
 			pIndicators->entrySignal = 0;
 		}
@@ -281,7 +282,7 @@ void profitManagement(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 		//pIndicators->tradeMode = 0;
 		if (pIndicators->entrySignal != 0)
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, over weeklyR2 skip this entry signal=%d",
+			logWarning("System InstanceID = %d, BarTime = %s, over weeklyR2 skip this entry signal=%d",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entrySignal);
 			pIndicators->entrySignal = 0;
 		}
@@ -293,7 +294,7 @@ void profitManagement(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 		//pIndicators->tradeMode = 0;
 		if (pIndicators->entrySignal != 0)
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, under weeklyS2 skip this entry signal=%d",
+			logWarning("System InstanceID = %d, BarTime = %s, under weeklyS2 skip this entry signal=%d",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entrySignal);
 			pIndicators->entrySignal = 0;
 		}
@@ -319,7 +320,7 @@ void profitManagement(StrategyParams* pParams, Indicators* pIndicators, Base_Ind
 	//pIndicators->strategyMaxDD = pIndicators->riskPNL - pIndicators->strategyRisk;
 	//if (pIndicators->strategyMaxDD > parameter(AUTOBBS_MAX_STRATEGY_RISK) * 3)
 	//{
-	//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, Max DD %lf",
+	//	logWarning("System InstanceID = %d, BarTime = %s, Max DD %lf",
 	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->strategyMaxDD);
 
 	//	closeWinningPositionsEasy(pIndicators->riskPNL, pIndicators->riskPNL);
@@ -334,13 +335,13 @@ AsirikuyReturnCode handleTradeExits(StrategyParams* pParams, Indicators* pIndica
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeExits() failed. pParams = NULL\n\n");
+		logCritical("handleTradeExits() failed. pParams = NULL\n\n");
 		return NULL_POINTER;
 	}
 
 	if (pIndicators == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeExits() failed. pIndicators = NULL\n\n");
+		logCritical("handleTradeExits() failed. pIndicators = NULL\n\n");
 		return NULL_POINTER;
 	}
 
@@ -416,7 +417,7 @@ void traceLatestOpenStopLoss(StrategyParams* pParams, Indicators* pIndicators, B
 					//ƽ����
 					stopLoss = pParams->bidAsk.ask[0] - pParams->orderInfo[0].openPrice;
 
-					fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, starting tracing SL for trend orders. dailyTrend_Phase =%ld,floating profit = %lf,takePrice=%lf,stopLoss=%lf",
+					logWarning("System InstanceID = %d, BarTime = %s, starting tracing SL for trend orders. dailyTrend_Phase =%ld,floating profit = %lf,takePrice=%lf,stopLoss=%lf",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->dailyTrend_Phase, high - pParams->bidAsk.ask[0], takePrice, stopLoss);
 
 					if (takePrice > 0 && stopLoss> 0)
@@ -434,7 +435,7 @@ void traceLatestOpenStopLoss(StrategyParams* pParams, Indicators* pIndicators, B
 					//ƽ����
 					stopLoss = pParams->orderInfo[0].openPrice - pParams->bidAsk.bid[0];
 
-					fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, starting tracing SL for trend orders. dailyTrend_Phase =%ld,floating profit = %lf,takePrice=%lf,stopLoss=%lf",
+					logWarning("System InstanceID = %d, BarTime = %s, starting tracing SL for trend orders. dailyTrend_Phase =%ld,floating profit = %lf,takePrice=%lf,stopLoss=%lf",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->dailyTrend_Phase, pParams->bidAsk.bid[0] - low, takePrice, stopLoss);
 
 					if (takePrice > 0 && stopLoss> 0)
@@ -592,7 +593,7 @@ int weeklyTrend4HSwingSignal(StrategyParams* pParams, Indicators* pIndicators, B
 	if (pIndicators->atr_euro_range == 0)
 		pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;
 
-	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, high_4H %lf�� low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+	logWarning("System InstanceID = %d, BarTime = %s, high_4H %lf�� low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
@@ -631,7 +632,7 @@ AsirikuyReturnCode modifyOrders(StrategyParams* pParams, Indicators* pIndicators
 	{
 		takePrice = pIndicators->takePrice;
 
-		fprintf(stderr, "[INFO] ModifyOrders: takePrice = %lf,takePrice=%lf\n", takePrice, pIndicators->takePrice);
+		logInfo("ModifyOrders: takePrice = %lf,takePrice=%lf\n", takePrice, pIndicators->takePrice);
 
 	}
 	

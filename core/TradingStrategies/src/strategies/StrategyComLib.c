@@ -7,6 +7,7 @@
 #include "StrategyUserInterface.h"
 #include "AsirikuyTime.h"
 #include "InstanceStates.h"
+#include "AsirikuyLogger.h"
 
 #define USE_INTERNAL_SL FALSE
 #define USE_INTERNAL_TP FALSEF
@@ -208,17 +209,17 @@ AsirikuyReturnCode runXAUUSD(StrategyParams *pParams)
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] runAutoBBS() failed. pParams = NULL\n\n\n");
+		logCritical("runAutoBBS() failed. pParams = NULL\n\n\n");
 		return NULL_POINTER;
 	}
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
 	if (strcmp(timeString, "19/07/17 11:00") == 0)
-		fprintf(stderr, "[INFO] hit a point\n\n\n");
+		logInfo("hit a point");
 
 	if (strcmp(timeString, "29/09/17 16:30") == 0)
-		fprintf(stderr, "[INFO] hit a point\n\n\n");
+		logInfo("hit a point");
 
 	if ((int)parameter(AUTOBBS_TREND_MODE) == 10) // Weekly Auto
 		base_Indicators.weeklyMAMode = 0;
@@ -246,7 +247,7 @@ AsirikuyReturnCode runXAUUSD(StrategyParams *pParams)
 
 	if ((int)parameter(AUTOBBS_MACRO_TREND) * (int)parameter(AUTOBBS_ONE_SIDE) < 0)
 	{
-		fprintf(stderr, "[ERROR] Invalid paramenter config: System InstanceID = %d, BarTime = %s, AUTOBBS_MACRO_TREND= %d, AUTOBBS_ONE_SIDE=%d\n\n\n",
+		logError("Invalid paramenter config: System InstanceID = %d, BarTime = %s, AUTOBBS_MACRO_TREND= %d, AUTOBBS_ONE_SIDE=%d\n\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, (int)parameter(AUTOBBS_MACRO_TREND), (int)parameter(AUTOBBS_ONE_SIDE));
 		return INVALID_CONFIG;
 	}
@@ -258,13 +259,13 @@ AsirikuyReturnCode runXAUUSD(StrategyParams *pParams)
 
 	setUIValues(pParams, &indicators, &base_Indicators);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_primary=%ld,BBStopPrice_primary=%lf, BBSIndex_primary = %ld\n\n",
+	logInfo("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_primary=%ld,BBStopPrice_primary=%lf, BBSIndex_primary = %ld\n\n",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_primary, indicators.bbsStopPrice_primary, indicators.bbsIndex_primary);
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,bbsTrend_secondary=%ld,BBStopPrice_secondary=%lf, bbsIndex_secondary = %ld\n\n\n",
+	logInfo("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,bbsTrend_secondary=%ld,BBStopPrice_secondary=%lf, bbsIndex_secondary = %ld\n\n\n",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_secondary, indicators.bbsStopPrice_secondary, indicators.bbsIndex_secondary);
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_1H=%ld,BBStopPrice_1H=%lf, BBSIndex_1H = %ld\n\n\n",
+	logInfo("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_1H=%ld,BBStopPrice_1H=%lf, BBSIndex_1H = %ld\n\n\n",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_1H, indicators.bbsStopPrice_1H, indicators.bbsIndex_1H);
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_4H=%ld,BBStopPrice_4H=%lf, BBSIndex_4H = %ld\n\n\n",
+	logInfo("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_4H=%ld,BBStopPrice_4H=%lf, BBSIndex_4H = %ld\n\n\n",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_4H, indicators.bbsStopPrice_4H, indicators.bbsIndex_4H);
 
 	returnCode = handleTradeExits(pParams, &indicators);
@@ -408,14 +409,14 @@ static void profitManagement_base(StrategyParams *pParams, Indicators *pIndicato
 
 	if (pIndicators->entrySignal != 0 && pIndicators->strategyRiskWithoutLockedProfit < pIndicators->strategyMaxRisk)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, strategyRisk %lf, strategyRiskWithoutLockedProfit %lf, skip this entry signal=%d\n\n\n",
+		logWarning("System InstanceID = %d, BarTime = %s, strategyRisk %lf, strategyRiskWithoutLockedProfit %lf, skip this entry signal=%d\n\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->strategyRisk, pIndicators->strategyRiskWithoutLockedProfit, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
 
 	if (pIndicators->riskPNL < pIndicators->limitRiskPNL && pIndicators->entrySignal != 0)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, PNL riks %lf, riskPNLWithoutLockedProfit %lf, skip this entry signal=%d\n\n",
+		logWarning("System InstanceID = %d, BarTime = %s, PNL riks %lf, riskPNLWithoutLockedProfit %lf, skip this entry signal=%d\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->riskPNL, pIndicators->riskPNLWithoutLockedProfit, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -438,7 +439,7 @@ static void profitManagement(StrategyParams *pParams, Indicators *pIndicators, B
 
 	if (noTPOrderDaysNumber >= 4 && pIndicators->entrySignal != 0)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, SamePricePendingNoTPOrdersDays %d, skip this entry signal=%d\n\n\n",
+		logWarning("System InstanceID = %d, BarTime = %s, SamePricePendingNoTPOrdersDays %d, skip this entry signal=%d\n\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, noTPOrderDaysNumber, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -1160,13 +1161,13 @@ static AsirikuyReturnCode handleTradeEntries(StrategyParams *pParams, Indicators
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeEntries() failed. pParams = NULL\n\n\n");
+		logCritical("handleTradeEntries() failed. pParams = NULL");
 		return NULL_POINTER;
 	}
 
 	if (pIndicators == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeEntries() failed. pIndicators = NULL\n\n\n");
+		logCritical("handleTradeEntries() failed. pIndicators = NULL");
 		return NULL_POINTER;
 	}
 
@@ -1223,13 +1224,13 @@ static AsirikuyReturnCode handleTradeExits(StrategyParams *pParams, Indicators *
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeExits() failed. pParams = NULL\n\n");
+		logCritical("handleTradeExits() failed. pParams = NULL\n\n");
 		return NULL_POINTER;
 	}
 
 	if (pIndicators == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeExits() failed. pIndicators = NULL\n\n");
+		logCritical("handleTradeExits() failed. pIndicators = NULL\n\n");
 		return NULL_POINTER;
 	}
 
@@ -1303,7 +1304,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicat
 
 	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && pParams->accountInfo.totalOpenTradeRiskPercent < parameter(AUTOBBS_MAX_ACCOUNT_RISK) * -1) // if account risk is more than 3%, stop entring trades.
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, Over max riks %lf, skip this entry signal=%d\n\n",
+		logWarning("System InstanceID = %d, BarTime = %s, Over max riks %lf, skip this entry signal=%d\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, parameter(AUTOBBS_MAX_ACCOUNT_RISK), pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -1311,7 +1312,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicat
 	// Filter out macro trend
 	if (pIndicators->side != 0 && pIndicators->entrySignal != 0 && pIndicators->side != pIndicators->entrySignal)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s,Againt Side =%ld, skip this entry signal=%d\n\n",
+		logWarning("System InstanceID = %d, BarTime = %s,Againt Side =%ld, skip this entry signal=%d\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->side, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -1550,7 +1551,7 @@ static void XAUUSD_Daily_Stop_Check(StrategyParams * pParams, Indicators * pIndi
 				pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
 				if (pIndicators->lossTimes > 0 && pIndicators->winTimes == 0)
 				{
-					fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, lossTimes = %ld,winTimes = %ld,orderType=%ld, bbsTrend_secondary=%ld\n\n",
+					logWarning("System InstanceID = %d, BarTime = %s, lossTimes = %ld,winTimes = %ld,orderType=%ld, bbsTrend_secondary=%ld\n\n",
 										(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->lossTimes, pIndicators->winTimes, pParams->orderInfo[0].type, pIndicators->bbsTrend_secondary);
 					pIndicators->exitSignal = EXIT_BUY;
 				}
@@ -1561,7 +1562,7 @@ static void XAUUSD_Daily_Stop_Check(StrategyParams * pParams, Indicators * pIndi
 				pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
 				if (pIndicators->lossTimes > 0 && pIndicators->winTimes == 0)
 				{
-					fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, lossTimes = %ld,winTimes = %ld,orderType=%ld, bbsTrend_secondary=%ld\n\n",
+					logWarning("System InstanceID = %d, BarTime = %s, lossTimes = %ld,winTimes = %ld,orderType=%ld, bbsTrend_secondary=%ld\n\n",
 										(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->lossTimes, pIndicators->winTimes, pParams->orderInfo[0].type, pIndicators->bbsTrend_secondary);
 					pIndicators->exitSignal = EXIT_SELL;
 				}
@@ -2658,17 +2659,17 @@ intradayLow = min(close_prev1, intradayLow);
 intradayHigh = max(close_prev1, intradayHigh);
 ATR0 = fabs(intradayHigh - intradayLow);
 
-fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ATR0 = %lf,IntraDaily High = %lf, Low=%lf, Close=%lf\n\n",
+logInfo("System InstanceID = %d, BarTime = %s, ATR0 = %lf,IntraDaily High = %lf, Low=%lf, Close=%lf\n\n",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, intradayHigh, intradayLow, intradayClose);
 
-fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf, asia_close=%lf\n\n",
+logInfo("System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf, asia_close=%lf\n\n",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low, pIndicators->asia_close);
 
 if (timeInfo1.tm_hour >= 17)
 {
 	ATR0_EURO = fabs(pIndicators->euro_high - pIndicators->euro_low);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ATR0_EURO =%lf,euro_high = %lf,euro_low = %lf, euro_close=%lf\n\n",
+	logInfo("System InstanceID = %d, BarTime = %s, ATR0_EURO =%lf,euro_high = %lf,euro_low = %lf, euro_close=%lf\n\n",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0_EURO, pIndicators->euro_high, pIndicators->euro_low, pIndicators->euro_close);
 }
 
@@ -2725,7 +2726,7 @@ else
 	side = getLastestOrderTypeEasy(B_PRIMARY_RATES, &openOrderHigh, &openOrderLow, &isOpen);
 	if (side == SELL)
 	{
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, Side = SELL isOpen=%ld, ATR0 = %lf,openOrderHigh = %lf,openOrderLow = %lf\n\n",
+		logInfo("System InstanceID = %d, BarTime = %s, Side = SELL isOpen=%ld, ATR0 = %lf,openOrderHigh = %lf,openOrderLow = %lf\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, isOpen, ATR0, openOrderHigh, openOrderLow);
 
 		// [Comment removed - encoding corrupted]
@@ -2753,7 +2754,7 @@ else
 				{
 					XAUUSD_DayTrading_Entry(pParams, pIndicators, pBase_Indicators, BUY, ATR0_EURO, stopLoss, Range);
 					if (pIndicators->entrySignal != 0)
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, Enter a sell trade again.\n\n",
+						logWarning("System InstanceID = %d, BarTime = %s, Enter a sell trade again.\n\n",
 											(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 				}
 			}
@@ -2762,7 +2763,7 @@ else
 
 	if (side == BUY)
 	{
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, Side = BUY isOpen=%ld, ATR0 = %lf,openOrderHigh = %lf,openOrderLow = %lf\n\n",
+		logInfo("System InstanceID = %d, BarTime = %s, Side = BUY isOpen=%ld, ATR0 = %lf,openOrderHigh = %lf,openOrderLow = %lf\n\n",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, isOpen, ATR0, openOrderHigh, openOrderLow);
 
 		if (ATR0 >= Range &&
@@ -2784,7 +2785,7 @@ else
 				{
 					XAUUSD_DayTrading_Entry(pParams, pIndicators, pBase_Indicators, SELL, ATR0_EURO, stopLoss, Range);
 					if (pIndicators->entrySignal != 0)
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, Enter a buy trade again.\n\n",
+						logWarning("System InstanceID = %d, BarTime = %s, Enter a buy trade again.\n\n",
 											(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 				}
 			}
@@ -2801,7 +2802,7 @@ else
 		{
 			if ((pIndicators->bbsTrend_secondary == -1 && side == BUY) || (pIndicators->bbsTrend_secondary == 1 && side == SELL))
 			{
-				fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, Exiting a trade on after 21H side = %ld.\n\n",
+				logWarning("System InstanceID = %d, BarTime = %s, Exiting a trade on after 21H side = %ld.\n\n",
 									(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, side);
 
 				pIndicators->exitSignal = EXIT_ALL;
@@ -2820,7 +2821,7 @@ if (pIndicators->entrySignal != 0)
 		((pBase_Indicators->maTrend > 0 && MATrend_1H < 0) || (pBase_Indicators->maTrend < 0 && MATrend_1H > 0)))
 	{
 		noNewTradeSignal = 1;
-                fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, 15M Trend = %ld, 1H Trend = %ld,noNewTradeSignal=%ld\n\n\n",
+                logInfo("System InstanceID = %d, BarTime = %s, 15M Trend = %ld, 1H Trend = %ld,noNewTradeSignal=%ld\n\n\n",
                                                         (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->maTrend, MATrend_1H, noNewTradeSignal);
 		pIndicators->entrySignal = 0;
 	}

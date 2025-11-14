@@ -35,6 +35,7 @@
 */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "AsirikuyDefines.h"
 #include "AsirikuyFrameworkAPI.h"
 #include "MQLParameters.h"
@@ -71,79 +72,79 @@ static AsirikuyReturnCode verifyPointers(
 {
   if(pInSettings == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInSettings = NULL\n");
+    logCritical("verifyPointers() failed. pInSettings = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInTradeSymbol == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInTradeSymbol = NULL\n");
+    logCritical("verifyPointers() failed. pInTradeSymbol = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInAccountCurrency == NULL)
   { 
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInAccountCurrency = NULL\n");
+    logCritical("verifyPointers() failed. pInAccountCurrency = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInBrokerName = NULL\n");
+    logCritical("verifyPointers() failed. pInBrokerName = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInRefBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInRefBrokerName = NULL\n");
+    logCritical("verifyPointers() failed. pInRefBrokerName = NULL\n");
     return NULL_POINTER;
   }
   
   if(pInCurrentBrokerTime == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInCurrentBrokerTime = NULL\n");
+    logCritical("verifyPointers() failed. pInCurrentBrokerTime = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInOpenOrdersCount == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInOpenOrdersCount = NULL\n");
+    logCritical("verifyPointers() failed. pInOpenOrdersCount = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInOrderInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInOrderInfo = NULL\n");
+    logCritical("verifyPointers() failed. pInOrderInfo = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInAccountInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInAccountInfo = NULL\n");
+    logCritical("verifyPointers() failed. pInAccountInfo = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInBidAsk == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInBidAsk = NULL\n");
+    logCritical("verifyPointers() failed. pInBidAsk = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInRatesInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInRatesInfo = NULL\n");
+    logCritical("verifyPointers() failed. pInRatesInfo = NULL\n");
     return NULL_POINTER;
   }
 
   if(pInRates_0 == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInRates_0 = NULL\n");
+    logCritical("verifyPointers() failed. pInRates_0 = NULL\n");
     return NULL_POINTER;
   }
   
   if(pOutResults == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pOutResults = NULL\n");
+    logCritical("verifyPointers() failed. pOutResults = NULL\n");
     return NULL_POINTER;
   }
 

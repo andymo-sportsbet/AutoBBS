@@ -37,6 +37,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "AsirikuyDefines.h"
 #include "AsirikuyFrameworkAPI.h"
 #include "CTesterParameters.h"
@@ -71,22 +72,22 @@ static AsirikuyReturnCode verifyPointers(
 {
   if(pInTradeSymbol == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInTradeSymbol = NULL\n");
+    logCritical("verifyPointers() failed. pInTradeSymbol = NULL\n");
     return NULL_POINTER;
   }
   if(pInAccountCurrency == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInAccountCurrency = NULL\n");
+    logCritical("verifyPointers() failed. pInAccountCurrency = NULL\n");
     return NULL_POINTER;
   }
   if(pInBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInBrokerName = NULL\n");
+    logCritical("verifyPointers() failed. pInBrokerName = NULL\n");
     return NULL_POINTER;
   }
   if(pInRefBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] verifyPointers() failed. pInRefBrokerName = NULL\n");
+    logCritical("verifyPointers() failed. pInRefBrokerName = NULL\n");
     return NULL_POINTER;
   }
 

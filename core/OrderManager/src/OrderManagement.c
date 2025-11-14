@@ -39,6 +39,7 @@
 #include <math.h>
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "OrderManagement.h"
 #include "OrderSignals.h"
 #include "SymbolAnalyzer.h"
@@ -155,7 +156,7 @@ double maxLossPerLot(const StrategyParams* pParams, OrderType orderType, double 
   /* If the quote symbol's base matches the deposit currency (like a USD account trading the USDJPY pair) then we multiply for 1/quoteSymbol.*/
   if((strcmp(pParams->accountInfo.currency, baseConversionCurrency) == 0))
   {
-	fprintf(stderr, "[DEBUG] conversionRateBid= %lf, conversionRateAsk = %lf", conversionRateBid,conversionRateAsk);
+	logDebug("conversionRateBid= %lf, conversionRateAsk = %lf", conversionRateBid,conversionRateAsk);
 	if (conversionRateAsk <= 0) // something wrong on MT4 feed
 		conversionRateAsk = pParams->bidAsk.ask[0];	
 	return(lossInQuoteCurrency / conversionRateAsk);
@@ -170,7 +171,7 @@ double maxLossPerLot(const StrategyParams* pParams, OrderType orderType, double 
     return(lossInQuoteCurrency * conversionRateBid);
   }
 
-  fprintf(stderr, "[ERROR] maxLossPerLot() failed. Order size calculation will not be accurate. Account currency = %s, Trade symbol = %s.", pParams->accountInfo.currency, pParams->tradeSymbol);
+  logError("maxLossPerLot() failed. Order size calculation will not be accurate. Account currency = %s, Trade symbol = %s.", pParams->accountInfo.currency, pParams->tradeSymbol);
   return lossInQuoteCurrency;
 }
 
@@ -191,7 +192,7 @@ double calculateOrderSizeWithSpecificRisk(const StrategyParams* pParams, OrderTy
 	orderSize = 0.01 * risk * equity / mLP;
 	orderSize = max(0.01, orderSize);
 
-	fprintf(stderr, "[INFO] Risk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, orderSize);
+	logInfo("Risk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, orderSize);
 	return orderSize;
 
 }
@@ -214,7 +215,7 @@ double calculateOrderSize(const StrategyParams* pParams, OrderType orderType, do
   orderSize = 0.01 * pParams->settings[ACCOUNT_RISK_PERCENT] * equity / mLP;
   orderSize = max(0.01, orderSize);
     
-  fprintf(stderr, "[WARNING] Risk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", pParams->settings[ACCOUNT_RISK_PERCENT], equity, mLP, orderSize);
+  logWarning("Risk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", pParams->settings[ACCOUNT_RISK_PERCENT], equity, mLP, orderSize);
   return orderSize;
 
 }
@@ -279,7 +280,7 @@ static double calculateMarginRequired(const StrategyParams* pParams, OrderType o
     return(lotSize * conversionBid * pParams->accountInfo.contractSize / pParams->accountInfo.leverage);
   }
 
-  fprintf(stderr, "[ERROR] accurateMarginRequired() failed. Margin protection is not active. Account currency = %s, Trade symbol = %s.", pParams->accountInfo.currency, pParams->tradeSymbol);
+  logError("accurateMarginRequired() failed. Margin protection is not active. Account currency = %s, Trade symbol = %s.", pParams->accountInfo.currency, pParams->tradeSymbol);
   return 0;
 }
 
@@ -325,14 +326,14 @@ AsirikuyReturnCode checkInternalSL(StrategyParams* pParams, int ratesIndex, int 
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] checkInternalSL() failed. pParams = NULL\n");
+    logCritical("checkInternalSL() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
   tradingSignals = (int)pParams->results[resultsIndex].tradingSignals;
   if(hasEntrySignal(tradingSignals) || hasUpdateSignal(tradingSignals))
   {
-    fprintf(stderr, "[WARNING] checkInternalSL() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+    logWarning("checkInternalSL() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
   }
 
   shift0Index  = pParams->ratesBuffers->rates[ratesIndex].info.arraySize - 1;
@@ -348,7 +349,7 @@ AsirikuyReturnCode checkInternalSL(StrategyParams* pParams, int ratesIndex, int 
     if(pParams->orderInfo[i].stopLoss == 0)
     {
       safe_timeString(timeString, pParams->ratesBuffers->rates[ratesIndex].time[shift0Index]);
-      fprintf(stderr, "[WARNING] checkInternalSL() Broker SL = 0. The internal SL cannot be calculated. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+      logWarning("checkInternalSL() Broker SL = 0. The internal SL cannot be calculated. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
       continue;
     }
 
@@ -358,7 +359,7 @@ AsirikuyReturnCode checkInternalSL(StrategyParams* pParams, int ratesIndex, int 
       if((internalTradeOpenPrice - currentPrice) >= internalSL)
       {
         safe_timeString(timeString, pParams->ratesBuffers->rates[ratesIndex].time[shift0Index]);
-        fprintf(stderr, "[INFO] TradeSignal(Internal SL): Close BUY. InstanceID = %d, BarTime = %s, InternalTradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, internalTradeOpenPrice, currentPrice, internalSL);
+        logInfo("TradeSignal(Internal SL): Close BUY. InstanceID = %d, BarTime = %s, InternalTradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, internalTradeOpenPrice, currentPrice, internalSL);
         addTradingSignal(SIGNAL_CLOSE_BUY, &tradingSignals);
       }
     }
@@ -368,7 +369,7 @@ AsirikuyReturnCode checkInternalSL(StrategyParams* pParams, int ratesIndex, int 
       if((currentPrice - internalTradeOpenPrice) >= internalSL)
       {
         safe_timeString(timeString, pParams->ratesBuffers->rates[ratesIndex].time[shift0Index]);
-        fprintf(stderr, "[INFO] TradeSignal(Internal SL): Close SELL. InstanceID = %d, BarTime = %s, InternalTradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, internalTradeOpenPrice, currentPrice, internalSL);
+        logInfo("TradeSignal(Internal SL): Close SELL. InstanceID = %d, BarTime = %s, InternalTradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, internalTradeOpenPrice, currentPrice, internalSL);
         addTradingSignal(SIGNAL_CLOSE_SELL, &tradingSignals);
       }
     }
@@ -387,14 +388,14 @@ AsirikuyReturnCode checkInternalTP(StrategyParams* pParams, int ratesIndex, int 
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] checkInternalTP() failed. pParams = NULL\n");
+    logCritical("checkInternalTP() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
   tradingSignals = (int)pParams->results[resultsIndex].tradingSignals;
   if(hasEntrySignal(tradingSignals) || hasUpdateSignal(tradingSignals))
   {
-    fprintf(stderr, "[WARNING] checkInternalTP() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+    logWarning("checkInternalTP() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
   }
 
   shift0Index  = pParams->ratesBuffers->rates[ratesIndex].info.arraySize - 1;
@@ -410,7 +411,7 @@ AsirikuyReturnCode checkInternalTP(StrategyParams* pParams, int ratesIndex, int 
     if(pParams->orderInfo[i].takeProfit == 0)
     {
       safe_timeString(timeString, pParams->ratesBuffers->rates[ratesIndex].time[shift0Index]);
-      fprintf(stderr, "[WARNING] checkInternalTP() Broker TP = 0. The internal TP cannot be calculated. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+      logWarning("checkInternalTP() Broker TP = 0. The internal TP cannot be calculated. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
       continue;
     }
 
@@ -420,7 +421,7 @@ AsirikuyReturnCode checkInternalTP(StrategyParams* pParams, int ratesIndex, int 
       if((currentPrice - internalTradeOpenPrice) >= internalTP)
       {
         safe_timeString(timeString, pParams->ratesBuffers->rates[ratesIndex].time[shift0Index]);
-        fprintf(stderr, "[INFO] TradeSignal(Internal TP)   : Close BUY. InstanceID = %d, BarTime = %s, TradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pParams->orderInfo[i].openPrice, currentPrice, internalTP);
+        logInfo("TradeSignal(Internal TP)   : Close BUY. InstanceID = %d, BarTime = %s, TradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pParams->orderInfo[i].openPrice, currentPrice, internalTP);
         addTradingSignal(SIGNAL_CLOSE_BUY, &tradingSignals);
       }
     }
@@ -430,7 +431,7 @@ AsirikuyReturnCode checkInternalTP(StrategyParams* pParams, int ratesIndex, int 
       if((internalTradeOpenPrice - currentPrice) >= internalTP)
       {
         safe_timeString(timeString, pParams->ratesBuffers->rates[ratesIndex].time[shift0Index]);
-        fprintf(stderr, "[INFO] TradeSignal(Internal TP)   : Close SELL. InstanceID = %d, BarTime = %s, TradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pParams->orderInfo[i].openPrice, currentPrice, internalTP);
+        logInfo("TradeSignal(Internal TP)   : Close SELL. InstanceID = %d, BarTime = %s, TradeOpenPrice = %lf, CurrentBarOpenPrice = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pParams->orderInfo[i].openPrice, currentPrice, internalTP);
         addTradingSignal(SIGNAL_CLOSE_SELL, &tradingSignals);
       }
     }
@@ -451,7 +452,7 @@ AsirikuyReturnCode checkTimedExit(StrategyParams* pParams, int ratesIndex, int r
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] checkTimedExit() failed. pParams = NULL\n");
+    logCritical("checkTimedExit() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -460,7 +461,7 @@ AsirikuyReturnCode checkTimedExit(StrategyParams* pParams, int ratesIndex, int r
   
   if(hasEntrySignal(tradingSignals) || hasUpdateSignal(tradingSignals))
   {
-    fprintf(stderr, "[WARNING] checkTimedExit() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+    logWarning("checkTimedExit() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
   }
 
   for(i = 0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
@@ -486,13 +487,13 @@ AsirikuyReturnCode checkTimedExit(StrategyParams* pParams, int ratesIndex, int r
       if(pParams->orderInfo[i].type == BUY)
       {
         safe_timeString(timeString, virtualOrderEntryTime);
-        fprintf(stderr, "[INFO] TradeSignal(Timed exit)    : Close BUY. InstanceID = %d, virtual order entry time = %s", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+        logInfo("TradeSignal(Timed exit)    : Close BUY. InstanceID = %d, virtual order entry time = %s", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
         addTradingSignal(SIGNAL_CLOSE_BUY, &tradingSignals);
       }
       else if(pParams->orderInfo[i].type == SELL)
       {
         safe_timeString(timeString, virtualOrderEntryTime);
-        fprintf(stderr, "[INFO] TradeSignal(Timed exit)    : Close SELL. InstanceID = %d, virtual order entry time = %s", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+        logInfo("TradeSignal(Timed exit)    : Close SELL. InstanceID = %d, virtual order entry time = %s", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
         addTradingSignal(SIGNAL_CLOSE_SELL, &tradingSignals);
       }
     }
@@ -508,17 +509,17 @@ AsirikuyReturnCode closeLongTrade(StrategyParams* pParams, int resultsIndex)
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] closeLongTrade() failed. pParams = NULL\n");
+    logCritical("closeLongTrade() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
   tradingSignals = (int)pParams->results[resultsIndex].tradingSignals;
   if(hasEntrySignal(tradingSignals) || hasUpdateSignal(tradingSignals))
   {
-    fprintf(stderr, "[WARNING] closeLongTrade() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+    logWarning("closeLongTrade() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
   }
 
-  fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close BUY. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+  logInfo("TradeSignal(Exit criteria) : Close BUY. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 	addTradingSignal(SIGNAL_CLOSE_BUY, &tradingSignals);
   pParams->results[resultsIndex].tradingSignals = tradingSignals;
 
@@ -531,17 +532,17 @@ AsirikuyReturnCode closeShortTrade(StrategyParams* pParams, int resultsIndex)
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] closeShortTrade() failed. pParams = NULL\n");
+    logCritical("closeShortTrade() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
   tradingSignals = (int)pParams->results[resultsIndex].tradingSignals;
   if(hasEntrySignal(tradingSignals) || hasUpdateSignal(tradingSignals))
   {
-    fprintf(stderr, "[WARNING] closeShortTrade() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+    logWarning("closeShortTrade() An entry or update signal already exists. This function should be called before generating entry or update signals. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
   }
 
-  fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close SELL. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+  logInfo("TradeSignal(Exit criteria) : Close SELL. InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 	addTradingSignal(SIGNAL_CLOSE_SELL, &tradingSignals);
   pParams->results[resultsIndex].tradingSignals = tradingSignals;
 
@@ -554,7 +555,7 @@ AsirikuyReturnCode setStops(StrategyParams* pParams, int ratesIndex, int results
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] setStops() failed. pParams = NULL\n");
+    logCritical("setStops() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -587,13 +588,13 @@ static AsirikuyReturnCode validateNewTrade(StrategyParams* pParams, BOOL* pIsNew
 {
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] validateNewTrade() failed. pParams = NULL\n");
+    logCritical("validateNewTrade() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
   if(pIsNewTradeAllowed == NULL)
   {
-    fprintf(stderr, "[CRITICAL] validateNewTrade() failed. pIsNewTradeAllowed = NULL\n");
+    logCritical("validateNewTrade() failed. pIsNewTradeAllowed = NULL\n");
     return NULL_POINTER;
   }
 
@@ -606,7 +607,7 @@ static AsirikuyReturnCode validateNewTrade(StrategyParams* pParams, BOOL* pIsNew
 
   /*if(pParams->accountInfo.largestDrawdownPercent >= pParams->settings[MAX_DRAWDOWN_PERCENT])
   {
-    fprintf(stderr, "[ERROR] validateNewTrade() Maximum drawdown exceeded. Drawdown = %lf%%, Maximum = %lf%%", pParams->accountInfo.largestDrawdownPercent, pParams->settings[MAX_DRAWDOWN_PERCENT]);
+    logError("validateNewTrade() Maximum drawdown exceeded. Drawdown = %lf%%, Maximum = %lf%%", pParams->accountInfo.largestDrawdownPercent, pParams->settings[MAX_DRAWDOWN_PERCENT]);
     return WORST_CASE_SCENARIO;
   }*/
 
@@ -619,7 +620,7 @@ static AsirikuyReturnCode validateNewTrade(StrategyParams* pParams, BOOL* pIsNew
 
   if((pParams->bidAsk.ask[0] - pParams->bidAsk.bid[0]) > pParams->settings[MAX_SPREAD])
   {
-    fprintf(stderr, "[ERROR] validateNewTrade() Maximum spread exceeded. Spread = %lf, Maximum = %lf", pParams->bidAsk.ask[0] - pParams->bidAsk.bid[0], pParams->settings[MAX_SPREAD]);
+    logError("validateNewTrade() Maximum spread exceeded. Spread = %lf, Maximum = %lf", pParams->bidAsk.ask[0] - pParams->bidAsk.bid[0], pParams->settings[MAX_SPREAD]);
     return SPREAD_TOO_WIDE;
   }
 
@@ -635,7 +636,7 @@ AsirikuyReturnCode openOrUpdateLongTrade(StrategyParams* pParams, int ratesIndex
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] openOrUpdateLongTrade() failed. pParams = NULL\n");
+    logCritical("openOrUpdateLongTrade() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -666,14 +667,14 @@ AsirikuyReturnCode openOrUpdateLongTrade(StrategyParams* pParams, int ratesIndex
 
   if(totalOpenOrders(pParams, BUY) == 0)
   {
-    fprintf(stderr, "[INFO] TradeSignal(Entry criteria): Close SELL & Open BUY. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
+    logInfo("TradeSignal(Entry criteria): Close SELL & Open BUY. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
     addTradingSignal(SIGNAL_OPEN_BUY, &tradingSignals);
 
 	setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[ratesIndex].time[pParams->ratesBuffers->rates[ratesIndex].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
   }
   else
   {
-    fprintf(stderr, "[INFO] TradeSignal(Entry criteria): Close SELL & Update BUY. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
+    logInfo("TradeSignal(Entry criteria): Close SELL & Update BUY. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
     addTradingSignal(SIGNAL_UPDATE_BUY, &tradingSignals);
   }
 
@@ -691,7 +692,7 @@ AsirikuyReturnCode openOrUpdateShortTrade(StrategyParams* pParams, int ratesInde
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] openOrUpdateShortTrade() failed. pParams = NULL\n");
+    logCritical("openOrUpdateShortTrade() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -722,7 +723,7 @@ AsirikuyReturnCode openOrUpdateShortTrade(StrategyParams* pParams, int ratesInde
 
   if(totalOpenOrders(pParams, SELL) == 0)
   {
-    fprintf(stderr, "[INFO] TradeSignal(Entry criteria): Close BUY & Open SELL. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
+    logInfo("TradeSignal(Entry criteria): Close BUY & Open SELL. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
     addTradingSignal(SIGNAL_OPEN_SELL, &tradingSignals);
 
 	//only setLastOrderUpdateTime on open a new trade
@@ -731,7 +732,7 @@ AsirikuyReturnCode openOrUpdateShortTrade(StrategyParams* pParams, int ratesInde
   }
   else
   {
-    fprintf(stderr, "[INFO] TradeSignal(Entry criteria): Close BUY & Update SELL. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
+    logInfo("TradeSignal(Entry criteria): Close BUY & Update SELL. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
     addTradingSignal(SIGNAL_UPDATE_SELL, &tradingSignals);
   }
   
@@ -752,7 +753,7 @@ BOOL areOrdersCorrect(StrategyParams* pParams, double stopLoss, double takeProfi
 	
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] areOrdersCorrect() failed. pParams = NULL\n");
+    logCritical("areOrdersCorrect() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -771,13 +772,13 @@ BOOL areOrdersCorrect(StrategyParams* pParams, double stopLoss, double takeProfi
 
     if((pParams->orderInfo[i].takeProfit == 0) && (takeProfit != 0))
     {
-      fprintf(stderr, "[WARNING] areOrdersCorrect() TP detected to be 0, assuming modification failure, re-running system on bar to correct", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+      logWarning("areOrdersCorrect() TP detected to be 0, assuming modification failure, re-running system on bar to correct", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
       return FALSE;
     }
 
     if((pParams->orderInfo[i].stopLoss == 0) && (stopLoss != 0))
     {
-      fprintf(stderr, "[WARNING] areOrdersCorrect() SL detected to be 0, assuming modification failure, re-running system on bar to correct", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+      logWarning("areOrdersCorrect() SL detected to be 0, assuming modification failure, re-running system on bar to correct", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
       return FALSE;
     }
   }
@@ -793,12 +794,12 @@ BOOL areOrdersCorrect(StrategyParams* pParams, double stopLoss, double takeProfi
 
   if(fp != NULL)
   {
-    fprintf(stderr, "[CRITICAL] areOrdersCorrect() Order error message found, re-running system\n");	
+    logCritical("areOrdersCorrect() Order error message found, re-running system\n");	
     fclose(fp);	
 
 	// backup the failure order file	
 	if (backup(buffer) <0)
-		fprintf(stderr, "[ERROR] Fail to backup file %s ", buffer);
+		logError("Fail to backup file %s ", buffer);
 
 	
     remove(buffer);
@@ -821,7 +822,7 @@ static int backup(char * source_file)
 
 	if (source == NULL)
 	{
-		fprintf(stderr, "[ERROR] Fail to load source file %s", source_file);
+		logError("Fail to load source file %s", source_file);
 		return -1;
 	}
 
@@ -830,7 +831,7 @@ static int backup(char * source_file)
 	if (target == NULL)
 	{
 		fclose(source);		
-		fprintf(stderr, "[ERROR] Fail to load target file %s", target_file);
+		logError("Fail to load target file %s", target_file);
 		return -1;
 	}
 
@@ -870,7 +871,7 @@ int logOrderFailFile(FILE *pFile)
 	}
 
 	/* the whole file is now loaded in the memory buffer. */
-	fprintf(stderr, "[CRITICAL] buffer error\n");
+	logCritical("buffer error\n");
 
 	// terminate	
 	free(buffer);
@@ -887,11 +888,11 @@ int getOrderAge(StrategyParams* pParams, int ratesIndex)
 
   virtualOrderEntryTime = getInstanceState((int)pParams->settings[STRATEGY_INSTANCE_ID])->lastOrderUpdateTime;
 
-  fprintf(stderr, "[INFO] Testing12 : InstanceID = %d, virtualOrderEntryTime = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID],virtualOrderEntryTime);
+  logInfo("Testing12 : InstanceID = %d, virtualOrderEntryTime = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID],virtualOrderEntryTime);
 
   returnCode = barsToPreviousTime(pParams->ratesBuffers->rates[ratesIndex].time, virtualOrderEntryTime, shift0Index, &barsSinceVirtualOrderEntry);
 
-  fprintf(stderr, "[INFO] Testing22223....Kantu System InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
+  logInfo("Testing22223....Kantu System InstanceID = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 
   if(returnCode != SUCCESS)
   {
@@ -926,7 +927,7 @@ AsirikuyReturnCode updateLongTrade(StrategyParams* pParams, int ratesIndex, int 
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] updateLongTrade() failed. pParams = NULL\n");
+    logCritical("updateLongTrade() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -941,7 +942,7 @@ AsirikuyReturnCode updateLongTrade(StrategyParams* pParams, int ratesIndex, int 
 
   tradingSignals = (int)pParams->results[resultsIndex].tradingSignals;
 
-  fprintf(stderr, "[INFO] TradeSignal(Only Update): Update BUY. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
+  logInfo("TradeSignal(Only Update): Update BUY. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
   addTradingSignal(SIGNAL_UPDATE_BUY, &tradingSignals);
 
   pParams->results[resultsIndex].tradingSignals = tradingSignals;
@@ -956,7 +957,7 @@ AsirikuyReturnCode updateShortTrade(StrategyParams* pParams, int ratesIndex, int
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] updateShortTrade() failed. pParams = NULL\n");
+    logCritical("updateShortTrade() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -971,7 +972,7 @@ AsirikuyReturnCode updateShortTrade(StrategyParams* pParams, int ratesIndex, int
 
   tradingSignals = (int)pParams->results[resultsIndex].tradingSignals;
 
-  fprintf(stderr, "[INFO] TradeSignal(Only Update): Update SELL. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
+  logInfo("TradeSignal(Only Update): Update SELL. InstanceID = %d, EntryPrice = %lf, Lots = %lf, SL = %lf, TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->results[resultsIndex].entryPrice, pParams->results[resultsIndex].lots, stopLoss, takeProfit);
   addTradingSignal(SIGNAL_UPDATE_SELL, &tradingSignals);
 
   pParams->results[resultsIndex].tradingSignals = tradingSignals;
@@ -1025,7 +1026,7 @@ AsirikuyReturnCode trailOpenTrades(StrategyParams* pParams, int ratesIndex, doub
 			(pParams->orderInfo[i].type == BUY))
 		{
 
-			fprintf(stderr, "[INFO] Trail BUY Stop. new SL = %lf, old SL = %lf, old TP = %lf, ask = %lf, TD = %lf, TS = %lf, minStop = %lf", (pParams->bidAsk.ask[0]-trailDistance), pParams->orderInfo[i].stopLoss, pParams->orderInfo[i].takeProfit, pParams->bidAsk.ask[0], trailDistance, trailStart, pParams->accountInfo.minimumStop);
+			logInfo("Trail BUY Stop. new SL = %lf, old SL = %lf, old TP = %lf, ask = %lf, TD = %lf, TS = %lf, minStop = %lf", (pParams->bidAsk.ask[0]-trailDistance), pParams->orderInfo[i].stopLoss, pParams->orderInfo[i].takeProfit, pParams->bidAsk.ask[0], trailDistance, trailStart, pParams->accountInfo.minimumStop);
 			pParams->results[j].brokerSL   = trailDistance;
 			pParams->results[j].internalSL = 0;
 
@@ -1037,7 +1038,7 @@ AsirikuyReturnCode trailOpenTrades(StrategyParams* pParams, int ratesIndex, doub
 			(pParams->orderInfo[i].type == SELL))
 		{	
 			
-			fprintf(stderr, "[INFO] Trail SELL Stop. new SL = %lf, old SL = %lf, old TP = %lf, bid = %lf, TD = %lf, TS = %lf, minStop = %lf", (pParams->bidAsk.bid[0]+trailDistance), pParams->orderInfo[i].stopLoss, pParams->orderInfo[i].takeProfit, pParams->bidAsk.bid[0], trailDistance, trailStart, pParams->accountInfo.minimumStop);
+			logInfo("Trail SELL Stop. new SL = %lf, old SL = %lf, old TP = %lf, bid = %lf, TD = %lf, TS = %lf, minStop = %lf", (pParams->bidAsk.bid[0]+trailDistance), pParams->orderInfo[i].stopLoss, pParams->orderInfo[i].takeProfit, pParams->bidAsk.bid[0], trailDistance, trailStart, pParams->accountInfo.minimumStop);
 			pParams->results[j].brokerSL   = trailDistance;
 			pParams->results[j].internalSL = 0;
 
@@ -1150,7 +1151,7 @@ double CalculateEllipticalStopLoss(StrategyParams* pParams, double target, int m
 
   ellipticalStopLoss = cumsd - y ;
 
- // fprintf(stderr, "[INFO] SL -- cumsd = %lf y = %lf var= %10.10lf", cumsd, y, variance);
+ // logInfo("SL -- cumsd = %lf y = %lf var= %10.10lf", cumsd, y, variance);
 
   return (ellipticalStopLoss);
 }
@@ -1173,7 +1174,7 @@ double CalculateEllipticalTakeProfit(StrategyParams* pParams, double target, int
 
    ellipticalTakeProfit = cumsd - y;
 
- // fprintf(stderr, "[INFO] TP -- cumsd = %lf y = %lf var = %10.10lf, maxhold = %d", cumsd, y, variance, maxHoldingTime, orderBarsAge);
+ // logInfo("TP -- cumsd = %lf y = %lf var = %10.10lf, maxhold = %d", cumsd, y, variance, maxHoldingTime, orderBarsAge);
 
 //   Print (target, " ", sl, " ", cumsd);
    return (ellipticalTakeProfit);

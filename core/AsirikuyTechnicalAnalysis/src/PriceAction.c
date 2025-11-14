@@ -37,6 +37,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "PriceAction.h"
 
 typedef enum strategy_t
@@ -52,19 +53,19 @@ AsirikuyReturnCode minMaxIndex(const double* pPrice, int arraySize, int period, 
 
   if(pPrice == NULL)
   {
-    fprintf(stderr, "[CRITICAL] minMaxIndex() failed. pPrice = NULL\n");
+    logCritical("minMaxIndex() failed. pPrice = NULL\n");
     return NULL_POINTER;
   }
 
   if(pOutMinIndex == NULL)
   {
-    fprintf(stderr, "[CRITICAL] minMaxIndex() failed. pOutMinIndex = NULL\n");
+    logCritical("minMaxIndex() failed. pOutMinIndex = NULL\n");
     return NULL_POINTER;
   }
 
   if(pOutMaxIndex == NULL)
   {
-    fprintf(stderr, "[CRITICAL] minMaxIndex() failed. pOutMaxIndex = NULL\n");
+    logCritical("minMaxIndex() failed. pOutMaxIndex = NULL\n");
     return NULL_POINTER;
   }
 
@@ -82,7 +83,7 @@ AsirikuyReturnCode minMaxIndex(const double* pPrice, int arraySize, int period, 
       *pOutMaxIndex = i;
     }
 
-    fprintf(stderr, "[DEBUG] minMaxIndex() arraySize = %d, period = %d, shift = %d, Index %d = %f", arraySize, period, shift, i, pPrice[i]);
+    logDebug("minMaxIndex() arraySize = %d, period = %d, shift = %d, Index %d = %f", arraySize, period, shift, i, pPrice[i]);
   }
 
   return SUCCESS;
@@ -94,13 +95,13 @@ AsirikuyReturnCode minIndex(const double* pPrice, int arraySize, int period, int
 
   if(pPrice == NULL)
   {
-    fprintf(stderr, "[CRITICAL] minIndex() failed. pPrice = NULL\n");
+    logCritical("minIndex() failed. pPrice = NULL\n");
     return NULL_POINTER;
   }
 
   if(pOutMinIndex == NULL)
   {
-    fprintf(stderr, "[CRITICAL] minIndex() failed. pOutMinIndex = NULL\n");
+    logCritical("minIndex() failed. pOutMinIndex = NULL\n");
     return NULL_POINTER;
   }
 
@@ -113,7 +114,7 @@ AsirikuyReturnCode minIndex(const double* pPrice, int arraySize, int period, int
       *pOutMinIndex = i;
     }
 
-    fprintf(stderr, "[DEBUG] minIndex() arraySize = %d, period = %d, shift = %d, Index %d = %f", arraySize, period, shift, i, pPrice[i]);
+    logDebug("minIndex() arraySize = %d, period = %d, shift = %d, Index %d = %f", arraySize, period, shift, i, pPrice[i]);
   }
 
   return SUCCESS;
@@ -125,13 +126,13 @@ AsirikuyReturnCode maxIndex(const double* pPrice, int arraySize, int period, int
 
   if(pPrice == NULL)
   {
-    fprintf(stderr, "[CRITICAL] maxIndex() failed. pPrice = NULL\n");
+    logCritical("maxIndex() failed. pPrice = NULL\n");
     return NULL_POINTER;
   }
 
   if(pOutMaxIndex == NULL)
   {
-    fprintf(stderr, "[CRITICAL] maxIndex() failed. pOutMaxIndex = NULL\n");
+    logCritical("maxIndex() failed. pOutMaxIndex = NULL\n");
     return NULL_POINTER;
   }
 
@@ -144,7 +145,7 @@ AsirikuyReturnCode maxIndex(const double* pPrice, int arraySize, int period, int
       *pOutMaxIndex = i;
     }
 
-    fprintf(stderr, "[DEBUG] maxIndex() arraySize = %d, period = %d, shift = %d, Index %d = %f", arraySize, period, shift, i, pPrice[i]);
+    logDebug("maxIndex() arraySize = %d, period = %d, shift = %d, Index %d = %f", arraySize, period, shift, i, pPrice[i]);
   }
 
   return SUCCESS;
@@ -202,7 +203,7 @@ double DriftCalculate (double p, double q, double eP, double eM)
    double d, r;
    r = p + q - 1;
    d = ((1 - q) * eP + (1 - p) * eM) / (1 - r);
-   fprintf(stderr, "[INFO] DRIFT = %lf", d);
+   logInfo("DRIFT = %lf", d);
    return (d);
 }
 
@@ -212,7 +213,7 @@ double VHCCalculate (int j, double p, double q, double eP, double eM)
    double r, vhc;
    r = p + q - 1;
    vhc = (eP - eM) / (1 - r * r) * (1 - pow (r, j));
-   fprintf(stderr, "[INFO] VHC = %lf", vhc);
+   logInfo("VHC = %lf", vhc);
    return (vhc);
 }
 
@@ -222,7 +223,7 @@ double VHPCalculate (int j, double p, double q, double eP, double eM)
    double vhp, d;
    d = DriftCalculate (p, q, eP, eM);
    vhp = d * j + (1 - p) * VHCCalculate (j, p, q, eP, eM);
-   fprintf(stderr, "[INFO] VHP = %lf", vhp);
+   logInfo("VHP = %lf", vhp);
    return (vhp);
 }
 
@@ -232,7 +233,7 @@ double VHMCalculate (int j, double p, double q, double eP, double eM)
    double vhm, d;
    d = DriftCalculate (p, q, eP, eM);
    vhm = d * j - (1 - q) * VHCCalculate (j, p, q, eP, eM);
-   fprintf(stderr, "[INFO] VHM = %lf", vhm);
+   logInfo("VHM = %lf", vhm);
    return (vhm);
 }
 
@@ -252,7 +253,7 @@ int VHPjPFind (int j, double p, double q, double eP, double eM, double C)
       }
       vhp = VHPCalculate (jP, p, q, eP, eM);
    }
-   fprintf(stderr, "[INFO] VH-jP = %d", jP);
+   logInfo("VH-jP = %d", jP);
    return (jP);
 }
 
@@ -272,7 +273,7 @@ int VHMjMFind (int j, double p, double q, double eP, double eM, double C)
       }
       vhm = VHMCalculate (jM, p, q, eP, eM);
    }
-   fprintf(stderr, "[INFO] VH-jM = %d", jM);
+   logInfo("VH-jM = %d", jM);
    return (jM);
 }
 
@@ -294,7 +295,7 @@ int DMjMFind (int j, int jP, double p, double q, double eP, double eM, double C)
       }
       DM = (VHMCalculate (jP, p, q, eP, eM) - bM) * pow (q, jM - jP) + bM;
    }
-   fprintf(stderr, "[INFO] DM-jM = %d", jM);
+   logInfo("DM-jM = %d", jM);
    return (jM);
 }
 
@@ -316,7 +317,7 @@ int DPjPFind (int j, int jM, double p, double q, double eP, double eM, double C)
       DP = (VHPCalculate (jM, p, q, eP, eM) - bP) * pow (p, jP - jM) + bP;
    }
 
-   fprintf(stderr, "[INFO] D^P-jP = %d", jP);
+   logInfo("D^P-jP = %d", jP);
    return (jP);
 }
 

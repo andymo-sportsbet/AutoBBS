@@ -11,6 +11,8 @@
 #include "CTesterDefines.h"
 #include "CTesterTradingStrategiesAPI.h"
 #include "CTesterSymbolAnalyserAPI.h"
+#include "CTesterFrameworkAPI.h"
+#include "AsirikuyLogger.h"
 #include "stdlib.h"
 #include "Precompiled.h"
 #include "AsirikuyTime.h"
@@ -147,7 +149,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 		openOrders[orderIndex].lots = roundN(strategyResults->lots, getDecimals(minLotSize));
 	}
 	else {
-		fprintf(stderr, "Order %d, lots = %lf, below minimum lot size (%lf). Order was NOT opened (rounding up is prevented to avoid increasing risk)\n", (int)openOrders[orderIndex].ticket,  (double)strategyResults->lots, (double) minLotSize);
+		logWarning("Order %d, lots = %lf, below minimum lot size (%lf). Order was NOT opened (rounding up is prevented to avoid increasing risk)", (int)openOrders[orderIndex].ticket,  (double)strategyResults->lots, (double) minLotSize);
 		return false;
 	}
 
@@ -176,7 +178,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice - strategyResults->brokerSL <= openPrice - minimumStop && strategyResults->brokerSL != 0){
 				openOrders[orderIndex].stopLoss = openPrice - strategyResults->brokerSL;
 			} else {
-				fprintf(stderr, "OpenOrder. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerSL);
+				logWarning("OpenOrder. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerSL);
 			}
 		}
 		
@@ -184,7 +186,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice + strategyResults->brokerTP >= openPrice + minimumStop && strategyResults->brokerTP != 0){
 				openOrders[orderIndex].takeProfit = openPrice + strategyResults->brokerTP;
 			} else {
-				fprintf(stderr, "OpenOrder. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerTP);
+				logWarning("OpenOrder. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerTP);
 			}
 		}
 
@@ -199,7 +201,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice + strategyResults->brokerSL >= openPrice + minimumStop && strategyResults->brokerSL != 0){
 				openOrders[orderIndex].stopLoss = openPrice + strategyResults->brokerSL;
 			} else {
-				fprintf(stderr, "OpenOrder. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerSL);
+				logWarning("OpenOrder. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerSL);
 			}
 		}
 
@@ -207,7 +209,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice - strategyResults->brokerTP <= openPrice - minimumStop && strategyResults->brokerTP != 0){
 				openOrders[orderIndex].takeProfit = openPrice - strategyResults->brokerTP;
 			} else {
-				fprintf(stderr, "OpenOrder. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerTP);
+				logWarning("OpenOrder. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerTP);
 			}
 		}
 		
@@ -267,7 +269,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_ASK] - strategyResults->brokerSL <= bidAsk[IDX_ASK] - minimumStop && strategyResults->brokerSL != 0){
 					openOrders[i].stopLoss = bidAsk[IDX_ASK] - strategyResults->brokerSL;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", bidAsk[IDX_ASK], bidAsk[IDX_ASK] - minimumStop, bidAsk[IDX_ASK] - strategyResults->brokerSL);
+						logWarning("OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", bidAsk[IDX_ASK], bidAsk[IDX_ASK] - minimumStop, bidAsk[IDX_ASK] - strategyResults->brokerSL);
 					}
 				}
 
@@ -275,7 +277,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_ASK] + strategyResults->brokerTP >= bidAsk[IDX_ASK] + minimumStop && strategyResults->brokerTP != 0){
 					openOrders[i].takeProfit = bidAsk[IDX_ASK] + strategyResults->brokerTP;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", bidAsk[IDX_ASK], bidAsk[IDX_ASK] + minimumStop, bidAsk[IDX_ASK] + strategyResults->brokerTP);
+						logWarning("OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", bidAsk[IDX_ASK], bidAsk[IDX_ASK] + minimumStop, bidAsk[IDX_ASK] + strategyResults->brokerTP);
 					}
 				}
 
@@ -283,7 +285,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice - strategyResults->brokerSL <= openOrders[i].openPrice - minimumStop && strategyResults->brokerSL != 0){
 					openOrders[i].stopLoss = openOrders[i].openPrice - strategyResults->brokerSL;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerSL);
+						logWarning("OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerSL);
 					}
 				}
 
@@ -291,7 +293,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice + strategyResults->brokerTP >= openOrders[i].openPrice + minimumStop && strategyResults->brokerTP != 0){
 					openOrders[i].takeProfit = openOrders[i].openPrice + strategyResults->brokerTP;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerTP);
+						logWarning("OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerTP);
 					}
 				}
 
@@ -309,7 +311,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					globalSignalUpdate(lastSignal);
 				}
 
-				fprintf(stderr, "Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
+				logDebug("Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
 			}
 			if(openOrders[i].type == SELL || openOrders[i].type == SELLSTOP || openOrders[i].type == SELLLIMIT){
 
@@ -317,7 +319,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_BID] + strategyResults->brokerSL >= bidAsk[IDX_BID] + minimumStop){
 						openOrders[i].stopLoss = bidAsk[IDX_BID] + strategyResults->brokerSL;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", bidAsk[IDX_BID], bidAsk[IDX_BID] + minimumStop, bidAsk[IDX_BID] + strategyResults->brokerSL);
+						logWarning("OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", bidAsk[IDX_BID], bidAsk[IDX_BID] + minimumStop, bidAsk[IDX_BID] + strategyResults->brokerSL);
 					}
 				}
 
@@ -325,7 +327,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_BID] - strategyResults->brokerTP <= bidAsk[IDX_BID] - minimumStop){
 						openOrders[i].takeProfit = bidAsk[IDX_BID] - strategyResults->brokerTP;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", bidAsk[IDX_BID], bidAsk[IDX_BID] - minimumStop, bidAsk[IDX_BID] - strategyResults->brokerTP);
+						logWarning("OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", bidAsk[IDX_BID], bidAsk[IDX_BID] - minimumStop, bidAsk[IDX_BID] - strategyResults->brokerTP);
 					}
 				}
 
@@ -333,7 +335,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice + strategyResults->brokerSL >= openOrders[i].openPrice + minimumStop){
 						openOrders[i].stopLoss = openOrders[i].openPrice + strategyResults->brokerSL;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerSL);
+						logWarning("OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerSL);
 					}
 				}
 
@@ -341,7 +343,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice - strategyResults->brokerTP <= openOrders[i].openPrice - minimumStop){
 						openOrders[i].takeProfit = openOrders[i].openPrice - strategyResults->brokerTP;
 					} else {
-						fprintf(stderr, "OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerTP);
+						logWarning("OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerTP);
 					}
 				}
 
@@ -360,7 +362,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					globalSignalUpdate(lastSignal);
 				}
 
-				fprintf(stderr, "Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
+				logDebug("Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
 			}
 
 			if (strategyResults->brokerTP == 0) openOrders[i].takeProfit = 0;
@@ -384,7 +386,7 @@ double closeOrder(StrategyResults* strategyResults, int* openOrdersCount, COrder
 			
 			// if the close time is before the open time then continue
             if (openOrders[i].openTime > closeTime){
-                fprintf(stderr, "Close time is earlier than open time. Ignoring close order. OpenTime = %lf, CloseTime = %d\n", openOrders[i].openTime, closeTime);				
+                logWarning("Close time is earlier than open time. Ignoring close order. OpenTime = %lf, CloseTime = %d", openOrders[i].openTime, closeTime);				
                 return false;
             }
 
@@ -459,14 +461,14 @@ double checkTPSL(double bid, double ask, int i, int shift1, CRates *rates0, int*
 					openOrders[i].closePrice = openOrders[i].stopLoss;
 				}
 
-				fprintf(stderr, "BUY Order hit SL. Ticket = %f\n", openOrders[i].ticket);
+				logInfo("BUY Order hit SL. Ticket = %f", openOrders[i].ticket);
 				touchedTPSL = true;
 				triggeredSL = true;
 			}
 			
 			if ((openOrders[i].takeProfit<=rates0[shift1].high || openOrders[i].takeProfit<=bid) && !triggeredSL && openOrders[i].takeProfit != 0){
 				openOrders[i].closePrice = openOrders[i].takeProfit;
-				fprintf(stderr, "BUY Order hit TP. Ticket = %f\n", openOrders[i].ticket);
+				logInfo("BUY Order hit TP. Ticket = %f", openOrders[i].ticket);
 				touchedTPSL = true;
 			}
 		}
@@ -480,13 +482,13 @@ double checkTPSL(double bid, double ask, int i, int shift1, CRates *rates0, int*
 					openOrders[i].closePrice = openOrders[i].stopLoss;
 				}
 
-				fprintf(stderr, "SELL Order hit SL. Ticket = %f\n", openOrders[i].ticket);
+				logInfo("SELL Order hit SL. Ticket = %f", openOrders[i].ticket);
 				triggeredSL = true;
 				touchedTPSL = true;
 			}
 
 			if((openOrders[i].takeProfit>=rates0[shift1].low+spread || openOrders[i].takeProfit>=ask) && !triggeredSL && openOrders[i].takeProfit != 0){
-				fprintf(stderr, "SELL Order hit TP. Ticket = %f\n", openOrders[i].ticket);
+				logInfo("SELL Order hit TP. Ticket = %f", openOrders[i].ticket);
 				openOrders[i].closePrice = openOrders[i].takeProfit;
 				touchedTPSL = true;
 			}
@@ -495,7 +497,7 @@ double checkTPSL(double bid, double ask, int i, int shift1, CRates *rates0, int*
 
 			// if the close time is before the open time then continue
             if (openOrders[i].openTime > closeTime){
-                fprintf(stderr, "Close time is earlier than open time. Ignoring SL/TP hit. OpenTime = %lf, CloseTime = %d\n", openOrders[i].openTime, closeTime);				
+                logWarning("Close time is earlier than open time. Ignoring SL/TP hit. OpenTime = %lf, CloseTime = %d", openOrders[i].openTime, closeTime);				
                 return false;
             }
 
@@ -568,7 +570,7 @@ int addInterest(int* openOrdersCount, COrderInfo* openOrders, int instanceId, in
 
 			if(timeInfo.tm_wday == 3) swapInterest *= 3;	
 
-			fprintf(stderr, "Adding Swap interest = %lf, swapLong = %lf, swapShort = %lf, hours = %d, dayOfweek = %d, contractSize = %lf, volume = %lf BidAsk = %lf/%lf\n", swapInterest, swapLong, swapShort, timeInfo.tm_hour, timeInfo.tm_wday, contractSize, openOrders[i].lots, bidAsk[IDX_BID], bidAsk[IDX_ASK]);
+			logDebug("Adding Swap interest = %lf, swapLong = %lf, swapShort = %lf, hours = %d, dayOfweek = %d, contractSize = %lf, volume = %lf BidAsk = %lf/%lf", swapInterest, swapLong, swapShort, timeInfo.tm_hour, timeInfo.tm_wday, contractSize, openOrders[i].lots, bidAsk[IDX_BID], bidAsk[IDX_ASK]);
 			openOrders[i].swap += swapInterest; 
 			newAdditionTime = currentTime;
 		}
@@ -716,7 +718,7 @@ void save_openorder_to_file(){
 	
 	openOrderFile = fopen("results.open", "w");
 	if (openOrderFile == NULL)
-		fprintf(stderr, "Failed to save openOrderFile.\n");
+		logError("Failed to save openOrderFile.");
 
 	fprintf(openOrderFile, "Open order exist!");
 
@@ -733,7 +735,7 @@ void save_statistics_to_file(TestResult testResult,
             
 			statisticsFile = fopen("allStatistics.csv","w");
 			if(statisticsFile == NULL)
-			fprintf(stderr, "Failed to save general statistics.\n");
+			logError("Failed to save general statistics.");
 
 
 			fprintf(statisticsFile, "total_return, %f\n", finalBalance/initialBalance);
@@ -1058,7 +1060,7 @@ TestResult __stdcall runPortfolioTest (
 
 	for (n=0; n<numSystems; n++){
 		sprintf (buffer, "%s_TICK.csv", pInTradeSymbol[n]);
-		fprintf(stderr, "Searching for tick data: %s\n", buffer);
+		logInfo("Searching for tick data: %s", buffer);
 		tickFiles[n] = NULL;
 		tickFiles[n] = fopen(buffer , "r+" );
 	}
@@ -1105,22 +1107,22 @@ TestResult __stdcall runPortfolioTest (
 			numBarsRequired[j][n] = (int)(pRatesInfo[j][n].totalBarsRequired * 1.2 * pRatesInfo[j][n].requiredTimeframe/pRatesInfo[j][n].actualTimeframe);
 		}
 
-		fprintf(stderr, "Bar requirements for all rates:\n");
+		logInfo("Bar requirements for all rates:");
 
 		for (n=0;n<10;n++){
-			fprintf(stderr, "rates %d = %d bars\n", n, numBarsRequired[j][n]);
+			logInfo("rates %d = %d bars", n, numBarsRequired[j][n]);
 			pRatesInfo[j][n].ratesArraySize = numBarsRequired[j][n];
 			if (numBarsRequired[j][n] > maxNumbarsRequired) maxNumbarsRequired = numBarsRequired[j][n];
 		}
 
-		fprintf(stderr, "-- strategy settings --\n");
+		logInfo("-- strategy settings --");
 		for (n=0;n<64;n++){
-			fprintf(stderr, "Setting No.%d = %lf\n", n, pInSettings[j][n]);
+			logDebug("Setting No.%d = %lf", n, pInSettings[j][n]);
 		}
 
-		fprintf(stderr, "-- Pairs loaded --\n");
+		logInfo("-- Pairs loaded --");
 		for (n=0;n<numSystems;n++){
-			fprintf(stderr, "Symbol No.%d= %s\n", n, pInTradeSymbol[n]);
+			logInfo("Symbol No.%d= %s", n, pInTradeSymbol[n]);
 		}
 
 	if(signalUpdate != NULL) numSignals[j] = 1;
@@ -1155,16 +1157,16 @@ TestResult __stdcall runPortfolioTest (
 					sprintf(error_t, "Error %d initiating strategy\n", result);
 					break;
 			}
-			fprintf(stderr, "%s\n", error_t);
+			logError("%s", error_t);
 		}
 	}
 
 	// get base/quote symbols for all systems
-    fprintf(stderr, "Starting base/quote symbol extraction\n");
+    logInfo("Starting base/quote symbol extraction");
 	
 	for (n=0; n<numSystems; n++){
 
-		fprintf(stderr, "For system No.%d,pInSettings[n][ADDITIONAL_PARAM_8] = %lf\n",n,pInSettings[n][ADDITIONAL_PARAM_8]);
+		logDebug("For system No.%d,pInSettings[n][ADDITIONAL_PARAM_8] = %lf",n,pInSettings[n][ADDITIONAL_PARAM_8]);
 
 		baseSymbols[n] = (char*)malloc(MAX_FILE_PATH_CHARS * sizeof(char));
 		quoteSymbols[n] = (char*)malloc(MAX_FILE_PATH_CHARS * sizeof(char));
@@ -1180,39 +1182,39 @@ TestResult __stdcall runPortfolioTest (
         if (strlen(baseSymbolTemp) != 0){
             strncpy(baseSymbols[n], baseSymbolTemp, 6);
             baseSymbols[n][6] = '\0';
-            fprintf(stderr, "For system No.%d, base symbol is %s\n", n, baseSymbols[n]);
+            logDebug("For system No.%d, base symbol is %s", n, baseSymbols[n]);
         }
         
         if (strlen(quoteSymbolTemp) != 0){
             strncpy(quoteSymbols[n], quoteSymbolTemp, 6);
             quoteSymbols[n][6] = '\0';
-            fprintf(stderr, "For system No.%d, quote symbol is %s\n", n, quoteSymbols[n]);
+            logDebug("For system No.%d, quote symbol is %s", n, quoteSymbols[n]);
         }
         
 		baseFiles[n] = NULL;
 		quoteFiles[n] = NULL;
 
 		if(strlen(baseSymbols[n]) != 0){
-			fprintf(stderr, "Opening base file\n");
+			logDebug("Opening base file");
 			sprintf (buffer, "%s_QUOTES.csv", baseSymbols[n]);			
 			baseFiles[n] = fopen(buffer , "r" );
 			if (baseFiles[n] == NULL) {
-    			fprintf(stderr, "Error. Quotes for base symbol %s not found. Trading results will be inaccurate.\n", baseSymbols[n]);
+    			logError("Error. Quotes for base symbol %s not found. Trading results will be inaccurate.", baseSymbols[n]);
 			}
 		}
 
 		if(strlen(quoteSymbols[n]) != 0){
-			fprintf(stderr, "Opening quotes file\n");
+			logDebug("Opening quotes file");
 			sprintf (buffer, "%s_QUOTES.csv", quoteSymbols[n]);		
 			quoteFiles[n] = fopen(buffer , "r" );
 			if (quoteFiles[n] == NULL) {
-    			fprintf(stderr, "Error. Quotes for quote symbol %s not found. Trading results will be inaccurate.\n",  quoteSymbols[n]);
+    			logError("Error. Quotes for quote symbol %s not found. Trading results will be inaccurate.",  quoteSymbols[n]);
 			}
 		}
 	}
 
-	fprintf(stderr, "Starting main test loop. Max numbars required = %d, numCandles = %d\n", maxNumbarsRequired, numCandles);
-	fprintf(stderr, "Requested testing limits. StartDate = %d, EndDate = %d\n", testSettings[0].fromDate, testSettings[0].toDate);
+	logInfo("Starting main test loop. Max numbars required = %d, numCandles = %d", maxNumbarsRequired, numCandles);
+	logInfo("Requested testing limits. StartDate = %d, EndDate = %d", testSettings[0].fromDate, testSettings[0].toDate);
 
 	for(s = 0; s<numSystems; s++){
 	rates[s][0] = (CRates*)malloc(sizeof(CRates) * numBarsRequired[s][0]);
@@ -1231,8 +1233,11 @@ TestResult __stdcall runPortfolioTest (
 	
 	finishedCount = 0;
 
+	logDebug("Entering main test loop. numSystems = %d", numSystems);
+	
 	//Run the test for each candle
 	while(finishedCount < numSystems){
+		logDebug("Main loop iteration: finishedCount = %d, numSystems = %d", finishedCount, numSystems);
 
 		//run each bar for all systems
 		for(s = 0; s<numSystems; s++)
@@ -1242,11 +1247,14 @@ TestResult __stdcall runPortfolioTest (
 			if (testsFinished[s] == 1) continue;
 
 			if (i[s] >= numCandles-2){
+				logInfo("System %d reached end of candles (bar %d >= %d), finishing test", s, i[s], numCandles-2);
 				testsFinished[s] = 1;
+				finishedCount++;
+				logDebug("System %d finished. finishedCount = %d", s, finishedCount);
 				continue;
 			}
 
-		fprintf(stderr, "bar = %d, finishedCount = %d, numSystem = %d\n", i[s], finishedCount, s);
+		logDebug("Processing bar = %d, finishedCount = %d, numSystem = %d", i[s], finishedCount, s);
 
 		currentBrokerTime = 0;
 
@@ -1291,7 +1299,10 @@ TestResult __stdcall runPortfolioTest (
 		lastSignal.testId = s;
 
 		if(pRates[s][0][i[s]].time == -1){
+			logWarning("Bar %d has invalid time (-1), finishing test for system %d", i[s], s);
 			testsFinished[s] = 1;
+			finishedCount++;
+			logDebug("System %d finished due to invalid time. finishedCount = %d", s, finishedCount);
 			continue;
 		}
 		
@@ -1428,7 +1439,10 @@ TestResult __stdcall runPortfolioTest (
 			rates[s][0][j].time = pRates[s][0][sourceIndex].time;
 			rates[s][0][j].open = pRates[s][0][sourceIndex].open;
 
-			if (pRates[s][0][sourceIndex].time == -1) abortTest = true;
+			if (pRates[s][0][sourceIndex].time == -1) {
+				logError("Invalid time (-1) found at sourceIndex %d for system %d, bar %d. Aborting test.", sourceIndex, s, i[s]);
+				abortTest = true;
+			}
 		}
 
 		for (n = 1; n < 10; n++){
@@ -1540,20 +1554,24 @@ TestResult __stdcall runPortfolioTest (
 
 		//Run Strategy
 		if((currentBrokerTime > testSettings[s].fromDate) && (currentBrokerTime < testSettings[s].toDate)){
+		logDebug("Running strategy for system %d at bar %d, time = %d", s, i[s], currentBrokerTime);
 		result = c_runStrategy(pInSettings[s], pInTradeSymbol[s], pInAccountCurrency, pInBrokerName, pInRefBrokerName, &currentBrokerTime, openOrdersCountSystem, systemOrders,
 								pInAccountInfo[s], bidAsk, pRatesInfo[s], rates[s][0], rates[s][1], rates[s][2], rates[s][3], rates[s][4], rates[s][5], rates[s][6], rates[s][7], rates[s][8], rates[s][9], (double *)strategyResults);
+		logDebug("Strategy execution completed for system %d, result = %d", s, result);
+		} else {
+		logDebug("Skipping strategy execution for system %d: time %d not in range [%d, %d]", s, currentBrokerTime, testSettings[s].fromDate, testSettings[s].toDate);
 		}
 
 		if(result!=SUCCESS){
 			switch (result){
 				case NULL_POINTER:
-					fprintf(stderr, "Null Pointer. Check the Asirikuy Framework log for more detail\n");
+					logError("Null Pointer. Check the Asirikuy Framework log for more detail");
 					break;
 				case NOT_ENOUGH_RATES_DATA:
-					fprintf(stderr, "Not enough rates. Check the Asirikuy Framework log for more detail\n");
+					logError("Not enough rates. Check the Asirikuy Framework log for more detail");
 					break;
 				default:
-					fprintf(stderr, "Error %d running strategy\n", result);
+					logError("Error %d running strategy at bar %d, system %d", result, i[s], s);
 					break;
 			}
 		}
@@ -1569,9 +1587,9 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_OPEN_BUYLIMIT) != 0) updateOrderType = BUYLIMIT;
 					if ((operation & SIGNAL_OPEN_BUYSTOP) != 0) updateOrderType = BUYSTOP;
 
-					fprintf(stderr, "BUY signal type %d. Instance ID = %d\n", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					logDebug("BUY signal type %d. Instance ID = %d", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					openOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], &totalTrades, currentBrokerTime, bidAsk[IDX_ASK], (int)updateOrderType,lastSignal, numSignals, finalBalance, minLotSize, pInAccountInfo[s][IDX_MINIMUM_STOP]);
-					fprintf(stderr, "Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
+					logDebug("Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
 					numLongs++;
 
 
@@ -1586,7 +1604,7 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_CLOSE_BUYLIMIT) != 0) updateOrderType = BUYLIMIT;
 					if ((operation & SIGNAL_CLOSE_BUYSTOP) != 0) updateOrderType = BUYSTOP;
 
-					fprintf(stderr, "Close BUY Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					logDebug("Close BUY Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					if (closeOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], currentBrokerTime, bidAsk[IDX_BID], &lastOrder, pInTradeSymbol[s], (int)updateOrderType, &profit, pInAccountInfo[s][IDX_CONTRACT_SIZE], globalSignalUpdate,lastSignal, numSignals, finalBalance, conversionRate, &testResult.avgTradeDuration)){
 						finalBalance += profit;
 						if(is_optimization == FALSE){
@@ -1605,7 +1623,7 @@ TestResult __stdcall runPortfolioTest (
 				}
 				if((operation & SIGNAL_UPDATE_BUY) != 0 || (operation & SIGNAL_UPDATE_BUYLIMIT) != 0 || (operation & SIGNAL_UPDATE_BUYSTOP) != 0)
 				{
-					fprintf(stderr, "Update BUY Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					logDebug("Update BUY Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					
 					if ((operation & SIGNAL_UPDATE_BUY) != 0) updateOrderType = BUY;
 					if ((operation & SIGNAL_UPDATE_BUYLIMIT) != 0) updateOrderType = BUYLIMIT;
@@ -1621,9 +1639,9 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_OPEN_SELLLIMIT) != 0) updateOrderType = SELLLIMIT;
 					if ((operation & SIGNAL_OPEN_SELLSTOP) != 0) updateOrderType = SELLSTOP;
 
-					fprintf(stderr, "SELL signal type %d. Instance ID = %d\n", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					logDebug("SELL signal type %d. Instance ID = %d", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					openOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], &totalTrades, currentBrokerTime, bidAsk[IDX_BID], (int)updateOrderType,lastSignal, numSignals, finalBalance, minLotSize, pInAccountInfo[s][IDX_MINIMUM_STOP]);
-					fprintf(stderr, "Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
+					logDebug("Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
 					numShorts++;
 
 					if(is_optimization == FALSE && updateOrderType == SELL) calculate_mathematical_expectancy(SELL, numCandles, i[s], bidAsk[IDX_BID], pRates[s][0], fabs(bidAsk[IDX_ASK]-bidAsk[IDX_BID]), testSettings[0].is_calculate_expectancy) ;
@@ -1635,7 +1653,7 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_CLOSE_SELLLIMIT) != 0) updateOrderType = SELLLIMIT;
 					if ((operation & SIGNAL_CLOSE_SELLSTOP) != 0) updateOrderType = SELLSTOP;
 
-					fprintf(stderr, "Close SELL Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					logDebug("Close SELL Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					if (closeOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], currentBrokerTime, bidAsk[IDX_ASK], &lastOrder, pInTradeSymbol[s], (int)updateOrderType, &profit, pInAccountInfo[s][IDX_CONTRACT_SIZE], globalSignalUpdate,lastSignal, numSignals, finalBalance, conversionRate, &testResult.avgTradeDuration)){
 						finalBalance += profit;
 						if(is_optimization == FALSE){
@@ -1653,7 +1671,7 @@ TestResult __stdcall runPortfolioTest (
 				}
 				if((operation & SIGNAL_UPDATE_SELL) != 0 || (operation & SIGNAL_UPDATE_SELLLIMIT) != 0 || (operation & SIGNAL_UPDATE_SELLSTOP) != 0)
 				{
-					fprintf(stderr, "Update SELL Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					logDebug("Update SELL Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 
 					if ((operation & SIGNAL_UPDATE_SELL) != 0) updateOrderType = SELL;
 					if ((operation & SIGNAL_UPDATE_SELLLIMIT) != 0) updateOrderType = SELLLIMIT;

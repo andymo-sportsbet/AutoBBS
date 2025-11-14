@@ -33,6 +33,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "TradingWeekBoundaries.h"
 #include "AsirikuyTime.h"
 #include "AsirikuyDefines.h"
@@ -76,7 +77,7 @@ BOOL isOutsideTradingBoundaries(StrategyParams* pParams,time_t time)
 
 	if (timeStructure->tm_hour < startHour  )
 	{
-		fprintf(stderr, "[DEBUG] isOutsideTradingBoundaries() PassedDate = %s\n", timeString);
+		logDebug("isOutsideTradingBoundaries() PassedDate = %s", timeString);
 		return TRUE;
 	}
 
@@ -98,7 +99,7 @@ BOOL isOutsideTradingWeekBoundaries(time_t time)
 
 	safe_timeString(timeString, time);
 
-	fprintf(stderr, "[DEBUG] isOutsideTradingWeekBoundaries() PassedDate = %s Day of week: %d, Hour: %d\n", timeString, timeStructure->tm_wday, timeStructure->tm_hour);
+	logDebug("isOutsideTradingWeekBoundaries() PassedDate = %s Day of week: %d, Hour: %d", timeString, timeStructure->tm_wday, timeStructure->tm_hour);
 
 	if((timeStructure->tm_wday == MONDAY) && (timeStructure->tm_hour < gCropMondayHours))
   {

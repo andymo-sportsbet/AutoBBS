@@ -49,6 +49,7 @@
 #include "StrategyUserInterface.h"
 #include "InstanceStates.h"
 #include "Logging.h"
+#include "AsirikuyLogger.h"
 #include "OrderManagement.h"
 #include "OrderSignals.h"
 #include "AsirikuyTechnicalAnalysis.h"
@@ -79,7 +80,7 @@ int countLinesInCSV(char* fileName)
 	fp = fopen(fileName, "r" );
 
 	if(fp == NULL){
-			 fprintf(stderr, "[EMERGENCY] NO_FILE!\n");
+			 logEmergency("NO_FILE!");
 			return 0;
 	   }
 
@@ -238,7 +239,7 @@ AsirikuyReturnCode EasyTrade::saveTickData()
 
 			fp = fopen(buffer,"w\n");
 			if(fp == NULL){
-				fprintf(stderr, "[INFO] Could not write tick data file.\n");
+				logInfo("Could not write tick data file.");
 				freeTickData(currentTickData);
 				return FILE_WRITING_ERROR;
 			}
@@ -253,7 +254,7 @@ AsirikuyReturnCode EasyTrade::saveTickData()
 
 	   fp = fopen(buffer,"w\n");
 	   if(fp == NULL){
-			fprintf(stderr, "[INFO] Could not write tick data file.\n");
+			logInfo("Could not write tick data file.");
 			freeTickData(currentTickData);
 			return FILE_WRITING_ERROR;
 	   }
@@ -267,7 +268,7 @@ AsirikuyReturnCode EasyTrade::saveTickData()
 
   fp = fopen(buffer,"a\n");
   if(fp == NULL){
-    fprintf(stderr, "[INFO] Could not write tick data file.\n");
+    logInfo("Could not write tick data file.");
 	freeTickData(currentTickData);
     return FILE_WRITING_ERROR;
   }
@@ -313,7 +314,7 @@ tickData EasyTrade::addTickArray()
 
   fp = fopen(buffer,"r\n");
   if(fp == NULL){
-    fprintf(stderr, "[INFO] No tick data present yet.\n");
+    logInfo("No tick data present yet.");
     return loadedTickData;
   }
 
@@ -387,7 +388,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRates(char* ratesName, time_t intFromDa
 
 	strcat(url, "&ignore=.csv\n");
 
-	fprintf(stderr, "[DEBUG] URL To parse for rate addition of symbol %s: %s\n", ratesName, url);
+	logDebug("URL To parse for rate addition of symbol %s: %s", ratesName, url);
 
 	curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
@@ -401,7 +402,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRates(char* ratesName, time_t intFromDa
         res = curl_easy_perform(curl);
 
 		if(res != CURLE_OK){
-		fprintf(stderr, "[ERROR] curl_easy_perform() failed while getting rates: %s\n", curl_easy_strerror(res));
+		logError("curl_easy_perform() failed while getting rates: %s", curl_easy_strerror(res));
 		return ERROR_IN_RATES_RETRIEVAL;
 		}
 		/* always cleanup */
@@ -462,7 +463,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRates(char* ratesName, time_t intFromDa
 		pParams->ratesBuffers->rates[ratesIndex].time[arraySize-i] = mktime(&lDate);
 		strftime(date, 20, "%d/%m/%Y %H:%M:%S", localtime(&pParams->ratesBuffers->rates[ratesIndex].time[arraySize-i]));
 
-		fprintf(stderr, "[DEBUG] Rate item addition -> %s, %lf, %lf, %lf, %lf", date, pParams->ratesBuffers->rates[ratesIndex].open[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].high[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].low[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].close[arraySize-i]);
+		logDebug("Rate item addition -> %s, %lf, %lf, %lf, %lf", date, pParams->ratesBuffers->rates[ratesIndex].open[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].high[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].low[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].close[arraySize-i]);
 
 		}
 
@@ -532,7 +533,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandl(char* token, char* dataset,
 	sprintf(str,"%d-%d-%d",finalDate.tm_mday, finalDate.tm_mon+1, finalDate.tm_year+1900);
 	strcat(url, str);
 
-	fprintf(stderr, "[DEBUG] URL To parse for rate addition of symbol %s: %s\n", ratesName, url);
+	logDebug("URL To parse for rate addition of symbol %s: %s", ratesName, url);
 
 	curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
@@ -546,7 +547,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandl(char* token, char* dataset,
         res = curl_easy_perform(curl);
 
 		if(res != CURLE_OK){
-		fprintf(stderr, "[ERROR] curl_easy_perform() failed while getting rates: %s\n", curl_easy_strerror(res));
+		logError("curl_easy_perform() failed while getting rates: %s", curl_easy_strerror(res));
 		return ERROR_IN_RATES_RETRIEVAL;
 		}
 		/* always cleanup */
@@ -608,7 +609,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandl(char* token, char* dataset,
 		pParams->ratesBuffers->rates[ratesIndex].time[arraySize-i] = mktime(&lDate);
 		strftime(date, 20, "%d/%m/%Y %H:%M:%S", localtime(&pParams->ratesBuffers->rates[ratesIndex].time[arraySize-i]));
 
-		fprintf(stderr, "[DEBUG] Rate item addition -> %s, %lf, %lf, %lf, %lf", date, pParams->ratesBuffers->rates[ratesIndex].open[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].high[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].low[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].close[arraySize-i]);
+		logDebug("Rate item addition -> %s, %lf, %lf, %lf, %lf", date, pParams->ratesBuffers->rates[ratesIndex].open[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].high[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].low[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].close[arraySize-i]);
 
 		}
 
@@ -679,7 +680,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandlOpenOnly(char* token, char* 
 	sprintf(str,"%d-%d-%d",finalDate.tm_mday, finalDate.tm_mon+1, finalDate.tm_year+1900);
 	strcat(url, str);
 
-	fprintf(stderr, "[DEBUG] URL To parse for rate addition of symbol %s: %s\n", ratesName, url);
+	logDebug("URL To parse for rate addition of symbol %s: %s", ratesName, url);
 
 	curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
@@ -693,7 +694,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandlOpenOnly(char* token, char* 
         res = curl_easy_perform(curl);
 
 		if(res != CURLE_OK){
-		fprintf(stderr, "[ERROR] curl_easy_perform() failed while getting rates: %s\n", curl_easy_strerror(res));
+		logError("curl_easy_perform() failed while getting rates: %s", curl_easy_strerror(res));
 		return ERROR_IN_RATES_RETRIEVAL;
 		}
 		/* always cleanup */
@@ -744,7 +745,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandlOpenOnly(char* token, char* 
 		pParams->ratesBuffers->rates[ratesIndex].time[arraySize-i] = mktime(&lDate);
 		strftime(date, 20, "%d/%m/%Y %H:%M:%S", localtime(&pParams->ratesBuffers->rates[ratesIndex].time[arraySize-i]));
 
-		fprintf(stderr, "[DEBUG] Rate item addition -> %s, %lf, %lf, %lf, %lf", date, pParams->ratesBuffers->rates[ratesIndex].open[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].high[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].low[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].close[arraySize-i]);
+		logDebug("Rate item addition -> %s, %lf, %lf, %lf, %lf", date, pParams->ratesBuffers->rates[ratesIndex].open[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].high[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].low[arraySize-i], pParams->ratesBuffers->rates[ratesIndex].close[arraySize-i]);
 
 		}
 
@@ -814,7 +815,7 @@ AsirikuyReturnCode EasyTrade::addNewRenkoRates(int originalRatesIndex, int rates
 
 		/*if((cumulativeUp > renkoSize) && (cumulativeDown > renkoSize))
 		{
-			fprintf(stderr, "[CRITICAL] addNewRenkoRates() failed. Requested renko bar size is too small for current data resolution. Use a lower time frame as source or use a larger renko bar size for array generation.\n");
+			logCritical("addNewRenkoRates() failed. Requested renko bar size is too small for current data resolution. Use a lower time frame as source or use a larger renko bar size for array generation.");
 			return SUCCESS;
 		}*/
 
@@ -978,13 +979,13 @@ AsirikuyReturnCode EasyTrade::openSingleSellLimitEasy(double entryPrice, double 
   }
 
   if (entryPrice < pParams->bidAsk.bid[0]){
-	  fprintf(stderr, "[ERROR] Cannot set a sell limit below current price\n");
+	  logError("Cannot set a sell limit below current price");
       return SUCCESS; 
   }
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
@@ -1001,7 +1002,7 @@ AsirikuyReturnCode EasyTrade::openSingleSellLimitEasy(double entryPrice, double 
   pParams->results[resultIndex].brokerTP   = takeProfit;
   pParams->results[resultIndex].internalTP = 0;
 
-  fprintf(stderr, "[INFO] Sell Limit Signal, EntryPrice =%lf,TP =%lf, SL=%lf, lots=%lf", pParams->results[resultIndex].entryPrice,takeProfit, stopLoss, pParams->results[resultIndex].lots);
+  logInfo("Sell Limit Signal, EntryPrice =%lf,TP =%lf, SL=%lf, lots=%lf", pParams->results[resultIndex].entryPrice,takeProfit, stopLoss, pParams->results[resultIndex].lots);
   addTradingSignal(SIGNAL_OPEN_SELLLIMIT, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
@@ -1024,13 +1025,13 @@ AsirikuyReturnCode EasyTrade::openSingleSellStopEasy(double entryPrice, double t
   }
 
   if (entryPrice > pParams->bidAsk.bid[0]){
-	  fprintf(stderr, "[ERROR] Cannot set a sell stop above current price\n");
+	  logError("Cannot set a sell stop above current price");
       return SUCCESS; 
   }
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
@@ -1047,7 +1048,7 @@ AsirikuyReturnCode EasyTrade::openSingleSellStopEasy(double entryPrice, double t
   pParams->results[resultIndex].brokerTP   = takeProfit;
   pParams->results[resultIndex].internalTP = 0;
 
-  fprintf(stderr, "[INFO] Sell Stop Signal, EntryPrice =%lf,TP =%lf, SL=%lf, lots=%lf", pParams->results[resultIndex].entryPrice,takeProfit, stopLoss, pParams->results[resultIndex].lots);
+  logInfo("Sell Stop Signal, EntryPrice =%lf,TP =%lf, SL=%lf, lots=%lf", pParams->results[resultIndex].entryPrice,takeProfit, stopLoss, pParams->results[resultIndex].lots);
   addTradingSignal(SIGNAL_OPEN_SELLSTOP, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
@@ -1070,13 +1071,13 @@ AsirikuyReturnCode EasyTrade::openSingleBuyStopEasy(double entryPrice, double ta
   }
 
   if (entryPrice < pParams->bidAsk.ask[0]){
-	  fprintf(stderr, "[ERROR] Cannot set a buy stop below current price\n");
+	  logError("Cannot set a buy stop below current price");
       return SUCCESS; 
   }
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
@@ -1093,7 +1094,7 @@ AsirikuyReturnCode EasyTrade::openSingleBuyStopEasy(double entryPrice, double ta
   pParams->results[resultIndex].brokerTP   = takeProfit;
   pParams->results[resultIndex].internalTP = 0;
 
-  fprintf(stderr, "[INFO] Buy Stop Signal, EntryPrice =%lf,TP =%lf, SL=%lf, lots=%lf", pParams->results[resultIndex].entryPrice, takeProfit, stopLoss, pParams->results[resultIndex].lots);
+  logInfo("Buy Stop Signal, EntryPrice =%lf,TP =%lf, SL=%lf, lots=%lf", pParams->results[resultIndex].entryPrice, takeProfit, stopLoss, pParams->results[resultIndex].lots);
   addTradingSignal(SIGNAL_OPEN_BUYSTOP, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
@@ -1116,13 +1117,13 @@ AsirikuyReturnCode EasyTrade::openSingleBuyLimitEasy(double entryPrice, double t
   }
 
   if (entryPrice > pParams->bidAsk.ask[0]){
-	  fprintf(stderr, "[ERROR] Cannot set a buy limit above current price\n");
+	  logError("Cannot set a buy limit above current price");
       return SUCCESS; 
   }
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
@@ -1139,7 +1140,7 @@ AsirikuyReturnCode EasyTrade::openSingleBuyLimitEasy(double entryPrice, double t
   pParams->results[resultIndex].brokerTP   = takeProfit;
   pParams->results[resultIndex].internalTP = 0;
 
-  fprintf(stderr, "[INFO] %d Buy Limit Signal, EntryPrice = %lf,TP =%lf, SL=%lf, lots=%lf", resultIndex, pParams->results[resultIndex].entryPrice, takeProfit, stopLoss, pParams->results[resultIndex].lots);
+  logInfo("%d Buy Limit Signal, EntryPrice = %lf,TP =%lf, SL=%lf, lots=%lf", resultIndex, pParams->results[resultIndex].entryPrice, takeProfit, stopLoss, pParams->results[resultIndex].lots);
   addTradingSignal(SIGNAL_OPEN_BUYLIMIT, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
@@ -1163,7 +1164,7 @@ AsirikuyReturnCode EasyTrade::openSingleShortEasy(double takeProfit, double stop
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
@@ -1180,7 +1181,7 @@ AsirikuyReturnCode EasyTrade::openSingleShortEasy(double takeProfit, double stop
   pParams->results[resultIndex].brokerTP   = takeProfit;
   pParams->results[resultIndex].internalTP = 0;
 
-  fprintf(stderr, "[INFO] %d Short Entry Signal, EntryPrice = %lf,TP =%lf, SL=%lf, lots=%lf", resultIndex, pParams->results[resultIndex].entryPrice, takeProfit, stopLoss, pParams->results[resultIndex].lots);
+  logInfo("%d Short Entry Signal, EntryPrice = %lf,TP =%lf, SL=%lf, lots=%lf", resultIndex, pParams->results[resultIndex].entryPrice, takeProfit, stopLoss, pParams->results[resultIndex].lots);
   addTradingSignal(SIGNAL_OPEN_SELL, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
   setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
@@ -1204,7 +1205,7 @@ AsirikuyReturnCode EasyTrade::openSingleLongEasy(double takeProfit, double stopL
 
   if(resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
@@ -1222,7 +1223,7 @@ AsirikuyReturnCode EasyTrade::openSingleLongEasy(double takeProfit, double stopL
   pParams->results[resultIndex].internalTP = 0;
   pParams->results[resultIndex].ticketNumber = -1;
   
-  fprintf(stderr, "[INFO] %d, Long Entry Signal, EntryPrice = %lf,TP =%lf, SL=%lf, lots=%lf", resultIndex, pParams->results[resultIndex].entryPrice, pParams->results[resultIndex].brokerTP, pParams->results[resultIndex].brokerSL, pParams->results[resultIndex].lots);
+  logInfo("%d, Long Entry Signal, EntryPrice = %lf,TP =%lf, SL=%lf, lots=%lf", resultIndex, pParams->results[resultIndex].entryPrice, pParams->results[resultIndex].brokerTP, pParams->results[resultIndex].brokerSL, pParams->results[resultIndex].lots);
 
   addTradingSignal(SIGNAL_OPEN_BUY, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
@@ -2329,7 +2330,7 @@ double EasyTrade::iAtr(int ratesArrayIndex, int period, int shift)
 
 void EasyTrade::print(double valueToPrint)
 {
-  fprintf(stderr, "[CRITICAL] Print = %lf\n", valueToPrint);
+  logCritical("Print = %lf", valueToPrint);
 }
 
 AsirikuyReturnCode EasyTrade::checkOrders(double takeProfit, double stopLoss)
@@ -2383,25 +2384,25 @@ AsirikuyReturnCode EasyTrade::closeAllLimitAndStopOrders(time_t currentTime)
 		{
 			if (pParams->orderInfo[i].type == BUYSTOP)
 			{
-				fprintf(stderr, "[INFO] Close buy stop orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close buy stop orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeBuyStopEasy(pParams->orderInfo[i].ticket);
 			}
 
 			if (pParams->orderInfo[i].type == SELLSTOP)
 			{
-				fprintf(stderr, "[INFO] Close sell stop orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close sell stop orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeSellStopEasy(pParams->orderInfo[i].ticket);
 			}
 
 			if (pParams->orderInfo[i].type == BUYLIMIT)
 			{
-				fprintf(stderr, "[INFO] Close buy Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close buy Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeBuyLimitEasy(pParams->orderInfo[i].ticket);
 			}
 
 			if (pParams->orderInfo[i].type == SELLLIMIT)
 			{
-				fprintf(stderr, "[INFO] Close sell Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close sell Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeSellLimitEasy(pParams->orderInfo[i].ticket);
 			}
 		}
@@ -2425,7 +2426,7 @@ AsirikuyReturnCode EasyTrade::closeAllBuyStopOrders(time_t currentTime)
 			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
 			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
 			{
-				fprintf(stderr, "[INFO] Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeBuyStopEasy(pParams->orderInfo[i].ticket);
 			}
 		}
@@ -2446,7 +2447,7 @@ AsirikuyReturnCode EasyTrade::closeAllSellStopOrders(time_t currentTime)
 			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
 			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
 			{
-				fprintf(stderr, "[INFO] Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeSellStopEasy(pParams->orderInfo[i].ticket);
 			}
 		}
@@ -2470,7 +2471,7 @@ AsirikuyReturnCode EasyTrade::closeAllBuyLimitOrders(time_t currentTime)
 			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
 			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
 			{		
-				fprintf(stderr, "[INFO] Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeBuyLimitEasy(pParams->orderInfo[i].ticket);
 			}
 		}
@@ -2491,7 +2492,7 @@ AsirikuyReturnCode EasyTrade::closeAllSellLimitOrders(time_t currentTime)
 			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
 			if (timeInfo1.tm_mday != timeInfo2.tm_mday)
 			{
-				fprintf(stderr, "[INFO] Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logInfo("Close all Limit orders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 				closeSellLimitEasy(pParams->orderInfo[i].ticket);
 			}
 		}
@@ -2508,7 +2509,7 @@ AsirikuyReturnCode EasyTrade::closeAllLongTermLongs()
 
 		if (pParams->orderInfo[i].type == BUY && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen && pParams->orderInfo[i].takeProfit == 0)
 		{
-			fprintf(stderr, "[WARNING] closeAllLongTermLongs type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+			logWarning("closeAllLongTermLongs type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 			closeLongEasy(pParams->orderInfo[i].ticket);
 		}
 	}
@@ -2525,7 +2526,7 @@ AsirikuyReturnCode EasyTrade::closeAllLongs()
 
 	if (pParams->orderInfo[i].type == BUY && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
 	{
-		fprintf(stderr, "[INFO] closeAllLongs type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+		logInfo("closeAllLongs type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 		closeLongEasy(pParams->orderInfo[i].ticket);
 	}
   }
@@ -2559,7 +2560,7 @@ AsirikuyReturnCode EasyTrade::modifyAllShorts_DayTrading(double stopLoss1, doubl
 					newSL = stopLossPrice2 - pParams->bidAsk.ask[0] + adjust;
 			}
 
-			fprintf(stderr, "[INFO] ModifyAllShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+			logInfo("ModifyAllShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 
 			if (tpMode == 1 && pParams->orderInfo[i].openPrice - pParams->bidAsk.ask[0] >= 0) // New day and break event
 				newTP = 0;
@@ -2605,7 +2606,7 @@ AsirikuyReturnCode EasyTrade::modifyAllShorts(double stopLoss,double takePrice,i
 
 		if (pParams->orderInfo[i].type == SELL && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
 		{
-			fprintf(stderr, "[INFO] ModifyAllShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+			logInfo("ModifyAllShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 
 			if (tpMode == 1 && pParams->orderInfo[i].openPrice - pParams->bidAsk.ask[0] >= 0) // New day and break event
 				newTP = 0;
@@ -4264,7 +4265,7 @@ double EasyTrade::caculateStrategyPNLCloseOrder(OrderType type, double openPrice
 	mLP = maxLossPerLot(pParams, type, openPrice, stopLoss);
 
 	risk = lots * mLP * adjust / (0.01 * equity);
-	fprintf(stderr, "[DEBUG] PNL = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, lots);
+	logDebug("PNL = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, lots);
 
 
 	return risk;
@@ -4305,7 +4306,7 @@ double EasyTrade::caculateStrategyPNLOrder(OrderType type, double openPrice, dou
 	mLP = maxLossPerLot(pParams, type, openPrice, stopLoss);
 
 	risk = lots * mLP * adjust / (0.01 * equity);
-	fprintf(stderr, "[DEBUG] PNL = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, lots);
+	logDebug("PNL = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, lots);
 
 
 	return risk;
@@ -4418,7 +4419,7 @@ double EasyTrade::caculateStrategyVolRiskForNoTPOrders(double dailyATR)
 			mLP = maxLossPerLot(pParams, pParams->orderInfo[i].type, pParams->orderInfo[i].openPrice, dailyATR);
 
 			risk = risk + pParams->orderInfo[i].lots * mLP * adjust / (0.01 * pParams->accountInfo.equity);
-			fprintf(stderr, "[DEBUG] VolRisk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, pParams->orderInfo[i].lots);
+			logDebug("VolRisk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, pParams->orderInfo[i].lots);
 
 		}
 	}
@@ -4456,7 +4457,7 @@ double EasyTrade::caculateStrategyVolRisk(double dailyATR)
 			mLP = maxLossPerLot(pParams, pParams->orderInfo[i].type, pParams->orderInfo[i].openPrice, dailyATR);
 
 			risk = risk + pParams->orderInfo[i].lots * mLP * adjust / (0.01 * pParams->accountInfo.equity);
-			fprintf(stderr, "[DEBUG] VolRisk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, pParams->orderInfo[i].lots);
+			logDebug("VolRisk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, pParams->orderInfo[i].lots);
 
 		}
 	}
@@ -4507,7 +4508,7 @@ double EasyTrade::caculateStrategyRisk(BOOL isIgnoredLockedProfit)
 				mLP = maxLossPerLot(pParams, pParams->orderInfo[i].type, pParams->orderInfo[i].openPrice, stopLoss);
 
 			risk = risk + pParams->orderInfo[i].lots * mLP * adjust / (0.01 * pParams->accountInfo.equity);
-			fprintf(stderr, "[DEBUG] Risk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, pParams->orderInfo[i].lots);
+			logDebug("Risk = %lf, Equity = %lf, maxLossPerLot =%lf,OrderSize = %lf", risk, equity, mLP, pParams->orderInfo[i].lots);
 
 		}
 	}
@@ -4541,7 +4542,7 @@ AsirikuyReturnCode EasyTrade::modifyAllOrdersOnSameDate(int orderIndex,double st
 			else
 				entryPrice = pParams->bidAsk.bid[0];
 
-			fprintf(stderr, "[INFO] ModifyAllLongs type = %d, ticket = %d,stopLoss=%lf, takePrice=%lf", 
+			logInfo("ModifyAllLongs type = %d, ticket = %d,stopLoss=%lf, takePrice=%lf", 
 				(int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket,newSL,newTP );
 
 			if (newTP == -1) // No change
@@ -4596,7 +4597,7 @@ AsirikuyReturnCode EasyTrade::modifyAllLongs_DayTrading(double stopLoss1, double
 					newSL = pParams->bidAsk.bid[0] - stopLossPrice2 + adjust;
 			}
 
-			fprintf(stderr, "[INFO] ModifyAllLongs type = %d, ticket = %d,tpMode=%d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket, tpMode);
+			logInfo("ModifyAllLongs type = %d, ticket = %d,tpMode=%d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket, tpMode);
 			if (tpMode == 1 && pParams->orderInfo[i].openPrice - pParams->bidAsk.bid[0] <= 0) // New day and break event			
 				newTP = 0;
 			else
@@ -4644,7 +4645,7 @@ AsirikuyReturnCode EasyTrade::modifyAllLongs(double stopLoss, double takePrice, 
 		newSL = stopLoss;
 		if (pParams->orderInfo[i].type == BUY && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen)
 		{			
-			fprintf(stderr, "[INFO] ModifyAllLongs type = %d, ticket = %d,tpMode=%d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket,tpMode);
+			logInfo("ModifyAllLongs type = %d, ticket = %d,tpMode=%d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket,tpMode);
 			if (tpMode == 1 && pParams->orderInfo[i].openPrice - pParams->bidAsk.bid[0] <= 0) // New day and break event			
 				newTP = 0;		
 			else if (tpMode == 2)
@@ -4738,7 +4739,7 @@ AsirikuyReturnCode EasyTrade::closeAllLongsWithNegative(int tradeMode, time_t cu
 					if (current >= monday && current <= friday)
 					{
 						if (timeInfo1.tm_wday == 5 && timeInfo1.tm_hour == 23 && timeInfo1.tm_min >= 25)
-							fprintf(stderr, "[INFO] Hit End of week\n");
+							logInfo("Hit End of week");
 						else
 							continue;
 					}
@@ -4754,7 +4755,7 @@ AsirikuyReturnCode EasyTrade::closeAllLongsWithNegative(int tradeMode, time_t cu
 					continue;				
 				else if (timeInfo1.tm_hour < 23 || (timeInfo1.tm_hour == 23 && timeInfo1.tm_min < 25))									
 						continue;				
-				fprintf(stderr, "[WARNING] closing neative trades more than %lf days type = %d, ticket = %d", diffDays,(int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logWarning("closing neative trades more than %lf days type = %d, ticket = %d", diffDays,(int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 			}
 			else if (tradeMode == 4)
 			{
@@ -4779,7 +4780,7 @@ AsirikuyReturnCode EasyTrade::closeAllLongsWithNegative(int tradeMode, time_t cu
 				//}
 			}
 
-			fprintf(stderr, "[INFO] closeAllLongsWithNegative type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+			logInfo("closeAllLongsWithNegative type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 			closeLongEasy(pParams->orderInfo[i].ticket);
 		}
 	}
@@ -4813,7 +4814,7 @@ AsirikuyReturnCode EasyTrade::closeAllCurrentDayShortTermOrders(int tradeMode,ti
 					continue;
 			}
 
-			fprintf(stderr, "[WARNING] closeAllCurrentDayShortTermOrders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+			logWarning("closeAllCurrentDayShortTermOrders type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 			if (pParams->orderInfo[i].type == SELL)
 				closeShortEasy(pParams->orderInfo[i].ticket);
 			if (pParams->orderInfo[i].type == BUY)
@@ -4864,7 +4865,7 @@ BOOL EasyTrade::closeBiggestWinningPosition(double closeRisk[], int * riskIndex)
 
 	if (*riskIndex >= 0)
 	{
-		fprintf(stderr, "[WARNING] closeBiggestWinningPosition type = %d, ticket = %d", (int)pParams->orderInfo[*riskIndex].type, (int)pParams->orderInfo[*riskIndex].ticket);
+		logWarning("closeBiggestWinningPosition type = %d, ticket = %d", (int)pParams->orderInfo[*riskIndex].type, (int)pParams->orderInfo[*riskIndex].ticket);
 
 		if ((int)pParams->orderInfo[*riskIndex].type == SELL)
 			closeShortEasy(pParams->orderInfo[*riskIndex].ticket);
@@ -4928,7 +4929,7 @@ AsirikuyReturnCode EasyTrade::closeAllShortsWithNegative(int tradeMode, time_t c
 					if (current >= monday && current <= friday)					
 					{
 						if (timeInfo1.tm_wday == 5 && timeInfo1.tm_hour == 23 && timeInfo1.tm_min >= 25)
-							fprintf(stderr, "[INFO] Hit End of week\n");
+							logInfo("Hit End of week");
 						else
 							continue;
 						
@@ -4947,7 +4948,7 @@ AsirikuyReturnCode EasyTrade::closeAllShortsWithNegative(int tradeMode, time_t c
 				else if (timeInfo1.tm_hour < 23 || (timeInfo1.tm_hour == 23 && timeInfo1.tm_min < 25))
 					continue;
 
-				fprintf(stderr, "[WARNING] closing neative trades more than %lf days type = %d, ticket = %d", diffDays, (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+				logWarning("closing neative trades more than %lf days type = %d, ticket = %d", diffDays, (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 
 			}
 			else if (tradeMode == 5) //Close all negative trades intraday
@@ -4961,7 +4962,7 @@ AsirikuyReturnCode EasyTrade::closeAllShortsWithNegative(int tradeMode, time_t c
 				//}
 			}
 
-			fprintf(stderr, "[INFO] closeAllShortsWithNegative type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+			logInfo("closeAllShortsWithNegative type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 			closeShortEasy(pParams->orderInfo[i].ticket);
 		}
 	}
@@ -4975,7 +4976,7 @@ AsirikuyReturnCode EasyTrade::closeAllShorts()
 
   for (i=0; i < pParams->settings[ORDERINFO_ARRAY_SIZE]; i++)
   {
-    fprintf(stderr, "[INFO] closeAllShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type,  (int)pParams->orderInfo[i].ticket );
+    logInfo("closeAllShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type,  (int)pParams->orderInfo[i].ticket );
 
     if(pParams->orderInfo[i].type == SELL && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen )
       closeShortEasy(pParams->orderInfo[i].ticket);
@@ -4993,7 +4994,7 @@ AsirikuyReturnCode EasyTrade::closeAllLongTermShorts()
 
 		if (pParams->orderInfo[i].type == SELL && pParams->orderInfo[i].ticket != 0 && pParams->orderInfo[i].isOpen && pParams->orderInfo[i].takeProfit == 0)
 		{
-			fprintf(stderr, "[WARNING] closeAllLongTermShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
+			logWarning("closeAllLongTermShorts type = %d, ticket = %d", (int)pParams->orderInfo[i].type, (int)pParams->orderInfo[i].ticket);
 			closeShortEasy(pParams->orderInfo[i].ticket);
 		}
 	}
@@ -5018,13 +5019,13 @@ AsirikuyReturnCode EasyTrade::closeSellLimitEasy(int orderTicket)
 
 	if (resultIndex == -1)
 	{
-		fprintf(stderr, "[INFO] Results array assignations already full\n");
+		logInfo("Results array assignations already full");
 		return SUCCESS;
 	}
 
 	tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
 
-	fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+	logInfo("TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
 	addTradingSignal(SIGNAL_CLOSE_SELLLIMIT, &tradingSignals);
 
 	pParams->results[resultIndex].ticketNumber = orderTicket;
@@ -5050,13 +5051,13 @@ AsirikuyReturnCode EasyTrade::closeBuyStopEasy(int orderTicket)
 
 	if (resultIndex == -1)
 	{
-		fprintf(stderr, "[INFO] Results array assignations already full\n");
+		logInfo("Results array assignations already full");
 		return SUCCESS;
 	}
 
 	tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
 
-	fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+	logInfo("TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
 	addTradingSignal(SIGNAL_CLOSE_BUYSTOP, &tradingSignals);
 
 	pParams->results[resultIndex].ticketNumber = orderTicket;
@@ -5082,13 +5083,13 @@ AsirikuyReturnCode EasyTrade::closeSellStopEasy(int orderTicket)
 
 	if (resultIndex == -1)
 	{
-		fprintf(stderr, "[INFO] Results array assignations already full\n");
+		logInfo("Results array assignations already full");
 		return SUCCESS;
 	}
 
 	tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
 
-	fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+	logInfo("TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
 	addTradingSignal(SIGNAL_CLOSE_SELLSTOP, &tradingSignals);
 
 	pParams->results[resultIndex].ticketNumber = orderTicket;
@@ -5114,13 +5115,13 @@ AsirikuyReturnCode EasyTrade::closeBuyLimitEasy(int orderTicket)
 
 	if (resultIndex == -1)
 	{
-		fprintf(stderr, "[INFO] Results array assignations already full\n");
+		logInfo("Results array assignations already full");
 		return SUCCESS;
 	}
 
 	tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
 
-	fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close BUY Limit. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+	logInfo("TradeSignal(Exit criteria) : Close BUY Limit. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
 	addTradingSignal(SIGNAL_CLOSE_BUYLIMIT, &tradingSignals);
 
 	pParams->results[resultIndex].ticketNumber = orderTicket;
@@ -5146,13 +5147,13 @@ AsirikuyReturnCode EasyTrade::closeLongEasy(int orderTicket)
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
   tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
 
-  fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+  logInfo("TradeSignal(Exit criteria) : Close BUY. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
   addTradingSignal(SIGNAL_CLOSE_BUY, &tradingSignals);
 
   pParams->results[resultIndex].ticketNumber = orderTicket;
@@ -5178,13 +5179,13 @@ AsirikuyReturnCode EasyTrade::closeShortEasy(int orderTicket)
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
   tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
 
-  fprintf(stderr, "[INFO] TradeSignal(Exit criteria) : Close SELL. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
+  logInfo("TradeSignal(Exit criteria) : Close SELL. InstanceID = %d, Ticket = %d", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket);
   addTradingSignal(SIGNAL_CLOSE_SELL, &tradingSignals);
 
   pParams->results[resultIndex].ticketNumber = orderTicket;
@@ -5211,13 +5212,13 @@ AsirikuyReturnCode EasyTrade::modifyTradeEasy(int orderType, int orderTicket, do
 
   if (resultIndex == -1)
   {
-    fprintf(stderr, "[INFO] Results array assignations already full\n");
+    logInfo("Results array assignations already full");
     return SUCCESS;
   }
 
   tradingSignals = (int)pParams->results[resultIndex].tradingSignals;
 
-  fprintf(stderr, "[INFO] TradeSignal(Update criteria) : Easy Update. InstanceID = %d, Ticket = %d, New SL = %lf, New TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket, stopLoss, takeProfit);
+  logInfo("TradeSignal(Update criteria) : Easy Update. InstanceID = %d, Ticket = %d, New SL = %lf, New TP = %lf", (int)pParams->settings[STRATEGY_INSTANCE_ID], orderTicket, stopLoss, takeProfit);
 
   returnCode = setStops(pParams, 0, resultIndex, stopLoss, takeProfit, FALSE, FALSE);
   if(returnCode != SUCCESS)
@@ -5285,7 +5286,7 @@ AsirikuyReturnCode EasyTrade::validateCurrentTime(StrategyParams* pParams, int p
 	safe_gmtime(&timeInfo, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	fprintf(stderr, "[DEBUG] checking missing bars: current time = %s, adjusted local current time =%s", timeString, adjustedLocaltimeString);
+	logDebug("checking missing bars: current time = %s, adjusted local current time =%s", timeString, adjustedLocaltimeString);
 	diff = (int)(difftime(adjustedLocalTime, currentTime) / 60);
 
 	if (diff < primary_tf)
@@ -5294,7 +5295,7 @@ AsirikuyReturnCode EasyTrade::validateCurrentTime(StrategyParams* pParams, int p
 	}
 	else
 	{
-		fprintf(stderr, "[ERROR] Potential missing bars: Current day not matached: current time = %s, adjusted local current time =%s", timeString, adjustedLocaltimeString);
+		logError("Potential missing bars: Current day not matached: current time = %s, adjusted local current time =%s", timeString, adjustedLocaltimeString);
 
 		return ERROR_IN_RATES_RETRIEVAL;
 	}
@@ -5314,7 +5315,7 @@ void EasyTrade::printBarInfo(StrategyParams* pParams, int rate, char * currentTi
 	safe_gmtime(&barTimeInfo, currentBarTime);
 	safe_timeString(currentBarTimeString, currentBarTime);
 
-	fprintf(stderr, "[DEBUG] current time=%s checking rate %d current bar 0: time =%s high=%lf,low=%lf,open=%lf,close=%lf", currentTimeString, rate, currentBarTimeString,
+	logDebug("current time=%s checking rate %d current bar 0: time =%s high=%lf,low=%lf,open=%lf,close=%lf", currentTimeString, rate, currentBarTimeString,
 		pParams->ratesBuffers->rates[rate].high[shift0Index],
 		pParams->ratesBuffers->rates[rate].low[shift0Index],
 		pParams->ratesBuffers->rates[rate].open[shift0Index],
@@ -5361,7 +5362,7 @@ AsirikuyReturnCode EasyTrade::validateDailyBars(StrategyParams* pParams, int pri
 	//	)
 	//	startHour = 1;
 
-	fprintf(stderr, "[DEBUG] checking missing bars: Current daily bar matached: current time = %s, current daily time =%s", timeString, dailyTimeString);
+	logDebug("checking missing bars: Current daily bar matached: current time = %s, current daily time =%s", timeString, dailyTimeString);
 	printBarInfo(pParams, daily_rate, timeString);
 
 	if (dailyTimeInfo.tm_yday == timeInfo.tm_yday  //&& dailyTimeInfo.tm_hour == startHour
@@ -5371,7 +5372,7 @@ AsirikuyReturnCode EasyTrade::validateDailyBars(StrategyParams* pParams, int pri
 	}
 	else
 	{
-		fprintf(stderr, "[ERROR] Potential missing bars: Current day not matached: current time = %s, current daily time =%s", timeString, dailyTimeString);
+		logError("Potential missing bars: Current day not matached: current time = %s, current daily time =%s", timeString, dailyTimeString);
 
 		return ERROR_IN_RATES_RETRIEVAL;
 	}
@@ -5416,7 +5417,7 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 		}
 	}
 
-	fprintf(stderr, "[DEBUG] checking missing bars: Current hourly bar matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
+	logDebug("checking missing bars: Current hourly bar matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
 	printBarInfo(pParams, hourly_rate, timeString);
 	if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL || strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
@@ -5431,7 +5432,7 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 		}
 
 
-		fprintf(stderr, "[ERROR] Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
+		logError("Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
 		return ERROR_IN_RATES_RETRIEVAL;
 	}
 	else 
@@ -5441,7 +5442,7 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	}
 	else
 	{
-		fprintf(stderr, "[ERROR] Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
+		logError("Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
 		return ERROR_IN_RATES_RETRIEVAL;
 	}
 
@@ -5497,7 +5498,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 		}
 	}
 
-	fprintf(stderr, "[DEBUG] validateSecondaryBarsGap:current time = %s, current secondary time =%s weekend=%d,startHour=%d,diff=%d,secondary_tf=%d",
+	logDebug("validateSecondaryBarsGap:current time = %s, current secondary time =%s weekend=%d,startHour=%d,diff=%d,secondary_tf=%d",
 		timeString, secondaryTimeString, isWeekend(currentTime), startHour, diff, secondary_tf);
 
 	
@@ -5507,21 +5508,21 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 		{
 			if (secondaryTimeInfo.tm_min % secondary_tf >= offset_min)
 			{
-				fprintf(stderr, "[ERROR] Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
+				logError("Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 				return FALSE;
 			}
 
 			if (diff > (secondary_tf - primary_tf) && diff >= primary_tf)
 			{
-				fprintf(stderr, "[ERROR] Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
+				logError("Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 				return FALSE;
 			}
 		}
 		else
 		{
-			fprintf(stderr, "[ERROR] Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
+			logError("Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 				timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 			return FALSE;
 		}
@@ -5619,7 +5620,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 				//	return TRUE;
 				//}
 				if (rateErrorTimes <= 2) {
-					fprintf(stderr, "[ERROR] validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
+					logError("validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 						timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 
 					saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes + 1, (BOOL)pParams->settings[IS_BACKTESTING]);
@@ -5644,7 +5645,7 @@ BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t current
 			//	return TRUE;
 			//}
 			if (rateErrorTimes <= 2) {
-				fprintf(stderr, "[ERROR] validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
+				logError("validateSecondaryBarsGap: Current seondary bar not matached: current time = %s, current secondary time =%s System InstanceID = %d",
 					timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 				saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], rateErrorTimes + 1, (BOOL)pParams->settings[IS_BACKTESTING]);
 			}
@@ -5701,8 +5702,8 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 	//if (primary_tf != secondary_tf)
 	{
 
-		fprintf(stderr, "[DEBUG] Checking missing bars:current time = %s, current secondary time =%s", timeString, secondaryTimeString);
-		fprintf(stderr, "[DEBUG] current time=%s checking rate %d current bar 0: time =%s high=%lf,low=%lf,open=%lf,close=%lf", timeString, secondary_rate, secondaryTimeString,
+		logDebug("Checking missing bars:current time = %s, current secondary time =%s", timeString, secondaryTimeString);
+		logDebug("current time=%s checking rate %d current bar 0: time =%s high=%lf,low=%lf,open=%lf,close=%lf", timeString, secondary_rate, secondaryTimeString,
 			pParams->ratesBuffers->rates[secondary_rate].high[shiftSecondary0Index],
 			pParams->ratesBuffers->rates[secondary_rate].low[shiftSecondary0Index],
 			pParams->ratesBuffers->rates[secondary_rate].open[shiftSecondary0Index],
@@ -5719,7 +5720,7 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 		else
 			checkedBarNum = (int)(MINUTES_PER_DAY + (secondaryTimeInfo.tm_hour-startHour) * MINUTES_PER_HOUR + secondaryTimeInfo.tm_min) / secondary_tf;
 		
-		fprintf(stderr, "[WARNING] Checking %d history secondary bars: current time = %s, current secondary time =%s", checkedBarNum, timeString, secondaryTimeString);
+		logWarning("Checking %d history secondary bars: current time = %s, current secondary time =%s", checkedBarNum, timeString, secondaryTimeString);
 
 		while (shiftSecondary0Index >= pParams->ratesBuffers->rates[secondary_rate].info.arraySize - 1 - checkedBarNum)
 		{
@@ -5728,8 +5729,8 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 			safe_timeString(timeString, currentTime);
 			safe_timeString(secondaryTimeString, currentSeondaryTime);
 
-			fprintf(stderr, "[DEBUG] Checking missing bars:current time = %s, current secondary time =%s", timeString, secondaryTimeString);
-			fprintf(stderr, "[DEBUG] current time=%s checking rate %d current bar 0: time =%s high=%lf,low=%lf,open=%lf,close=%lf", timeString, secondary_rate, secondaryTimeString,
+			logDebug("Checking missing bars:current time = %s, current secondary time =%s", timeString, secondaryTimeString);
+			logDebug("current time=%s checking rate %d current bar 0: time =%s high=%lf,low=%lf,open=%lf,close=%lf", timeString, secondary_rate, secondaryTimeString,
 				pParams->ratesBuffers->rates[secondary_rate].high[shiftSecondary0Index - 1],
 				pParams->ratesBuffers->rates[secondary_rate].low[shiftSecondary0Index - 1],
 				pParams->ratesBuffers->rates[secondary_rate].open[shiftSecondary0Index - 1],
@@ -5738,7 +5739,7 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 			if (!validateSecondaryBarsGap(pParams, currentTime, currentSeondaryTime, secondary_tf, primary_tf, false, startHour, rateErrorTimes)) {
 
 				if (rateErrorTimes > 2) {
-					fprintf(stderr, "[WARNING] Skip rate error: current time = %s, current secondary time =%s System InstanceID = %d",
+					logWarning("Skip rate error: current time = %s, current secondary time =%s System InstanceID = %d",
 						timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);	
 					return SUCCESS;
 				}
@@ -5750,7 +5751,7 @@ AsirikuyReturnCode EasyTrade::validateSecondaryBars(StrategyParams* pParams, int
 		}
 
 		if (rateErrorTimes > 0) {
-			fprintf(stderr, "[INFO] reset rate to 0: current time = %s, current secondary time =%s System InstanceID = %d",
+			logInfo("reset rate to 0: current time = %s, current secondary time =%s System InstanceID = %d",
 				timeString, secondaryTimeString, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 			saveRateFile((int)pParams->settings[STRATEGY_INSTANCE_ID], 0, (BOOL)pParams->settings[IS_BACKTESTING]);
 		}

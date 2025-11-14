@@ -38,6 +38,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 
 #include <ta_libc.h>
 
@@ -75,7 +76,7 @@ AsirikuyReturnCode runRecordBars(StrategyParams* pParams)
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] runRecordBars() failed. pParams = NULL\n");
+    logCritical("runRecordBars() failed. pParams = NULL");
     return NULL_POINTER;
   }
 

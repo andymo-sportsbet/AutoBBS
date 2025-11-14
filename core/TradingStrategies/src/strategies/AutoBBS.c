@@ -10,6 +10,7 @@
 #include "SwingStrategy.h"
 #include "TrendStrategy.h"
 #include "StrategyUserInterface.h"
+#include "AsirikuyLogger.h"
 
 #define USE_INTERNAL_SL FALSE
 #define USE_INTERNAL_TP FALSEF
@@ -342,7 +343,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 
 	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && pParams->accountInfo.totalOpenTradeRiskPercent < parameter(AUTOBBS_MAX_ACCOUNT_RISK) * -1) //if account risk is more than 3%, stop entring trades.
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, Over max riks %lf�� skip this entry signal=%d",
+		logWarning("System InstanceID = %d, BarTime = %s, Over max riks %lf�� skip this entry signal=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, parameter(AUTOBBS_MAX_ACCOUNT_RISK), pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -350,7 +351,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	//Filter out macro trend
 	if (pIndicators->side != 0 && pIndicators->entrySignal != 0 && pIndicators->side != pIndicators->entrySignal)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s,Againt Side =%ld�� skip this entry signal=%d",
+		logWarning("System InstanceID = %d, BarTime = %s,Againt Side =%ld�� skip this entry signal=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->side, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -358,7 +359,7 @@ static AsirikuyReturnCode workoutExecutionTrend(StrategyParams* pParams, Indicat
 	//// Dont enter trade on the new day bar, it is too risky and not reliable.
 	//if (pIndicators->entrySignal != 0 && timeInfo.tm_hour == startHour && timeInfo.tm_min == 0)
 	//{
-	//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s Not allowed to trade on the firt bar of new day�� skip this entry signal=%d",
+	//	logWarning("System InstanceID = %d, BarTime = %s Not allowed to trade on the firt bar of new day�� skip this entry signal=%d",
 	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entrySignal);
 	//	pIndicators->entrySignal = 0;
 	//}
@@ -695,7 +696,7 @@ static AsirikuyReturnCode loadIndicators(StrategyParams* pParams, Indicators* pI
 	pIndicators->virtualBalanceTopup = (double)parameter(AUTOBBS_VIRTUAL_BALANCE_TOPUP);
 	if (pIndicators->virtualBalanceTopup > 0)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, top up equity %lf ",
+		logWarning("System InstanceID = %d, top up equity %lf ",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], pIndicators->virtualBalanceTopup);
 		//update totalOpenTradeRiskPercent
 		originEquity = pParams->accountInfo.equity;
@@ -731,13 +732,13 @@ static AsirikuyReturnCode handleTradeEntries(StrategyParams* pParams, Indicators
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeEntries() failed. pParams = NULL\n\n");
+		logCritical("handleTradeEntries() failed. pParams = NULL\n\n");
 		return NULL_POINTER;
 	}
 
 	if (pIndicators == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeEntries() failed. pIndicators = NULL\n\n");
+		logCritical("handleTradeEntries() failed. pIndicators = NULL\n\n");
 		return NULL_POINTER;
 	}
 
@@ -804,17 +805,17 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] runAutoBBS() failed. pParams = NULL\n\n");
+		logCritical("runAutoBBS() failed. pParams = NULL\n\n");
 		return NULL_POINTER;
 	}
 
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
 	if (strcmp(timeString, "09/03/23 01:00") == 0)
-		fprintf(stderr, "[DEBUG] hit a point\n");
+		logDebug("hit a point\n");
 
 	if (strcmp(timeString, "22/11/21 15:00") == 0)
-		fprintf(stderr, "[DEBUG] hit a point\n");
+		logDebug("hit a point\n");
 
 	if ((int)parameter(AUTOBBS_TREND_MODE) == 16) // GBPJPY Daily Swing strategy, �����ֻ��Ҫ���ڵ�ָ��?
 		base_Indicators.strategy_mode = 0;
@@ -835,7 +836,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 		)
 		)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d,BarTime = %s: validate time failure.", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
+		logWarning("System InstanceID = %d,BarTime = %s: validate time failure.", (int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 		return SUCCESS;
 	}
 
@@ -845,7 +846,7 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 
 	if ((int)parameter(AUTOBBS_MACRO_TREND) * (int)parameter(AUTOBBS_ONE_SIDE) < 0)
 	{
-		fprintf(stderr, "[ERROR] Invalid paramenter config: System InstanceID = %d, BarTime = %s, AUTOBBS_MACRO_TREND= %d��AUTOBBS_ONE_SIDE=%d",
+		logError("Invalid paramenter config: System InstanceID = %d, BarTime = %s, AUTOBBS_MACRO_TREND= %d��AUTOBBS_ONE_SIDE=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, (int)parameter(AUTOBBS_MACRO_TREND), (int)parameter(AUTOBBS_ONE_SIDE));
 		return INVALID_CONFIG;
 	}
@@ -860,13 +861,13 @@ AsirikuyReturnCode runAutoBBS(StrategyParams* pParams)
 	setUIValues(pParams, &indicators, &base_Indicators);
 
 
-	fprintf(stderr, "[DEBUG] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_primary=%ld,BBStopPrice_primary=%lf, BBSIndex_primary = %ld",
+	logDebug("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_primary=%ld,BBStopPrice_primary=%lf, BBSIndex_primary = %ld",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_primary, indicators.bbsStopPrice_primary, indicators.bbsIndex_primary);
-	fprintf(stderr, "[DEBUG] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,bbsTrend_secondary=%ld,BBStopPrice_secondary=%lf, bbsIndex_secondary = %ld",
+	logDebug("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,bbsTrend_secondary=%ld,BBStopPrice_secondary=%lf, bbsIndex_secondary = %ld",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_secondary, indicators.bbsStopPrice_secondary, indicators.bbsIndex_secondary);
-	fprintf(stderr, "[DEBUG] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_1H=%ld,BBStopPrice_1H=%lf, BBSIndex_1H = %ld",
+	logDebug("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_1H=%ld,BBStopPrice_1H=%lf, BBSIndex_1H = %ld",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_1H, indicators.bbsStopPrice_1H, indicators.bbsIndex_1H);
-	fprintf(stderr, "[DEBUG] System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_4H=%ld,BBStopPrice_4H=%lf, BBSIndex_4H = %ld",
+	logDebug("System InstanceID = %d, BarTime = %s, ExecutionTrend = %ld,BBSTrend_4H=%ld,BBStopPrice_4H=%lf, BBSIndex_4H = %ld",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, indicators.executionTrend, indicators.bbsTrend_4H, indicators.bbsStopPrice_4H, indicators.bbsIndex_4H);
 
 	returnCode = handleTradeExits(pParams, &indicators);

@@ -11,6 +11,7 @@
 #include "TrendStrategy.h"
 #include "AsirikuyTime.h" /* added for safe_gmtime/safe_timeString prototypes */
 #include "InstanceStates.h"
+#include "AsirikuyLogger.h"
 
 /* Forward declarations for static helper functions to avoid C4013 */
 static BOOL move_stop_loss(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int orderIndex, double stopLossLevel);
@@ -99,10 +100,10 @@ void splitBuyOrders_ShortTerm(StrategyParams* pParams, Indicators* pIndicators, 
 					)
 				{
 					if (pIndicators->subTradeMode == 0)
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS break out.",
+						logWarning("System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS break out.",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 					else if (pIndicators->subTradeMode == 2)
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS Retreat.",
+						logWarning("System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS Retreat.",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 				}
@@ -176,10 +177,10 @@ void splitSellOrders_ShortTerm(StrategyParams* pParams, Indicators* pIndicators,
 					)
 				{
 					if (pIndicators->subTradeMode == 0)
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS break out.",
+						logWarning("System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS break out.",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 					else if (pIndicators->subTradeMode == 2)
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS Retreat.",
+						logWarning("System InstanceID = %d, BarTime = %s, entry long trade on retreated signal in BBS Retreat.",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 				}
 			}
@@ -954,7 +955,7 @@ void splitBuyOrders_Limit(StrategyParams* pParams, Indicators* pIndicators, Base
 	
 
 	lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, pIndicators->takePrice) * pIndicators->risk;
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, lots=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, lots=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, lots);
 
 	currentPrice = pParams->bidAsk.ask[0];		
@@ -1044,7 +1045,7 @@ void splitSellOrders_Limit(StrategyParams* pParams, Indicators* pIndicators, Bas
 
 	lots = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, pIndicators->takePrice)* pIndicators->risk;
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, lots=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, lots=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, lots);
 
 	currentPrice = pParams->bidAsk.bid[0];
@@ -1234,7 +1235,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	//	|| (pIndicators->entrySignal == -1 && pBase_Indicators->weeklyMATrend != DOWN_NORMAL)
 	//	)
 	//{
-	//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, tradeMode = %ld",
+	//	logWarning("System InstanceID = %d, BarTime = %s, tradeMode = %ld",
 	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->tradeMode);
 
 	//	pIndicators->tradeMode = 0;
@@ -1252,7 +1253,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	//if ((pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE || pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE)
 	//	&& pIndicators->entrySignal != 0 && volume1 > volume2)
 	//{
-	//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, volume1 = %lf, volume2 = %lf,tradeMode = %ld",
+	//	logWarning("System InstanceID = %d, BarTime = %s, volume1 = %lf, volume2 = %lf,tradeMode = %ld",
 	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, volume1, volume2, pIndicators->tradeMode);
 
 	//	pIndicators->tradeMode = 0;
@@ -1273,7 +1274,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 
 		ATR0_EURO = fabs(pIndicators->euro_high - pIndicators->euro_low);
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ATR0_EURO =%lf,euro_high = %lf,euro_low = %lf, euro_close=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, ATR0_EURO =%lf,euro_high = %lf,euro_low = %lf, euro_close=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0_EURO, pIndicators->euro_high, pIndicators->euro_low, pIndicators->euro_close);
 
 		if (ATR0_EURO < pIndicators->atr_euro_range)
@@ -1296,7 +1297,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	//
 	//if (ATR0 > pBase_Indicators->pDailyMaxATR)
 	//{
-	//	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, ATR0 =%lf,pDailyMaxATR = %lf close all current short term orders",
+	//	logInfo("System InstanceID = %d, BarTime = %s, ATR0 =%lf,pDailyMaxATR = %lf close all current short term orders",
 	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATR0, pBase_Indicators->pDailyMaxATR);
 	//	closeAllCurrentDayShortTermOrdersEasy(1, currentTime);
 	//}
@@ -1323,7 +1324,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 		if (fast > slow ||
 			(preClose5 < preClose4 && preClose5 < preClose3 && preClose5 < preClose2 && preClose5 < preClose1)) //If no new low in the last 4 days, close long term short trades
 		{
-			fprintf(stderr, "[WARNING] Exit Long term short trade:System InstanceID = %d, BarTime = %s, fast =%lf,slow = %lf",
+			logWarning("Exit Long term short trade:System InstanceID = %d, BarTime = %s, fast =%lf,slow = %lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, fast, slow);
 
 			closeAllLongTermShortsEasy();
@@ -1332,7 +1333,7 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 		if (fast < slow ||
 			(preClose5 > preClose4 && preClose5 > preClose3 && preClose5 > preClose2 && preClose5 > preClose1)) //If no new high in the last 4 days, close long term long trades
 		{
-			fprintf(stderr, "[WARNING] Exit Long term long trade:System InstanceID = %d, BarTime = %s, fast =%lf,slow = %lf",
+			logWarning("Exit Long term long trade:System InstanceID = %d, BarTime = %s, fast =%lf,slow = %lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, fast, slow);
 			closeAllLongTermLongsEasy();
 		}
@@ -1531,7 +1532,7 @@ AsirikuyReturnCode workoutExecutionTrend_BBS_BreakOut(StrategyParams* pParams, I
 		{
 			pIndicators->entrySignal = 1;
 
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, enter long trade in workoutExecutionTrend_BBS_BreakOut.",
+			logInfo("System InstanceID = %d, BarTime = %s, enter long trade in workoutExecutionTrend_BBS_BreakOut.",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 
@@ -1563,7 +1564,7 @@ AsirikuyReturnCode workoutExecutionTrend_BBS_BreakOut(StrategyParams* pParams, I
 			)
 		{
 			pIndicators->entrySignal = -1;
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, enter short trade in workoutExecutionTrend_BBS_BreakOut.",
+			logInfo("System InstanceID = %d, BarTime = %s, enter short trade in workoutExecutionTrend_BBS_BreakOut.",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 		}
 
@@ -1720,7 +1721,7 @@ AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicato
 			)
 		{
 			pIndicators->entrySignal = 1;
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, enter long trade in workoutExecutionTrend_Pivot.",
+			logInfo("System InstanceID = %d, BarTime = %s, enter long trade in workoutExecutionTrend_Pivot.",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 		}
 
@@ -1749,7 +1750,7 @@ AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicato
 		{
 			pIndicators->entrySignal = -1;
 
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, enter short trade in workoutExecutionTrend_Pivot.",
+			logInfo("System InstanceID = %d, BarTime = %s, enter short trade in workoutExecutionTrend_Pivot.",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 		}
 
@@ -1827,7 +1828,7 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 			)
 		{
 			pIndicators->entrySignal = 1;
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, enter long trade in workoutExecutionTrend_MIDDLE_RETREAT_PHASE.",
+			logInfo("System InstanceID = %d, BarTime = %s, enter long trade in workoutExecutionTrend_MIDDLE_RETREAT_PHASE.",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 		}
 
@@ -1853,7 +1854,7 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 			)
 		{
 			pIndicators->entrySignal = -1;
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, enter short trade in workoutExecutionTrend_MIDDLE_RETREAT_PHASE.",
+			logInfo("System InstanceID = %d, BarTime = %s, enter short trade in workoutExecutionTrend_MIDDLE_RETREAT_PHASE.",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 		}
 
@@ -2090,7 +2091,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan(StrategyParam
 		if (pIndicators->atr_euro_range == 0)
 			pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
@@ -2157,7 +2158,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan(StrategyParam
 			sprintf(pIndicators->status, "current weekly price gap %lf is greater than pWeeklyPredictATR %lf",
 				fabs(iLow(B_WEEKLY_RATES, 0) - pIndicators->entryPrice), pBase_Indicators->pWeeklyPredictATR);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			pIndicators->entrySignal = 0;
@@ -2229,7 +2230,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing_BoDuan(StrategyParams* pPar
 		if (pIndicators->atr_euro_range == 0)
 			pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;		
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
@@ -2371,7 +2372,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 	if (pIndicators->atr_euro_range == 0)
 		pIndicators->atr_euro_range = pBase_Indicators->pWeeklyPredictATR *0.4;
 	
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, high_4H %lf low_4H %lf, close_4H=%lf, pWeeklyPredictATR=%lf,pWeeklyPredictMaxATR=%lf,movement=%lf,atr_euro_range=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, high_4H, low_4H, close_4H, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR, movement, pIndicators->atr_euro_range);
 
 
@@ -2483,7 +2484,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 
 	//if (pIndicators->strategyRiskWithoutLockedProfit < 0 && fabs(pIndicators->stopLossPrice - pIndicators->entryPrice) <= pBase_Indicators->dailyATR * 0.5)
 	//{
-	//		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, strategyRiskWithoutLockedProfit %lf GapToSL= %lf, dailyATR=%lf",
+	//		logWarning("System InstanceID = %d, BarTime = %s, strategyRiskWithoutLockedProfit %lf GapToSL= %lf, dailyATR=%lf",
 	//			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->strategyRiskWithoutLockedProfit, fabs(pIndicators->stopLossPrice - pIndicators->entryPrice), pBase_Indicators->dailyATR );
 
 	//	pIndicators->risk = 0.5;
@@ -2492,7 +2493,7 @@ AsirikuyReturnCode workoutExecutionTrend_4HBBS_Swing(StrategyParams* pParams, In
 	//	&& ((pIndicators->entryPrice > preHigh - (preHigh - preLow) * 0.382 && pIndicators->entrySignal == 1)
 	//	|| (pIndicators->entryPrice < preLow + (preHigh - preLow) * 0.382 && pIndicators->entrySignal == -1)))
 	//{
-	//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, strategyRisk %lf limitRiskPNL %lf, entrySignal=%d",
+	//	logWarning("System InstanceID = %d, BarTime = %s, strategyRisk %lf limitRiskPNL %lf, entrySignal=%d",
 	//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->strategyRisk, pIndicators->limitRiskPNL, pIndicators->entrySignal);
 	//	pIndicators->entrySignal = 0;
 	//}
@@ -2787,7 +2788,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	if (timeInfo1.tm_wday == 0)
 		atrTimes = 50;
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,ask=%lf,bid=%lf,adjsut=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s,ask=%lf,bid=%lf,adjsut=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString,pParams->bidAsk.ask[0], pParams->bidAsk.bid[0], pIndicators->adjust);
 
 
@@ -2854,7 +2855,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 			strcpy(pIndicators->status, "Filter Non-farm day\n");
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			return SUCCESS;
@@ -2866,7 +2867,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		{
 			strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n");
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			return SUCCESS;
@@ -2950,7 +2951,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		{
 			strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n");
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			return SUCCESS;
@@ -2963,7 +2964,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//{
 		//	strcpy(pIndicators->status, "Previous day Close is more than pWeeklyPredictATR / 3.\n");
 
-		//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+		//	logWarning("System InstanceID = %d, BarTime = %s, %s",
 		//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 		//	return SUCCESS;
@@ -3033,7 +3034,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		{
 			strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n");
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			return SUCCESS;
@@ -3046,7 +3047,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//{
 		//	strcpy(pIndicators->status, "Previous day Close is more than pWeeklyPredictATR / 3.\n");
 
-		//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+		//	logWarning("System InstanceID = %d, BarTime = %s, %s",
 		//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 		//	return SUCCESS;
@@ -3254,7 +3255,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//&& (pIndicators->fast >= 0.012 || pIndicators->fast <=-0.012)
 		)
 	{
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,skip trading on rsi=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s,skip trading on rsi=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, rsi);
 
 		return SUCCESS;
@@ -3279,7 +3280,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && isEnableTooBigSpread == TRUE)
 	{
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,isEnableTooBigSpread=%d",
+		logInfo("System InstanceID = %d, BarTime = %s,isEnableTooBigSpread=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, isEnableTooBigSpread);
 		
 		closeAllLimitAndStopOrdersEasy(currentTime);
@@ -3323,7 +3324,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	//}
 
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,startHour=%d,AUTOBBS_IS_AUTO_MODE=%d,isEnableRangeTrade=%d,pBase_dailyHigh=%lf,dailyLow=%lf,pDailyMaxATR=%lf,hourATR=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s,startHour=%d,AUTOBBS_IS_AUTO_MODE=%d,isEnableRangeTrade=%d,pBase_dailyHigh=%lf,dailyLow=%lf,pDailyMaxATR=%lf,hourATR=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->startHour, (int)parameter(AUTOBBS_IS_AUTO_MODE), (int)parameter(AUTOBBS_RANGE), iHigh(B_DAILY_RATES, 0), iLow(B_DAILY_RATES, 0), pBase_Indicators->pDailyMaxATR, iAtr(B_HOURLY_RATES, 20, 1));
 	
 
@@ -3377,7 +3378,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			{
 				if (preDailyClose < preDailyOpen) // Bear bar
 				{
-					fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,ma960M=%lf, dailyS2=%lf run too far and reduce risk to 0.5.",
+					logInfo("System InstanceID = %d, BarTime = %s,ma960M=%lf, dailyS2=%lf run too far and reduce risk to 0.5.",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ma960M, pBase_Indicators->dailyS2);
 
 					//pIndicators->risk = 0.5;
@@ -3450,7 +3451,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			{
 				if (preDailyClose > preDailyOpen) // Bull bar
 				{
-					fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,ma960M= %lf,dailyR2=%lf run too far and reduce risk to 0.5.",
+					logInfo("System InstanceID = %d, BarTime = %s,ma960M= %lf,dailyR2=%lf run too far and reduce risk to 0.5.",
 						(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ma960M, pBase_Indicators->dailyR2);
 
 					//pIndicators->risk = 0.5;
@@ -3568,7 +3569,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			//}
 			else if (iHigh(B_PRIMARY_RATES, 1) >= pParams->orderInfo[orderIndex].openPrice + realTakePrice)
 			{
-				fprintf(stderr, "[INFO] closeLong type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
+				logInfo("closeLong type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
 				closeLongEasy(pParams->orderInfo[orderIndex].ticket);				
 			}
 
@@ -3595,7 +3596,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			//}
 			else if (iLow(B_PRIMARY_RATES, 1) <= pParams->orderInfo[orderIndex].openPrice - realTakePrice)
 			{
-				fprintf(stderr, "[INFO] closeShort type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
+				logInfo("closeShort type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
 				closeShortEasy(pParams->orderInfo[orderIndex].ticket);				
 			}
 
@@ -3819,7 +3820,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 
 			strcpy(pIndicators->status, "Filter Non-farm day\n");
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			return SUCCESS;
@@ -3827,7 +3828,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 
 		if (XAUUSD_not_full_trading_day(pParams, pIndicators, pBase_Indicators) == TRUE)
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 			return SUCCESS;
 		}
@@ -3857,7 +3858,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 		{
 			strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n");
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			return SUCCESS;
@@ -4024,7 +4025,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 		return SUCCESS;
 	}
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s,startHour=%d,AUTOBBS_IS_AUTO_MODE=%d,isEnableRangeTrade=%d,pBase_dailyHigh=%lf,dailyLow=%lf,pDailyMaxATR=%lf,hourATR=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s,startHour=%d,AUTOBBS_IS_AUTO_MODE=%d,isEnableRangeTrade=%d,pBase_dailyHigh=%lf,dailyLow=%lf,pDailyMaxATR=%lf,hourATR=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->startHour, (int)parameter(AUTOBBS_IS_AUTO_MODE), (int)parameter(AUTOBBS_RANGE), iHigh(B_DAILY_RATES, 0), iLow(B_DAILY_RATES, 0), pBase_Indicators->pDailyMaxATR, iAtr(B_HOURLY_RATES, 20, 1));
 	totalLossTimes = getLossTimesInDayCloseOrderEasy(currentTime, &totalLossPoint);
 	if (totalLossTimes >= 1)
@@ -4158,7 +4159,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 			//}
 			else if (iHigh(B_PRIMARY_RATES, 1) >= pParams->orderInfo[orderIndex].openPrice + realTakePrice)
 			{
-				fprintf(stderr, "[INFO] closeLong type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
+				logInfo("closeLong type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
 				closeLongEasy(pParams->orderInfo[orderIndex].ticket);
 			}
 
@@ -4185,7 +4186,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BreakOutOnPivot(StrategyParams* p
 			//}
 			else if (iLow(B_PRIMARY_RATES, 1) <= pParams->orderInfo[orderIndex].openPrice - realTakePrice)
 			{
-				fprintf(stderr, "[INFO] closeShort type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
+				logInfo("closeShort type = %d, ticket = %d", (int)pParams->orderInfo[orderIndex].type, (int)pParams->orderInfo[orderIndex].ticket);
 				closeShortEasy(pParams->orderInfo[orderIndex].ticket);
 			}
 
@@ -4490,7 +4491,7 @@ static BOOL DailyTrade_Limit_Allow_Trade(StrategyParams* pParams, Indicators* pI
 		if (timeInfo1.tm_hour >= 10)
 		{
 			sprintf(pIndicators->status, "Ignore trading after 10\n");
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 			closeAllLimitAndStopOrdersEasy(currentTime);
 			return FALSE;
@@ -4501,7 +4502,7 @@ static BOOL DailyTrade_Limit_Allow_Trade(StrategyParams* pParams, Indicators* pI
 		if (timeInfo1.tm_hour >= 8 && timeInfo1.tm_hour <= 14)
 		{
 			sprintf(pIndicators->status, "Ignore trading between 8-14\n");
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			closeAllLimitAndStopOrdersEasy(currentTime);
@@ -4864,7 +4865,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit_BBS_LongTerm(StrategyParams* pPar
 	getHighLowPrice(pParams, pIndicators, pBase_Indicators, B_PRIMARY_RATES, pIndicators->executionRateTF * 60, orderIndex, &highPrice, &lowPrice);
 	pIndicators->takePrice = pBase_Indicators->dailyATR;
 	//pIndicators->takePrice = 0;
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, trend =%d, bbsTrend_excution=%d",
+	logInfo("System InstanceID = %d, BarTime = %s, trend =%d, bbsTrend_excution=%d",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, trend, pIndicators->bbsTrend_excution);
 	if (trend == UP)
 	{
@@ -4941,7 +4942,7 @@ AsirikuyReturnCode workoutExecutionTrend_ASI(StrategyParams* pParams, Indicators
 	pBase_Indicators->pDailyMaxATR = 1.5 * pBase_Indicators->dailyATR;
 	stopLoss = pBase_Indicators->pDailyMaxATR;
 
-	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, asiBull =%lf, asiBear=%lf",
+	logWarning("System InstanceID = %d, BarTime = %s, asiBull =%lf, asiBear=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, asiBull, asiBear);
 
 
@@ -5409,7 +5410,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 		pIndicators->volume2 = iVolume(B_DAILY_RATES, startShift + 1);
 		//volume_ma_10 = iMA(4, B_DAILY_RATES, 10, startShift);
 
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, cmfVolume =%lf, CMFVolumeGap=%lf, weekly_baseline=%lf, weekly_baseline_short=%lf,volume1=%lf,volume2=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s, cmfVolume =%lf, CMFVolumeGap=%lf, weekly_baseline=%lf, weekly_baseline_short=%lf,volume1=%lf,volume2=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->cmfVolume, pIndicators->CMFVolumeGap, weekly_baseline, weekly_baseline_short, pIndicators->volume1, pIndicators->volume2);
 
 		//Load MACD
@@ -5425,9 +5426,9 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 		pIndicators->preSlow = slow2;
 
 
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_DAILY_RATES, startShift), pIndicators->fast, pIndicators->slow);
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_DAILY_RATES, startShift + 1), pIndicators->preFast, pIndicators->preSlow);
 
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
@@ -5511,7 +5512,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 						&& pIndicators->fast > maxLevel
 						)
 					{
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD exceeds max level",
+						logWarning("System InstanceID = %d, BarTime = %s, MACD exceeds max level",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 						pIndicators->entrySignal = 0;
@@ -5522,7 +5523,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == BUY
 						&& iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0, BUY, &truningPointIndex, &turningPoint,&minPointIndex,&minPoint))
 					{
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD BeiLi",
+						logWarning("System InstanceID = %d, BarTime = %s, MACD BeiLi",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 						pIndicators->entrySignal = 0;
@@ -5625,7 +5626,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 						&& pIndicators->fast < (maxLevel*-1)
 						)
 					{
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD exceeds max level",
+						logWarning("System InstanceID = %d, BarTime = %s, MACD exceeds max level",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 						pIndicators->entrySignal = 0;
@@ -5636,7 +5637,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 						&& orderIndex >= 0 && pParams->orderInfo[orderIndex].type == SELL
 						&& iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0, SELL, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint))
 					{
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD BeiLi",
+						logWarning("System InstanceID = %d, BarTime = %s, MACD BeiLi",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 						pIndicators->entrySignal = 0;
@@ -6389,7 +6390,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		pIndicators->volume2 = iVolume(B_DAILY_RATES, startShift + 1);
 		volume_ma_5 = iMA(4, B_DAILY_RATES, 5, startShift);
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, cmfVolume =%lf, CMFVolumeGap=%lf, weekly_baseline=%lf, weekly_baseline_short=%lf,volume1=%lf,volume2=%lf,volume_ma_5=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, cmfVolume =%lf, CMFVolumeGap=%lf, weekly_baseline=%lf, weekly_baseline_short=%lf,volume1=%lf,volume2=%lf,volume_ma_5=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->cmfVolume, pIndicators->CMFVolumeGap, weekly_baseline, weekly_baseline_short, pIndicators->volume1, pIndicators->volume2, volume_ma_5);
 
 		//Load MACD
@@ -6417,12 +6418,12 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		if (isEnableMaxLevelRiskControl == TRUE && pIndicators->fast > maxLevel)
 			pIndicators->risk = 0.5;
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_DAILY_RATES, startShift), pIndicators->fast, pIndicators->slow);
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_DAILY_RATES, startShift + 1), pIndicators->preFast, pIndicators->preSlow);
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, highHourlyClosePrice =%lf, lowHourlyClosePrice=%lf, stopLoss=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, highHourlyClosePrice =%lf, lowHourlyClosePrice=%lf, stopLoss=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, highHourlyClosePrice, lowHourlyClosePrice, stopLoss);
 
 		if (pIndicators->fast > 0						
@@ -6459,7 +6460,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 								
 			}
 			
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, entryPrice=%lf, preclose=%lf",
+			logInfo("System InstanceID = %d, BarTime = %s, entryPrice=%lf, preclose=%lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entryPrice, iClose(B_DAILY_RATES, startShift));
 
 			
@@ -6472,7 +6473,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 				
 				safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].closeTime);
 
-				fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, timeInfo1.tm_mday =%ld, timeInfo2.tm_mday%ld",
+				logInfo("System InstanceID = %d, BarTime = %s, timeInfo1.tm_mday =%ld, timeInfo2.tm_mday%ld",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, timeInfo1.tm_mday, timeInfo2.tm_mday);
 
 				if ( timeInfo1.tm_mday != timeInfo2.tm_mday || timeInfo1.tm_mon != timeInfo2.tm_mon)
@@ -6493,7 +6494,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "slow %lf is not greater than level 0.",
 							pIndicators->slow);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6504,7 +6505,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "fast %lf is not greater than level %lf.",
 							pIndicators->fast,level);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6517,7 +6518,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					{
 						strcpy(pIndicators->status, "it is late for 5 days\n");
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString,pIndicators->status);
 
 						pIndicators->entrySignal = 0;
@@ -6530,7 +6531,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status,"CMFVolumeGap %lf is not greater than 0",
 							pIndicators->CMFVolumeGap);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6542,7 +6543,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status,"cmfVolume %lf is not greater than 0",
 							pIndicators->cmfVolume);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6554,7 +6555,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status,"volume1 %lf is not greater than volume2 %lf",
 							pIndicators->volume1, pIndicators->volume2);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6567,7 +6568,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "preWeeklyClose %lf is not greater than weekly baseline %lf.",
 							preWeeklyClose, weekly_baseline);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6580,7 +6581,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "Weekly_baseline_short %lf is less than weekly_baseline %lf and pre3KTrend %lf is not UP.",
 							weekly_baseline_short, weekly_baseline, pre3KTrend);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6599,7 +6600,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "MACD %lf exceeds max level %lf",
 							pIndicators->fast, maxLevel);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
@@ -6616,7 +6617,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					{
 						strcpy(pIndicators->status, "MACD BeiLi");								
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
@@ -6674,7 +6675,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 				}
 			}
 
-			fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, entryPrice=%lf, preclose=%lf",
+			logInfo("System InstanceID = %d, BarTime = %s, entryPrice=%lf, preclose=%lf",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->entryPrice, iClose(B_DAILY_RATES, startShift));
 
 			if (//fast < slow && preFast >= preSlow &&
@@ -6685,7 +6686,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			{
 				safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].closeTime);
 
-				fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, timeInfo1.tm_mday =%ld, timeInfo2.tm_mday%ld",
+				logWarning("System InstanceID = %d, BarTime = %s, timeInfo1.tm_mday =%ld, timeInfo2.tm_mday%ld",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, timeInfo1.tm_mday, timeInfo2.tm_mday);
 
 				if (timeInfo1.tm_mday != timeInfo2.tm_mday || timeInfo1.tm_mon != timeInfo2.tm_mon)
@@ -6707,7 +6708,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "slow %lf is not less than level 0.",
 							pIndicators->slow);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6718,7 +6719,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "fast %lf is not less than level %lf.",
 							pIndicators->fast, -1* level);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6731,7 +6732,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					{
 						strcpy(pIndicators->status, "it is late for 5 days\n");
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
@@ -6744,7 +6745,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status,"CMFVolumeGap %lf is not less than 0",
 							pIndicators->CMFVolumeGap);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6756,7 +6757,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status,"cmfVolume %lf is not less than 0",
 							pIndicators->cmfVolume);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6768,7 +6769,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status,"volume1 %lf is not greater than volume2 %lf",
 							pIndicators->volume1, pIndicators->volume2);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6781,7 +6782,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "preWeeklyClose %lf is not less than weekly baseline %lf.",
 							preWeeklyClose, weekly_baseline);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6794,7 +6795,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status, "Weekly_baseline_short %lf is greater than weekly_baseline %lf and pre3KTrend %lf is not DOWN",
 							weekly_baseline_short, weekly_baseline, pre3KTrend);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 					}
@@ -6812,7 +6813,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						sprintf(pIndicators->status,"MACD %lf exceeds max level %lf",
 							pIndicators->fast,maxLevel*-1);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
@@ -6828,7 +6829,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					{
 						strcpy(pIndicators->status, "MACD BeiLi");								
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 						pIndicators->entrySignal = 0;
 						
@@ -6858,7 +6859,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			sprintf(pIndicators->status, "atr5 %lf is not greater than %lf.",
 				atr5, pIndicators->entryPrice * atrRange);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 			pIndicators->entrySignal = 0;
 		}
@@ -6875,7 +6876,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			sprintf(pIndicators->status,"Nextday MACD Bar %lf is negative value %lf.",
 				fabs(pIndicators->fast), nextMACDRange);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			pIndicators->entrySignal = 0;
@@ -6888,7 +6889,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			sprintf(pIndicators->status, "Open price gap %lf is not less than %lf",
 				pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift), 0.2 * pBase_Indicators->dailyATR);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 			pIndicators->entrySignal = 0;
 		}
@@ -6899,7 +6900,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			sprintf(pIndicators->status, "Open price gap %lf is not less than %lf",
 				iClose(B_DAILY_RATES, startShift) - pIndicators->entryPrice, 0.2 * pBase_Indicators->dailyATR);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 			pIndicators->entrySignal = 0;
 		}
@@ -6908,7 +6909,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		{
 			sprintf(pIndicators->status, "System InstanceID = %d, BarTime = %s, skip to entry a trade on Sunday.\n");
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 			pIndicators->entrySignal = 0;
 		}
@@ -6961,7 +6962,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 	//	if ((pParams->orderInfo[oldestOpenOrderIndex].type == BUY && pParams->orderInfo[oldestOpenOrderIndex].stopLoss - pParams->orderInfo[oldestOpenOrderIndex].openPrice >= -2 * pIndicators->adjust) ||
 	//		(pParams->orderInfo[oldestOpenOrderIndex].type == SELL &&  pParams->orderInfo[oldestOpenOrderIndex].openPrice - pParams->orderInfo[oldestOpenOrderIndex].stopLoss >= -2 * pIndicators->adjust))
 	//	{
-	//		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s,stopLoss =%lf. it is ok to add new positions in a long term trend now.",
+	//		logWarning("System InstanceID = %d, BarTime = %s,stopLoss =%lf. it is ok to add new positions in a long term trend now.",
 	//			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pParams->orderInfo[oldestOpenOrderIndex].stopLoss);
 
 	//		pIndicators->tradeMode = 2;
@@ -7041,16 +7042,16 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, In
 		preSlow = iMACD(B_WEEKLY_RATES, 5, 10, 5, 1, 2);
 
 
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_WEEKLY_RATES, 1), fast, slow);
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s, preClose =%lf, preFast=%lf, preSlow=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, iClose(B_WEEKLY_RATES, 2), preFast, preSlow);
 
 		orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
 		//if (iAtr(B_WEEKLY_RATES, 1, 0) > pBase_Indicators->pWeeklyPredictMaxATR)
 		//{
-		//	fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictMaxATR=%lf",
+		//	logWarning("System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictMaxATR=%lf",
 		//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, iAtr(B_WEEKLY_RATES, 1, 0), pBase_Indicators->pWeeklyPredictMaxATR);
 		//	return FALSE;
 		//}
@@ -7274,13 +7275,13 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index(StrategyParams* pP
 		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
 		weekly_baseline = (weeklyHigh + weeklyLow) / 2;
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyHigh =%lf, dailyLow=%lf, daily_baseline=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, dailyHigh =%lf, dailyLow=%lf, daily_baseline=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, dailyHigh, dailyLow, daily_baseline);
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, shortDailyHigh =%lf, shortDailyLow=%lf, daily_baseline_short=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, shortDailyHigh =%lf, shortDailyLow=%lf, daily_baseline_short=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, shortDailyHigh, shortDailyLow, daily_baseline_short);
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyOnly=%ld,preDailyClose =%lf, preDailyClose1=%lf, preWeeklyClose=%lf,pWeeklyPredictMaxATR =%lf,weekly_baseline=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, dailyOnly=%ld,preDailyClose =%lf, preDailyClose1=%lf, preWeeklyClose=%lf,pWeeklyPredictMaxATR =%lf,weekly_baseline=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, dailyOnly, preDailyClose, preDailyClose1, preWeeklyClose, pBase_Indicators->pWeeklyPredictMaxATR, weekly_baseline);
 
 		if (//pBase_Indicators->weeklyTrend_Phase > 0 &&						
@@ -7344,7 +7345,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index(StrategyParams* pP
 
 	if (pIndicators->entrySignal != 0 && openOrderCount >= 3)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s openOrderCount=%d ",
+		logWarning("System InstanceID = %d, BarTime = %s openOrderCount=%d ",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, openOrderCount);
 
 		pIndicators->entrySignal = 0;
@@ -7472,13 +7473,13 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 	iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 9, &shortWeeklyHigh, &shortWeeklyLow);
 	weekly_baseline_short = (shortWeeklyHigh + shortWeeklyLow) / 2;
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyHigh =%lf, dailyLow=%lf, daily_baseline=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, dailyHigh =%lf, dailyLow=%lf, daily_baseline=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, dailyHigh, dailyLow, pIndicators->daily_baseline);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, shortDailyHigh =%lf, shortDailyLow=%lf, daily_baseline_short=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, shortDailyHigh =%lf, shortDailyLow=%lf, daily_baseline_short=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, shortDailyHigh, shortDailyLow, pIndicators->daily_baseline_short);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyOnly=%ld,preDailyClose =%lf, preDailyClose1=%lf, preWeeklyClose=%lf,pWeeklyPredictMaxATR =%lf,weekly_baseline=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, dailyOnly=%ld,preDailyClose =%lf, preDailyClose1=%lf, preWeeklyClose=%lf,pWeeklyPredictMaxATR =%lf,weekly_baseline=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, dailyOnly, preDailyClose, preDailyClose1, preWeeklyClose, pBase_Indicators->pWeeklyPredictMaxATR, weekly_baseline);
 
 
@@ -7704,7 +7705,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 				&& pIndicators->entrySignal != 0
 				&& iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0.0, BUY, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint))
 			{
-				fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD BeiLi",
+				logWarning("System InstanceID = %d, BarTime = %s, MACD BeiLi",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 				pIndicators->entrySignal = 0;
@@ -7751,7 +7752,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 				&& pIndicators->entrySignal != 0
 				&& iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0.0, SELL, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint))
 			{
-				fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD BeiLi",
+				logWarning("System InstanceID = %d, BarTime = %s, MACD BeiLi",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 				pIndicators->entrySignal = 0;
@@ -7768,7 +7769,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 
 		if (pIndicators->entrySignal != 0 && openOrderCount >= orderCount)
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s openOrderCount=%d ",
+			logWarning("System InstanceID = %d, BarTime = %s openOrderCount=%d ",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, openOrderCount);
 
 			pIndicators->entrySignal = 0;
@@ -7778,7 +7779,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_New(StrategyParams* pPar
 		{
 			if (pIndicators->entrySignal != 0 && openOrderCount == 0)
 			{
-				fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s openOrderCount=%d 0.5 risk",
+				logWarning("System InstanceID = %d, BarTime = %s openOrderCount=%d 0.5 risk",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, openOrderCount);
 
 				pIndicators->risk = 0.5;
@@ -7952,13 +7953,13 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 	iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 9, &shortWeeklyHigh, &shortWeeklyLow);
 	weekly_baseline_short = (shortWeeklyHigh + shortWeeklyLow) / 2;
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyHigh =%lf, dailyLow=%lf, daily_baseline=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, dailyHigh =%lf, dailyLow=%lf, daily_baseline=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, dailyHigh, dailyLow, daily_baseline);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, shortDailyHigh =%lf, shortDailyLow=%lf, daily_baseline_short=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, shortDailyHigh =%lf, shortDailyLow=%lf, daily_baseline_short=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, shortDailyHigh, shortDailyLow, daily_baseline_short);
 
-	fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, dailyOnly=%ld,preDailyClose =%lf, preDailyClose1=%lf, preWeeklyClose=%lf,pWeeklyPredictMaxATR =%lf,weekly_baseline=%lf",
+	logInfo("System InstanceID = %d, BarTime = %s, dailyOnly=%ld,preDailyClose =%lf, preDailyClose1=%lf, preWeeklyClose=%lf,pWeeklyPredictMaxATR =%lf,weekly_baseline=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, dailyOnly, preDailyClose, preDailyClose1, preWeeklyClose, pBase_Indicators->pWeeklyPredictMaxATR, weekly_baseline);
 
 	weeklyMA50 = iMA(3, B_WEEKLY_RATES, 50, 1);
@@ -8131,7 +8132,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 			//&& latestOrderIndex >= 0 && pParams->orderInfo[latestOrderIndex].type == BUY
 			&& iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0.0, BUY, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint))
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD BeiLi",
+			logWarning("System InstanceID = %d, BarTime = %s, MACD BeiLi",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 			pIndicators->entrySignal = 0;
@@ -8186,7 +8187,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 			&& pIndicators->entrySignal != 0			
 			&& iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0.0, SELL, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint))
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, MACD BeiLi",
+			logWarning("System InstanceID = %d, BarTime = %s, MACD BeiLi",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
 
 			pIndicators->entrySignal = 0;
@@ -8209,7 +8210,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 	
 	if (pIndicators->entrySignal != 0 && openOrderCount >= orderCount)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s openOrderCount=%d ",
+		logWarning("System InstanceID = %d, BarTime = %s openOrderCount=%d ",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, openOrderCount);
 
 		pIndicators->entrySignal = 0;
@@ -8219,7 +8220,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(St
 	{
 		if (pIndicators->entrySignal != 0 && openOrderCount == 0)
 		{
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s openOrderCount=%d 0.5 risk",
+			logWarning("System InstanceID = %d, BarTime = %s openOrderCount=%d 0.5 risk",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, openOrderCount);
 
 			pIndicators->risk = 0.5;
@@ -8492,7 +8493,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 
 			close_index_rate = shift1Index_4H - (diff4Hours - diffWeeks * 2 *6);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s,diff4Hours=%d,diffDays=%d,diffWeeks=%d,orderIndex=%d,close_index_rate=%d,bbsIndex_excution=%d",
+			logWarning("System InstanceID = %d, BarTime = %s,diff4Hours=%d,diffDays=%d,diffWeeks=%d,orderIndex=%d,close_index_rate=%d,bbsIndex_excution=%d",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, diff4Hours, diffDays, diffWeeks, orderIndex, close_index_rate, pIndicators->bbsIndex_4H);
 		}
 
@@ -8521,7 +8522,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 				sameSideWonTradesInCurrentTrend = getSameSideWonTradesInCurrentTrendEasy(B_PRIMARY_RATES, BUY);
 				turingIndexMA = iTrendMA_LookBack(pParams, pBase_Indicators, B_FOURHOURLY_RATES, 1);
 
-				fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s,stopLossPrice=%lf,bbsStopPrice_4H=%lf,MA200 = %lf,MA50=%lf,turingIndexMA=%d,preRangeClose=%lf,rangeHigh=%lf",
+				logWarning("System InstanceID = %d, BarTime = %s,stopLossPrice=%lf,bbsStopPrice_4H=%lf,MA200 = %lf,MA50=%lf,turingIndexMA=%d,preRangeClose=%lf,rangeHigh=%lf",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->stopLossPrice, pIndicators->bbsStopPrice_4H, iMA(3, B_FOURHOURLY_RATES, 200, 1), iMA(3, B_FOURHOURLY_RATES, 50, 1), turingIndexMA, preRangeClose, rangeHigh);
 
 				if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
@@ -8544,7 +8545,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 						sprintf(pIndicators->status, "sameSideWonTradesInCurrentTrend %d is greater than buyWonTimes %d",
 							sameSideWonTradesInCurrentTrend, buyWonTimes);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
@@ -8586,7 +8587,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 				sameSideWonTradesInCurrentTrend = getSameSideWonTradesInCurrentTrendEasy(B_PRIMARY_RATES, SELL);
 				turingIndexMA = iTrendMA_LookBack(pParams, pBase_Indicators, B_FOURHOURLY_RATES, -1);
 
-				fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s,stopLossPrice=%lf,bbsStopPrice_4H=%lf,MA200 = %lf,MA50=%lf,turingIndexMA=%d,preRangeClose=%lf,rangeLow=%lf",
+				logWarning("System InstanceID = %d, BarTime = %s,stopLossPrice=%lf,bbsStopPrice_4H=%lf,MA200 = %lf,MA50=%lf,turingIndexMA=%d,preRangeClose=%lf,rangeLow=%lf",
 					(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->stopLossPrice, pIndicators->bbsStopPrice_4H, iMA(3, B_FOURHOURLY_RATES, 200, 1), iMA(3, B_FOURHOURLY_RATES, 50, 1), turingIndexMA, preRangeClose, rangeLow );
 
 				if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
@@ -8609,7 +8610,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 						sprintf(pIndicators->status, "sameSideWonTradesInCurrentTrend %d is greater than sellWonTimes %d",
 							sameSideWonTradesInCurrentTrend, sellWonTimes);
 
-						fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+						logWarning("System InstanceID = %d, BarTime = %s, %s",
 							(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 						pIndicators->entrySignal = 0;
@@ -8632,7 +8633,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 			sprintf(pIndicators->status, "current week movement %lf is greater than pWeeklyPredictATR %lf",
 				fabs(iLow(B_WEEKLY_RATES, 0) - pIndicators->entryPrice), pBase_Indicators->pWeeklyPredictATR);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			pIndicators->entrySignal = 0;
@@ -8646,7 +8647,7 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 			sprintf(pIndicators->status, "pBase_Indicators->weeklyTrend_Phase %lf is in Range",
 				pBase_Indicators->weeklyTrend_Phase);
 
-			fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s, %s",
+			logWarning("System InstanceID = %d, BarTime = %s, %s",
 				(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 
 			pIndicators->entrySignal = 0;
@@ -8712,10 +8713,10 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 9, &shortWeeklyHigh, &shortWeeklyLow);
 		weekly_baseline_short = (shortWeeklyHigh + shortWeeklyLow) / 2;
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, weeklyHigh =%lf, weeklyLow=%lf, weekly_baseline=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, weeklyHigh =%lf, weeklyLow=%lf, weekly_baseline=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, weeklyHigh, weeklyLow, weekly_baseline);
 
-		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, shortWeeklyHigh =%lf, shortWeeklyLow=%lf, weekly_baseline_short=%lf",
+		logInfo("System InstanceID = %d, BarTime = %s, shortWeeklyHigh =%lf, shortWeeklyLow=%lf, weekly_baseline_short=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, shortWeeklyHigh, shortWeeklyLow, weekly_baseline_short);
 
 		openOrderCount = getOrderCountEasy();
@@ -8764,7 +8765,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 
 	if (pIndicators->entrySignal != 0 && openOrderCountInCurrentWeek > 0 )
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s openOrderCount=%d openOrderCountInCurrentWeek=%d",
+		logWarning("System InstanceID = %d, BarTime = %s openOrderCount=%d openOrderCountInCurrentWeek=%d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, openOrderCount, openOrderCountInCurrentWeek);
 
 		pIndicators->entrySignal = 0;
@@ -8772,7 +8773,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 
 	if (pIndicators->riskPNL < -5)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s pIndicators->riskPNL=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s pIndicators->riskPNL=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->riskPNL);
 	}
 
@@ -8780,7 +8781,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 	
 	if (pIndicators->entrySignal != 0 && freeMargin / pIndicators->entryPrice < 1)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s freeMargin=%lf, Times=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s freeMargin=%lf, Times=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, freeMargin, freeMargin / pIndicators->entryPrice);
 		pIndicators->entrySignal = 0;
 	}
@@ -8793,7 +8794,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 	// when floating profit is too high, fe 10%
 	if (pIndicators->riskPNL > targetPNL)
 	{
-		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s closeWinningPositionsEasy pIndicators->riskPNL=%lf",
+		logWarning("System InstanceID = %d, BarTime = %s closeWinningPositionsEasy pIndicators->riskPNL=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->riskPNL);
 
 		closeWinningPositionsEasy(pIndicators->riskPNL, targetPNL);
@@ -8802,6 +8803,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 
 	return SUCCESS;
 }
+
 //
 //AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 //{
@@ -8857,10 +8859,10 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 //		iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Weekly, 9, &shortWeeklyHigh, &shortWeeklyLow);
 //		weekly_baseline_short = (shortWeeklyHigh + shortWeeklyLow) / 2;
 //
-//		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, weeklyHigh =%lf, weeklyLow=%lf, weekly_baseline=%lf",
+//		logInfo("System InstanceID = %d, BarTime = %s, weeklyHigh =%lf, weeklyLow=%lf, weekly_baseline=%lf",
 //			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, weeklyHigh, weeklyLow, weekly_baseline);
 //
-//		fprintf(stderr, "[INFO] System InstanceID = %d, BarTime = %s, shortWeeklyHigh =%lf, shortWeeklyLow=%lf, weekly_baseline_short=%lf",
+//		logInfo("System InstanceID = %d, BarTime = %s, shortWeeklyHigh =%lf, shortWeeklyLow=%lf, weekly_baseline_short=%lf",
 //			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, shortWeeklyHigh, shortWeeklyLow, weekly_baseline_short);
 //
 //		openOrderCount = getOrderCountEasy();
@@ -8925,7 +8927,7 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 //		)
 //		)
 //	{
-//		fprintf(stderr, "[WARNING] System InstanceID = %d, BarTime = %s openOrderCount=%d openOrderCountInCurrentWeek=%d",
+//		logWarning("System InstanceID = %d, BarTime = %s openOrderCount=%d openOrderCountInCurrentWeek=%d",
 //			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, openOrderCount, openOrderCountInCurrentWeek);
 //
 //		pIndicators->entrySignal = 0;

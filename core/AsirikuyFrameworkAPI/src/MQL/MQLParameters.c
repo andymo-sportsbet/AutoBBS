@@ -37,6 +37,7 @@
  */
 
 #include "Precompiled.h"
+#include "AsirikuyLogger.h"
 #include "MQLParameters.h"
 #include "ContiguousRatesCircBuf.h"
 #include "TimeZoneOffsets.h"
@@ -77,7 +78,7 @@ static AsirikuyReturnCode getOldTickVolume(int instanceId, OldTickVolume** ppOld
     }
 
     oldTickVolumeInitialized = TRUE;
-    fprintf(stderr, "[NOTICE] getOldTickVolume() Initialized old tick volume.\n");
+    logNotice("getOldTickVolume() Initialized old tick volume.\n");
   }
 
   for(i = 0; i < MAX_INSTANCES; i++)
@@ -99,7 +100,7 @@ static AsirikuyReturnCode getOldTickVolume(int instanceId, OldTickVolume** ppOld
   else
   {
     *ppOldTickVolume = NULL;
-    fprintf(stderr, "[CRITICAL] getOldTickVolume() Failed to find oldTickVolume for instance Id: %d\n", instanceId);
+    logCritical("getOldTickVolume() Failed to find oldTickVolume for instance Id: %d\n", instanceId);
     returnCode = TOO_MANY_INSTANCES;
   }
   
@@ -110,19 +111,19 @@ static AsirikuyReturnCode copyBar(MQLVersion mqlVersion, const void* pSource, in
 {
   if(pSource == NULL)
   {
-    fprintf(stderr, "[CRITICAL] copyBar() failed. pSource = NULL\n");
+    logCritical("copyBar() failed. pSource = NULL\n");
     return NULL_POINTER;
   }
 
   if(pDest == NULL)
   {
-    fprintf(stderr, "[CRITICAL] copyBar() failed. pDest = NULL\n");
+    logCritical("copyBar() failed. pDest = NULL\n");
     return NULL_POINTER;
   }
 
   if(pDest->time == NULL)
   {
-    fprintf(stderr, "[CRITICAL] copyBar() failed. pDest->time = NULL\n");
+    logCritical("copyBar() failed. pDest->time = NULL\n");
     return NULL_POINTER;
   }
 
@@ -139,7 +140,7 @@ static AsirikuyReturnCode copyBar(MQLVersion mqlVersion, const void* pSource, in
     // Debug logging - uncomment if needed
     // {
     //   char timeString[MAX_TIME_STRING_SIZE];
-    //   fprintf(stderr, "[DEBUG] copyBar() time[%d] = %s,ratesIndex=%d\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]), ratesIndex);
+    //   logDebug("copyBar() time[%d] = %s,ratesIndex=%d\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]), ratesIndex);
     // }
   }
 
@@ -153,7 +154,7 @@ static AsirikuyReturnCode copyBar(MQLVersion mqlVersion, const void* pSource, in
     {
       pDest->open[destIndex] = ((Mql5Rates*)pSource)[sourceIndex].open;
     }
-	// fprintf(stderr, "[DEBUG] copyBar() open[%d] = %f,ratesIndex=%d", destIndex, pDest->open[destIndex], ratesIndex);
+	// logDebug("copyBar() open[%d] = %f,ratesIndex=%d", destIndex, pDest->open[destIndex], ratesIndex);
   }
 
   if(pDest->high)
@@ -166,7 +167,7 @@ static AsirikuyReturnCode copyBar(MQLVersion mqlVersion, const void* pSource, in
     {
       pDest->high[destIndex] = ((Mql5Rates*)pSource)[sourceIndex].high;
     }
-	// fprintf(stderr, "[DEBUG] copyBar() high[%d] = %f,ratesIndex=%d", destIndex, pDest->high[destIndex], ratesIndex);
+	// logDebug("copyBar() high[%d] = %f,ratesIndex=%d", destIndex, pDest->high[destIndex], ratesIndex);
   }
 
   if(pDest->low)
@@ -179,7 +180,7 @@ static AsirikuyReturnCode copyBar(MQLVersion mqlVersion, const void* pSource, in
     {
       pDest->low[destIndex] = ((Mql5Rates*)pSource)[sourceIndex].low;
     }
-	// fprintf(stderr, "[DEBUG] copyBar() low[%d] = %f,ratesIndex=%d", destIndex, pDest->low[destIndex], ratesIndex);
+	// logDebug("copyBar() low[%d] = %f,ratesIndex=%d", destIndex, pDest->low[destIndex], ratesIndex);
   }
 
   if(pDest->close)
@@ -192,7 +193,7 @@ static AsirikuyReturnCode copyBar(MQLVersion mqlVersion, const void* pSource, in
     {
       pDest->close[destIndex] = ((Mql5Rates*)pSource)[sourceIndex].close;
     }
-	// fprintf(stderr, "[DEBUG] copyBar() close[%d] = %f,ratesIndex=%d", destIndex, pDest->close[destIndex], ratesIndex);
+	// logDebug("copyBar() close[%d] = %f,ratesIndex=%d", destIndex, pDest->close[destIndex], ratesIndex);
   }
 
   if(pDest->volume)
@@ -205,7 +206,7 @@ static AsirikuyReturnCode copyBar(MQLVersion mqlVersion, const void* pSource, in
     {
       pDest->volume[destIndex] = (double)((Mql5Rates*)pSource)[sourceIndex].tick_volume;
     }
-	// fprintf(stderr, "[DEBUG] copyBar() volume[%d] = %f,ratesIndex=%d", destIndex, pDest->volume[destIndex], ratesIndex);
+	// logDebug("copyBar() volume[%d] = %f,ratesIndex=%d", destIndex, pDest->volume[destIndex], ratesIndex);
   }
 
   return SUCCESS;
@@ -230,19 +231,19 @@ static AsirikuyReturnCode mergeBar(MQLVersion mqlVersion, int instanceId, int ra
 
   if(pSource == NULL)
   {
-    fprintf(stderr, "[CRITICAL] mergeBar() failed. pSource = NULL\n");
+    logCritical("mergeBar() failed. pSource = NULL\n");
     return NULL_POINTER;
   }
 
   if(pDest == NULL)
   {
-    fprintf(stderr, "[CRITICAL] mergeBar() failed. pDest = NULL\n");
+    logCritical("mergeBar() failed. pDest = NULL\n");
     return NULL_POINTER;
   }
 
   if(pDest->time == NULL)
   {
-    fprintf(stderr, "[CRITICAL] mergeBar() failed. pDest->time = NULL\n");
+    logCritical("mergeBar() failed. pDest->time = NULL\n");
     return NULL_POINTER;
   }
 
@@ -266,7 +267,7 @@ static AsirikuyReturnCode mergeBar(MQLVersion mqlVersion, int instanceId, int ra
     // Debug logging - uncomment if needed
     // {
     //   char timeString[MAX_TIME_STRING_SIZE];
-    //   fprintf(stderr, "[DEBUG] mergeBar() time[%d] = %s,ratesIndex=%d\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]), ratesIndex);
+    //   logDebug("mergeBar() time[%d] = %s,ratesIndex=%d\n", destIndex, safe_timeString(timeString, pDest->time[destIndex]), ratesIndex);
     // }
   }
 
@@ -283,7 +284,7 @@ static AsirikuyReturnCode mergeBar(MQLVersion mqlVersion, int instanceId, int ra
         pDest->open[destIndex] = ((Mql5Rates*)pSource)[sourceIndex].open;
       }
     }
-	// fprintf(stderr, "[DEBUG] mergeBar() open[%d] = %lf,ratesIndex=%d", destIndex, pDest->open[destIndex], ratesIndex);
+	// logDebug("mergeBar() open[%d] = %lf,ratesIndex=%d", destIndex, pDest->open[destIndex], ratesIndex);
   }
 
   if(pDest->high)
@@ -303,7 +304,7 @@ static AsirikuyReturnCode mergeBar(MQLVersion mqlVersion, int instanceId, int ra
     {
       pDest->high[destIndex] = sourceHigh;
     }
-	// fprintf(stderr, "[DEBUG] mergeBar() high[%d] = %lf,ratesIndex=%d", destIndex, pDest->high[destIndex], ratesIndex);
+	// logDebug("mergeBar() high[%d] = %lf,ratesIndex=%d", destIndex, pDest->high[destIndex], ratesIndex);
   }
 
   if(pDest->low)
@@ -323,7 +324,7 @@ static AsirikuyReturnCode mergeBar(MQLVersion mqlVersion, int instanceId, int ra
     {
       pDest->low[destIndex] = sourceLow;
     }
-	// fprintf(stderr, "[DEBUG] mergeBar() low[%d] = %lf,ratesIndex=%d", destIndex, pDest->low[destIndex], ratesIndex);
+	// logDebug("mergeBar() low[%d] = %lf,ratesIndex=%d", destIndex, pDest->low[destIndex], ratesIndex);
   }
 
   if(pDest->close)
@@ -339,7 +340,7 @@ static AsirikuyReturnCode mergeBar(MQLVersion mqlVersion, int instanceId, int ra
         pDest->close[destIndex] = ((Mql5Rates*)pSource)[sourceIndex].close;
       }
     }
-	// fprintf(stderr, "[DEBUG] mergeBar() close[%d] = %lf,ratesIndex=%d", destIndex, pDest->close[destIndex], ratesIndex);
+	// logDebug("mergeBar() close[%d] = %lf,ratesIndex=%d", destIndex, pDest->close[destIndex], ratesIndex);
   }
 
   if(pDest->volume)
@@ -369,7 +370,7 @@ static AsirikuyReturnCode mergeBar(MQLVersion mqlVersion, int instanceId, int ra
     }
     pOldTickVolume->oldTime[ratesIndex]   = mqlTime;
     pOldTickVolume->oldVolume[ratesIndex] = sourceVolume;
-	// fprintf(stderr, "[DEBUG] mergeBar() volume[%d] = %lf,ratesIndex=%d", destIndex, pDest->volume[destIndex], ratesIndex);
+	// logDebug("mergeBar() volume[%d] = %lf,ratesIndex=%d", destIndex, pDest->volume[destIndex], ratesIndex);
   }
 
   return SUCCESS;
@@ -388,7 +389,7 @@ static AsirikuyReturnCode reprocessConvertedBar(StrategyParams* pParams,MQLVersi
     epochOffset = EPOCH_WEEK_OFFSET;
   }
   
-  // fprintf(stderr, "[DEBUG] "reprocessConvertedBar() ratesIndex = %d, convertedRatesIndex = %d", ratesIndex, convertedRatesIndex);
+  // logDebug(""reprocessConvertedBar() ratesIndex = %d, convertedRatesIndex = %d", ratesIndex, convertedRatesIndex);
 
   returnCode = copyBar(mqlVersion, pMqlRates, ratesBufferIndex, pConvertedRates, convertedRatesIndex, tzOffsets, ratesIndex);
   if(returnCode != SUCCESS)
@@ -457,7 +458,7 @@ static AsirikuyReturnCode convertCurrentMqlBar(MQLVersion mqlVersion, StrategyPa
 
   if(mqlTime0 < 0 || mqlTime1 < 0)
   {
-    fprintf(stderr, "[WARNING] Discarding candle with invalid timestamp\n");
+    logWarning("Discarding candle with invalid timestamp\n");
     return SUCCESS;
   }
 
@@ -469,7 +470,7 @@ static AsirikuyReturnCode convertCurrentMqlBar(MQLVersion mqlVersion, StrategyPa
 
   if (!isValidTradingTime(pParams,mqlTime0))
   {
-	fprintf(stderr, "[WARNING] convertCurrentMqlBar() Discarding unusable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime0));
+	logWarning("convertCurrentMqlBar() Discarding unusable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime0));
     return SUCCESS;
   }
 
@@ -489,7 +490,7 @@ static AsirikuyReturnCode convertCurrentMqlBar(MQLVersion mqlVersion, StrategyPa
   if(  ((mqlTime0 + epochOffset) / TIME_FRAME_IN_SECONDS) > ((mqlTime1 + epochOffset) / TIME_FRAME_IN_SECONDS)
     && (mqlTime0 != pParams->ratesBuffers->rates[ratesIndex].time[convertedShift0Index]))
   {  
-	// fprintf(stderr, "[DEBUG] convertCurrentMqlBar() Testing .... strategyID= %d,ratesIndex=%d,mqlShift0Index=%d, mqlTime0=%s,mqlShift1Index =%d,mqlTime1=%s,convertedShift0Index=%d,converted bar time=%s", (int)pParams->settings[STRATEGY_INSTANCE_ID], ratesIndex, mqlShift0Index, safe_timeString(timeString, mqlTime0), mqlShift1Index, safe_timeString(timeString2, mqlTime1), convertedShift0Index, safe_timeString(timeString3, pParams->ratesBuffers->rates[ratesIndex].time[convertedShift0Index]));
+	// logDebug("convertCurrentMqlBar() Testing .... strategyID= %d,ratesIndex=%d,mqlShift0Index=%d, mqlTime0=%s,mqlShift1Index =%d,mqlTime1=%s,convertedShift0Index=%d,converted bar time=%s", (int)pParams->settings[STRATEGY_INSTANCE_ID], ratesIndex, mqlShift0Index, safe_timeString(timeString, mqlTime0), mqlShift1Index, safe_timeString(timeString2, mqlTime1), convertedShift0Index, safe_timeString(timeString3, pParams->ratesBuffers->rates[ratesIndex].time[convertedShift0Index]));
 
 	// ��̬������buffer
     incrementRatesOffset((int)pParams->settings[STRATEGY_INSTANCE_ID], ratesIndex);
@@ -561,7 +562,7 @@ static AsirikuyReturnCode fillEmptyRatesBuffer(MQLVersion mqlVersion, StrategyPa
         pParams->ratesBuffers->rates[ratesIndex].info.isBufferFull = TRUE;
         return SUCCESS;
       }
-	  fprintf(stderr, "[WARNING] fillEmptyRatesBuffer() Discarding unusuable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime));
+	  logWarning("fillEmptyRatesBuffer() Discarding unusuable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime));
     
 	  if(mqlVersion == MQL4)
 		{
@@ -606,7 +607,7 @@ static AsirikuyReturnCode fillEmptyRatesBuffer(MQLVersion mqlVersion, StrategyPa
         return SUCCESS;
       }
 
-    	fprintf(stderr, "[WARNING] fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime));
+    	logWarning("fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime));
     
 	  if(mqlVersion == MQL4)
 		{
@@ -617,11 +618,11 @@ static AsirikuyReturnCode fillEmptyRatesBuffer(MQLVersion mqlVersion, StrategyPa
 			mqlTime = getAdjustedBrokerTime(((Mql5Rates*)pMqlRates)[mqlRatesBufferIndex].time, tzOffsets);
 		}
 	}
-	// fprintf(stderr, "[DEBUG] Testing.... strategyID= %d,ratesIndex=%d,  mqlRatesBufferIndex =%d, mqlTime=%s, converted bar time=%s", (int)pParams->settings[STRATEGY_INSTANCE_ID], ratesIndex,mqlRatesBufferIndex, safe_timeString(timeString, mqlTime), safe_timeString(timeString2, pParams->ratesBuffers->rates[ratesIndex].time[convertedRatesBufferIndex]));
+	// logDebug("Testing.... strategyID= %d,ratesIndex=%d,  mqlRatesBufferIndex =%d, mqlTime=%s, converted bar time=%s", (int)pParams->settings[STRATEGY_INSTANCE_ID], ratesIndex,mqlRatesBufferIndex, safe_timeString(timeString, mqlTime), safe_timeString(timeString2, pParams->ratesBuffers->rates[ratesIndex].time[convertedRatesBufferIndex]));
 
     while((mqlRatesBufferIndex >= 0) && (((mqlTime + epochOffset) / TIME_FRAME_IN_SECONDS) == ((pParams->ratesBuffers->rates[ratesIndex].time[convertedRatesBufferIndex] + epochOffset) / TIME_FRAME_IN_SECONDS)))
     {
-		// fprintf(stderr, "[DEBUG] fillEmptyRatesBuffer() mergebar.....strategyID =%d, Bar time = %s, ratesIndex=%d, mqlRatesBufferIndex=%d,convertedRatesBufferIndex=%d", (int)pParams->settings[STRATEGY_INSTANCE_ID], safe_timeString(timeString, mqlTime), ratesIndex, mqlRatesBufferIndex, convertedRatesBufferIndex);
+		// logDebug("fillEmptyRatesBuffer() mergebar.....strategyID =%d, Bar time = %s, ratesIndex=%d, mqlRatesBufferIndex=%d,convertedRatesBufferIndex=%d", (int)pParams->settings[STRATEGY_INSTANCE_ID], safe_timeString(timeString, mqlTime), ratesIndex, mqlRatesBufferIndex, convertedRatesBufferIndex);
 
       returnCode = mergeBar(mqlVersion, (int)pParams->settings[STRATEGY_INSTANCE_ID], ratesIndex, pMqlRates, mqlRatesBufferIndex, &pParams->ratesBuffers->rates[ratesIndex], convertedRatesBufferIndex, tzOffsets);
       if(returnCode != SUCCESS)
@@ -653,7 +654,7 @@ static AsirikuyReturnCode fillEmptyRatesBuffer(MQLVersion mqlVersion, StrategyPa
           return SUCCESS;
         }
 
-		fprintf(stderr, "[WARNING] fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime));
+		logWarning("fillEmptyRatesBuffer() Discarding unusable bar. Bar time = %s\n", safe_timeString(timeString, mqlTime));
       
 		if(mqlVersion == MQL4)
 		{
@@ -677,12 +678,12 @@ AsirikuyReturnCode convertRatesArray(MQLVersion mqlVersion, StrategyParams* pPar
   {
     if(!pParams->ratesBuffers->rates[ratesIndex].info.isBufferFull)
     {
-      // fprintf(stderr, "[DEBUG] "convertRatesArray() Filling empty rates buffer.");
+      // logDebug(""convertRatesArray() Filling empty rates buffer.");
       return fillEmptyRatesBuffer(mqlVersion, pParams, tzOffsets, pMqlRatesInfo, pMqlRates, ratesIndex);
     }
     else
     {
-      // fprintf(stderr, "[DEBUG] "convertRatesArray() Converting new MQL4 bar.");
+      // logDebug(""convertRatesArray() Converting new MQL4 bar.");
       return convertCurrentMqlBar(mqlVersion, pParams, tzOffsets, pMqlRatesInfo, pMqlRates, ratesIndex);
     }
   }
@@ -726,7 +727,7 @@ AsirikuyReturnCode convertRatesArrays(
 
     if((int)pMqlRatesInfo[i].ratesArraySize < (int)(pMqlRatesInfo[i].totalBarsRequired * WEEKEND_BAR_MULTIPLIER * pMqlRatesInfo[i].requiredTimeframe / pMqlRatesInfo[i].actualTimeframe))
     {
-      fprintf(stderr, "[ERROR] convertRatesArrays() failed. Not enough rates data. Mql rates index = %d, array size = %d, required = %d\n", i, (int)pMqlRatesInfo[i].ratesArraySize, (int)(pMqlRatesInfo[i].totalBarsRequired * WEEKEND_BAR_MULTIPLIER * pMqlRatesInfo[i].requiredTimeframe / pMqlRatesInfo[i].actualTimeframe));
+      logError("convertRatesArrays() failed. Not enough rates data. Mql rates index = %d, array size = %d, required = %d\n", i, (int)pMqlRatesInfo[i].ratesArraySize, (int)(pMqlRatesInfo[i].totalBarsRequired * WEEKEND_BAR_MULTIPLIER * pMqlRatesInfo[i].requiredTimeframe / pMqlRatesInfo[i].actualTimeframe));
       return NOT_ENOUGH_RATES_DATA;
     }
 
@@ -987,85 +988,85 @@ AsirikuyReturnCode convertMqlParameters(
 
   if(pMqlSettings == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlSettings = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlSettings = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlTradeSymbol == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlTradeSymbol = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlTradeSymbol = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlAccountCurrency == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlAccountCurrency = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlAccountCurrency = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlBrokerName = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlBrokerName = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlRefBrokerName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlRefBrokerName = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlRefBrokerName = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlCurrentBrokerTime == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlCurrentBrokerTime = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlCurrentBrokerTime = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlOpenOrdersCount == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlOpenOrdersCount = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlOpenOrdersCount = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlOrderInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlOrderInfo = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlOrderInfo = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlAccountInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlAccountInfo = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlAccountInfo = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlBidAsk == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlBidAsk = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlBidAsk = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlRatesInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlRatesInfo = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlRatesInfo = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlRates_0 == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlRates_0 = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlRates_0 = NULL\n");
     return NULL_POINTER;
   }
 
   if(pMqlResults == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pMqlResults = NULL\n");
+    logCritical("convertMqlParameters() failed. pMqlResults = NULL\n");
     return NULL_POINTER;
   }
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] convertMqlParameters() failed. pParams = NULL\n");
+    logCritical("convertMqlParameters() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -1097,7 +1098,7 @@ AsirikuyReturnCode allocateOrderInfo(StrategyParams* pParams, int orderInfoArray
 {
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] allocateOrderInfo() failed. pParams = NULL\n");
+    logCritical("allocateOrderInfo() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 
@@ -1110,7 +1111,7 @@ AsirikuyReturnCode freeOrderInfo(StrategyParams* pParams)
 {
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] freeOrderInfo() failed. pParams = NULL\n");
+    logCritical("freeOrderInfo() failed. pParams = NULL\n");
     return NULL_POINTER;
   }
 

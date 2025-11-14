@@ -40,6 +40,9 @@
 
 #include "Precompiled.h"
 #include "Broker-tz.h"
+#include "AsirikuyLogger.h"
+#include <string.h>
+#include <stdio.h>
 
 #define TIMEZONE_CONFIG_FILENAME "broker-tz.csv"
 #define MAX_RECORDS              100
@@ -54,30 +57,48 @@ static TimezoneInfo timezoneRecords[MAX_RECORDS];
 AsirikuyReturnCode getTimezoneInfo(const char* pName, TimezoneInfo** pTimezoneInfo)
 {
   int i;
+  size_t nameLen = 0;
 
   if(pName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] getTimezoneInfo() failed. pName = NULL\n");
+    logCritical("getTimezoneInfo() failed. pName = NULL");
     return NULL_POINTER;
   }
 
   if(pTimezoneInfo == NULL)
   {
-    fprintf(stderr, "[CRITICAL] getTimezoneInfo() failed. pTimezoneInfo = NULL\n");
+    logCritical("getTimezoneInfo() failed. pTimezoneInfo = NULL");
     return NULL_POINTER;
+  }
+  
+  nameLen = strlen(pName);
+  logDebug("getTimezoneInfo() Looking for timezone '%s' (length=%zu, first char='%c', hex=0x%02x)", 
+           pName, nameLen, pName[0], (unsigned char)pName[0]);
+  
+  // Debug: Print first few characters in hex
+  if(nameLen > 0) {
+    char hexBuffer[256] = "";
+    char *p = hexBuffer;
+    int maxBytes = (nameLen < 10 ? nameLen : 10);
+    for(i = 0; i < maxBytes && (p - hexBuffer) < (sizeof(hexBuffer) - 20); i++) {
+      p += snprintf(p, sizeof(hexBuffer) - (p - hexBuffer), "0x%02x('%c') ", 
+                     (unsigned char)pName[i], (pName[i] >= 32 && pName[i] < 127) ? pName[i] : '?');
+    }
+    logDebug("getTimezoneInfo() First %d bytes: %s", maxBytes, hexBuffer);
   }
   
   for(i = 0; i < MAX_RECORDS; i++)
   {
     if(strcmp(pName, timezoneRecords[i].name) == 0)
     {
-      fprintf(stderr, "[DEBUG] getTimezoneInfo() Found matching record for \"%s\". Standard GMT offset = %d, DST GMT offset = %d\n", pName, timezoneRecords[i].gmtOffsetStd, timezoneRecords[i].gmtOffsetDS);
+      logDebug("getTimezoneInfo() Found matching record for \"%s\". Standard GMT offset = %d, DST GMT offset = %d", 
+               pName, timezoneRecords[i].gmtOffsetStd, timezoneRecords[i].gmtOffsetDS);
       *pTimezoneInfo = &timezoneRecords[i];
       return SUCCESS;
     }
   }
 
-  fprintf(stderr, "[ERROR] getTimezoneInfo() Failed to find timezone information for \"%s\"\n", pName);
+  logError("getTimezoneInfo() Failed to find timezone information for \"%s\" (length=%zu)", pName, nameLen);
   return UNKNOWN_TIMEZONE;
 }
 
@@ -90,7 +111,7 @@ static void removeQuotes(char *pLine)
 
   if(pLine == NULL)
   {
-    fprintf(stderr, "[CRITICAL] removeQuotes() failed. pLine = NULL\n");
+    logCritical("removeQuotes() failed. pLine = NULL");
     return;
   }
 
@@ -119,12 +140,12 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
 
   if(pLine == NULL)
   {
-    fprintf(stderr, "[CRITICAL] parseLine() failed. pLine = NULL\n");
+    logCritical("parseLine() failed. pLine = NULL");
     return NULL_POINTER;
   }
 
   
-  fprintf(stderr, "[DEBUG] parseLine() Parsing timezone config file.\n");
+  logDebug("parseLine() Parsing timezone config file.");
   removeQuotes(pLine);
 
   token = strtok_r(pLine, ";", &strtokSafe);
@@ -134,7 +155,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].startMonth = atoi(token);
   if((timezoneRecords[recordsIndex].startMonth < 0) || (timezoneRecords[recordsIndex].startMonth > 12))
   {
-    fprintf(stderr, "[ERROR] parseLine() Start Month = %s. Please use an integer from 1 to 12. 0 is also acceptable if there is no DST change.\n", token);
+    logError("parseLine() Start Month = %s. Please use an integer from 1 to 12. 0 is also acceptable if there is no DST change.", token);
     return INVALID_CONFIG;
   }
   timezoneRecords[recordsIndex].startMonth -= 1; /* In timezone info file months start from 1. In C/C++ struct tm months start from 0. */
@@ -143,7 +164,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].startNth = atoi(token);
   if((timezoneRecords[recordsIndex].startNth < 0) || (timezoneRecords[recordsIndex].startNth > 4))
   {
-    fprintf(stderr, "[ERROR] parseLine() Start Nth = %s. Please use an integer from 0 to 4. 0 means the last specified weekday of the month.\n", token);
+    logError("parseLine() Start Nth = %s. Please use an integer from 0 to 4. 0 means the last specified weekday of the month.", token);
     return INVALID_CONFIG;
   }
 
@@ -151,7 +172,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].startDay = atoi(token);
   if((timezoneRecords[recordsIndex].startDay < 0) || (timezoneRecords[recordsIndex].startDay > 6))
   {
-    fprintf(stderr, "[ERROR] parseLine() Start Day = %s. Please use an integer from 0 to 6. 0 = Sunday.\n", token);
+    logError("parseLine() Start Day = %s. Please use an integer from 0 to 6. 0 = Sunday.", token);
     return INVALID_CONFIG;
   }
 
@@ -159,7 +180,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].startHour = atoi(token);
   if((timezoneRecords[recordsIndex].startHour < 0) || (timezoneRecords[recordsIndex].startHour > 23))
   {
-    fprintf(stderr, "[ERROR] parseLine() Start Hour = %s. Please use an integer from 0 to 23.", token);
+    logError("parseLine() Start Hour = %s. Please use an integer from 0 to 23.", token);
     return INVALID_CONFIG;
   }
 
@@ -168,7 +189,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].endMonth = atoi(token);
   if((timezoneRecords[recordsIndex].endMonth < 0) || (timezoneRecords[recordsIndex].endMonth > 12))
   {
-    fprintf(stderr, "[ERROR] parseLine() End Month = %s. Please use an integer from 1 to 12. 0 is also acceptable if there is no DST change.", token);
+    logError("parseLine() End Month = %s. Please use an integer from 1 to 12. 0 is also acceptable if there is no DST change.", token);
     return INVALID_CONFIG;
   }
   timezoneRecords[recordsIndex].endMonth -= 1; /* In timezone info file months start from 1. In C/C++ struct tm months start from 0. */
@@ -177,7 +198,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].endNth = atoi(token);
   if((timezoneRecords[recordsIndex].endNth < 0) || (timezoneRecords[recordsIndex].endNth > 4))
   {
-    fprintf(stderr, "[ERROR] parseLine() End Nth = %s. Please use an integer from 0 to 4. 0 means the last specified weekday of the month.", token);
+    logError("parseLine() End Nth = %s. Please use an integer from 0 to 4. 0 means the last specified weekday of the month.", token);
     return INVALID_CONFIG;
   }
 
@@ -185,7 +206,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].endDay = atoi(token);
   if((timezoneRecords[recordsIndex].endDay < 0) || (timezoneRecords[recordsIndex].endDay > 6))
   {
-    fprintf(stderr, "[ERROR] parseLine() End Day = %s. Please use an integer from 0 to 6. 0 = Sunday.", token);
+    logError("parseLine() End Day = %s. Please use an integer from 0 to 6. 0 = Sunday.", token);
     return INVALID_CONFIG;
   }
 
@@ -193,7 +214,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].endHour = atoi(token);
   if((timezoneRecords[recordsIndex].endHour < 0) || (timezoneRecords[recordsIndex].endHour > 23))
   {
-    fprintf(stderr, "[ERROR] parseLine() End Hour = %s. Please use an integer from 0 to 23.", token);
+    logError("parseLine() End Hour = %s. Please use an integer from 0 to 23.", token);
     return INVALID_CONFIG;
   }
 
@@ -202,7 +223,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].gmtOffsetStd = atoi(token);
   if((timezoneRecords[recordsIndex].gmtOffsetStd < -15) || (timezoneRecords[recordsIndex].gmtOffsetStd > +15))
   {
-    fprintf(stderr, "[ERROR] parseLine() GMT Offset(normal) = %s. Please use an integer from -15 to 15.", token);
+    logError("parseLine() GMT Offset(normal) = %s. Please use an integer from -15 to 15.", token);
     return INVALID_CONFIG;
   }
 
@@ -210,7 +231,7 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   timezoneRecords[recordsIndex].gmtOffsetDS = atoi(token);
   if((timezoneRecords[recordsIndex].gmtOffsetDS < -15) || (timezoneRecords[recordsIndex].gmtOffsetDS > +15))
   {
-    fprintf(stderr, "[ERROR] parseLine() GMT Offset(DST) = %s. Please use an integer from -15 to 15.", token);
+    logError("parseLine() GMT Offset(DST) = %s. Please use an integer from -15 to 15.", token);
     return INVALID_CONFIG;
   }
 
@@ -235,7 +256,7 @@ AsirikuyReturnCode parseTimezoneConfig(const char* pFileName)
 
   if(pFileName == NULL)
   {
-    fprintf(stderr, "[CRITICAL] parseTimezoneConfig() failed. pFilePath = NULL\n");
+    logCritical("parseTimezoneConfig() failed. pFilePath = NULL");
     return NULL_POINTER;
   }
 
@@ -243,7 +264,7 @@ AsirikuyReturnCode parseTimezoneConfig(const char* pFileName)
 
   if(fileHandle == NULL)
   {
-    fprintf(stderr, "[CRITICAL] parseTimezoneConfig() failed. fileHandle = NULL");
+    logCritical("parseTimezoneConfig() failed. fileHandle = NULL");
     return NULL_POINTER;
   }
 

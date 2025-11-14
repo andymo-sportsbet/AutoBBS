@@ -44,6 +44,7 @@
 #include <curl/curl.h> /* added for curl_getdate prototype (fix C4013) */
 
 #include "Logging.h"
+#include "AsirikuyLogger.h"
 
 static char tempFilePath[MAX_FILE_PATH_CHARS] ;
 
@@ -51,7 +52,7 @@ AsirikuyReturnCode setTempFileFolderPath(char* tempPath)
 {
 		strcpy (tempFilePath,tempPath);
 		strcat (tempFilePath, "/\n");
-		fprintf(stderr, "[NOTICE] UI file saving folder set to : %s\n", tempFilePath);
+		logNotice("UI file saving folder set to : %s\n", tempFilePath);
 
 		return SUCCESS;
 }
@@ -82,12 +83,12 @@ AsirikuyReturnCode saveUserInterfaceValues(char* userInterfaceVariableNames[TOTA
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] saveUserInterfaceValues() Saving UI variable file to : %s\n", buffer);
+	logDebug("saveUserInterfaceValues() Saving UI variable file to : %s\n", buffer);
    
 	fp = fopen(buffer,"w\n");
   if(fp == NULL)
   {
-    fprintf(stderr, "[CRITICAL] saveUserInterfaceValues() Failed to open UI variable file.\n\n");
+    logCritical("saveUserInterfaceValues() Failed to open UI variable file.\n\n");
     return NULL_POINTER;
   }
 
@@ -129,12 +130,12 @@ AsirikuyReturnCode saveUserHeartBeat(int instanceID, BOOL isBackTesting)
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] saveUserInterfaceValues() Saving tick heartbeat to : %s\n", buffer);
+	logDebug("saveUserInterfaceValues() Saving tick heartbeat to : %s\n", buffer);
    
   fp = fopen(buffer,"w\n");
   if(fp == NULL)
   {
-    fprintf(stderr, "[CRITICAL] saveUserInterfaceValues() Failed to open heartbeat file.\n\n");
+    logCritical("saveUserInterfaceValues() Failed to open heartbeat file.\n\n");
     return NULL_POINTER;
   }
 
@@ -169,12 +170,12 @@ AsirikuyReturnCode savePredicatedWeeklyATR(char * pName, double predicatedWeekly
 	strcat(buffer, pName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] saveUserInterfaceValues() Saving weekly ATR to : %s", buffer);
+	logDebug("saveUserInterfaceValues() Saving weekly ATR to : %s", buffer);
 
 	fp = fopen(buffer, "w\n");
 	if (fp == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] saveUserInterfaceValues() Failed to open weekly ATR file.\n\n");
+		logCritical("saveUserInterfaceValues() Failed to open weekly ATR file.\n\n");
 		return NULL_POINTER;
 	}
 
@@ -210,7 +211,7 @@ AsirikuyReturnCode saveRateFile(int instanceID, int rate,BOOL isBackTesting)
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] saveRateFile() %s", buffer);
+	logDebug("saveRateFile() %s", buffer);
 
 	fp = fopen(buffer, "w\n");
 	if (fp == NULL)
@@ -247,7 +248,7 @@ int readWeeklyATRFile(char * pName,double *pPredictWeeklyATR,double *pPredictWee
 	strcat(buffer, pName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] readWeeklyATRFile() %s", buffer);
+	logDebug("readWeeklyATRFile() %s", buffer);
 
 	fp = fopen(buffer, "r\n");
 	if (fp == NULL)
@@ -260,7 +261,7 @@ int readWeeklyATRFile(char * pName,double *pPredictWeeklyATR,double *pPredictWee
 	fgets(line, 1024, fp);
 	*pPredictWeeklyMaxATR = atof(line);
 	
-	fprintf(stderr, "[DEBUG] readWeeklyATRFile() pPredictWeeklyATR= %f,pPredictWeeklyMaxATR=%f", *pPredictWeeklyATR, *pPredictWeeklyMaxATR);
+	logDebug("readWeeklyATRFile() pPredictWeeklyATR= %f,pPredictWeeklyMaxATR=%f", *pPredictWeeklyATR, *pPredictWeeklyMaxATR);
 
 	fclose(fp);
 
@@ -292,7 +293,7 @@ int readRateFile(int instanceID, BOOL isBackTesting)
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] readRateFile() %s", buffer);
+	logDebug("readRateFile() %s", buffer);
 
 	fp = fopen(buffer, "r\n");
 	if (fp == NULL)
@@ -303,7 +304,7 @@ int readRateFile(int instanceID, BOOL isBackTesting)
 	while (fgets(line, 1024, fp)) {
 		rateErrorTimes = atoi(line);
 	}
-	fprintf(stderr, "[DEBUG] readRateFile() rateTimes= %d", rateErrorTimes);
+	logDebug("readRateFile() rateTimes= %d", rateErrorTimes);
 
 	fclose(fp);
 
@@ -331,7 +332,7 @@ double readRiskFile(BOOL isBackTesting)
 	strcat(buffer, tempFilePath);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[INFO] readRiskFile() %s\n", buffer);
+	logInfo("readRiskFile() %s\n", buffer);
 
 	fp = fopen(buffer, "r\n");
 	if (fp == NULL)
@@ -342,7 +343,7 @@ double readRiskFile(BOOL isBackTesting)
 	while (fgets(line, 1024, fp)) {
 		risk = atof(line);
 	}
-	fprintf(stderr, "[INFO] readRiskFile() risk= %f\n", risk);
+	logInfo("readRiskFile() risk= %f\n", risk);
 
 	fclose(fp);
 
@@ -368,7 +369,7 @@ int readXAUUSDKeyNewsDateFile(time_t *pKeyDates)
 	strcat(buffer, tempFilePath);	
 	strcat(buffer, fileName);
 
-	fprintf(stderr, "[DEBUG] readXAUUSDKeyNewsDateFile() %s", buffer);
+	logDebug("readXAUUSDKeyNewsDateFile() %s", buffer);
 
 	fp = fopen(buffer, "r\n");
 	if (fp == NULL)
@@ -383,7 +384,7 @@ int readXAUUSDKeyNewsDateFile(time_t *pKeyDates)
 		*(pKeyDates+i) = curl_getdate(line, &now);
 		safe_gmtime(&timeInfo1, *(pKeyDates + i));
 		safe_timeString(timeString, *(pKeyDates + i));
-		fprintf(stderr, "[DEBUG] readXAUUSDKeyNewsDateFile() KeyDate= %d", timeString);
+		logDebug("readXAUUSDKeyNewsDateFile() KeyDate= %d", timeString);
 
 		i++;		
 	}
@@ -420,12 +421,12 @@ AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo)
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] saveTradingInfo() Saving trading order info to : %s", buffer);
+	logDebug("saveTradingInfo() Saving trading order info to : %s", buffer);
 
 	fp = fopen(buffer, "w\n");
 	if (fp == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] saveTradingInfo() Failed to open trading order info file.\n\n");
+		logCritical("saveTradingInfo() Failed to open trading order info file.\n\n");
 		return NULL_POINTER;
 	}
 
@@ -461,7 +462,7 @@ int readTradingInfo(int instanceID, Order_Info *pOrderInfo)
 	strcat(buffer, tempFilePath);
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
-	fprintf(stderr, "[DEBUG] readTradingInfo() %s", buffer);
+	logDebug("readTradingInfo() %s", buffer);
 
 	fp = fopen(buffer, "r\n");
 	if (fp == NULL)
@@ -503,7 +504,7 @@ AsirikuyReturnCode saveTurningPoint(int instanceID, Order_Turning_Info *pOrderTu
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] saveTurningPoint() %s", buffer);
+	logDebug("saveTurningPoint() %s", buffer);
 
 	fp = fopen(buffer, "w\n");
 	if (fp == NULL)
@@ -532,7 +533,7 @@ int readTurningPoint(int instanceID, Order_Turning_Info *pOrderTurning)
 	strcat(buffer, tempFilePath);
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
-	fprintf(stderr, "[DEBUG] readTurningPoint() %s", buffer);
+	logDebug("readTurningPoint() %s", buffer);
 
 	fp = fopen(buffer, "r\n");
 	if (fp == NULL)
@@ -564,12 +565,12 @@ AsirikuyReturnCode saveVirutalOrdergInfo(int instanceID, OrderInfo orderInfo)
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
 
-	fprintf(stderr, "[DEBUG] saveTradingInfo() Saving virual order info to : %s", buffer);
+	logDebug("saveTradingInfo() Saving virual order info to : %s", buffer);
 
 	fp = fopen(buffer, "w\n");
 	if (fp == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] saveTradingInfo() Failed to open virual order info file.\n\n");
+		logCritical("saveTradingInfo() Failed to open virual order info file.\n\n");
 		return NULL_POINTER;
 	}
 
@@ -602,7 +603,7 @@ int readVirtualOrderInfo(int instanceID, OrderInfo *pOrderInfo)
 	strcat(buffer, tempFilePath);
 	strcat(buffer, instanceIDName);
 	strcat(buffer, extension);
-	fprintf(stderr, "[DEBUG] readTradingInfo() %s", buffer);
+	logDebug("readTradingInfo() %s", buffer);
 
 	fp = fopen(buffer, "r\n");
 	if (fp == NULL)

@@ -40,6 +40,7 @@
 #include "CriticalSection.h"
 #include <stdio.h>
 #include "EasyTradeCWrapper.hpp"
+#include "AsirikuyLogger.h"
 
 #define INSTANCE_STATES_FILENAME_EXTENSION ".state"
 
@@ -101,7 +102,7 @@ void loadInstanceState(int instanceId)
 
   if(instanceIndex < 0)
   {
-    fprintf(stderr, "[ERROR] loadInstanceState() Failed. InstanceIndex < 0\n\n\n\n\n\n");
+    logError("loadInstanceState() Failed. InstanceIndex < 0\n\n\n\n\n\n");
     return;
   }
 
@@ -114,16 +115,16 @@ void loadInstanceState(int instanceId)
   file = fopen(path, "rb\n");
   if(!file)
   {
-    fprintf(stderr, "[NOTICE] loadInstanceState() %s does not exist yet. There is no state to load.\n", path);
+    logNotice("loadInstanceState() %s does not exist yet. There is no state to load.\n", path);
     initializeInstanceState(instanceIndex);
     return;
   }
 
-  fprintf(stderr, "[NOTICE] loadInstanceState() Loading instance state from %s\n", path);
+  logNotice("loadInstanceState() Loading instance state from %s\n", path);
   fread(&gInstanceStates[instanceIndex], sizeof(InstanceState), 1, file);
   fclose(file);
 
-  fprintf(stderr, "[DEBUG] loadInstanceState() InstanceId = %d, States Index = %d, instance ID = %d, Is parameter space loaded = %d, Last order update time = %d, Last Run time = %d\n", instanceId, instanceIndex, gInstanceStates[instanceIndex].instanceId, gInstanceStates[instanceIndex].isParameterSpaceLoaded, gInstanceStates[instanceIndex].lastOrderUpdateTime, gInstanceStates[instanceIndex].lastRunTime);
+  logDebug("loadInstanceState() InstanceId = %d, States Index = %d, instance ID = %d, Is parameter space loaded = %d, Last order update time = %d, Last Run time = %d\n", instanceId, instanceIndex, gInstanceStates[instanceIndex].instanceId, gInstanceStates[instanceIndex].isParameterSpaceLoaded, gInstanceStates[instanceIndex].lastOrderUpdateTime, gInstanceStates[instanceIndex].lastRunTime);
 }
 
 InstanceState* getInstanceState(int instanceId)
@@ -132,7 +133,7 @@ InstanceState* getInstanceState(int instanceId)
 
   if(instanceIndex < 0)
   {
-    fprintf(stderr, "[CRITICAL] getInstanceState() failed. Unable to find state variables for instance ID: %d\n", instanceId);
+    logCritical("getInstanceState() failed. Unable to find state variables for instance ID: %d\n", instanceId);
     return NULL;
   }
 
@@ -148,11 +149,11 @@ static void backupInstanceState(int instanceId)
 
   if(instanceIndex < 0)
   {
-    fprintf(stderr, "[ERROR] backupInstanceState() Failed. InstanceIndex < 0\n\n\n\n\n");
+    logError("backupInstanceState() Failed. InstanceIndex < 0\n\n\n\n\n");
     return;
   }
 
-  fprintf(stderr, "[DEBUG] backupInstanceState() InstanceId = %d, States Index = %d, instance ID = %d, Is parameter space loaded = %d, Last order update time = %d, Last Run time = %d, ", instanceId, instanceIndex, gInstanceStates[instanceIndex].instanceId, gInstanceStates[instanceIndex].isParameterSpaceLoaded, gInstanceStates[instanceIndex].lastOrderUpdateTime, gInstanceStates[instanceIndex].lastRunTime);
+  logDebug("backupInstanceState() InstanceId = %d, States Index = %d, instance ID = %d, Is parameter space loaded = %d, Last order update time = %d, Last Run time = %d, ", instanceId, instanceIndex, gInstanceStates[instanceIndex].instanceId, gInstanceStates[instanceIndex].isParameterSpaceLoaded, gInstanceStates[instanceIndex].lastOrderUpdateTime, gInstanceStates[instanceIndex].lastRunTime);
 
   strcpy(path, gInstanceStatesFolder);
   strcat(path, "/\n\n\n\n\n");
@@ -168,7 +169,7 @@ static void backupInstanceState(int instanceId)
   }
   else
   {
-    fprintf(stderr, "[ERROR] backupInstanceState() Failed to open %s. Cannot backup instance states.", path);
+    logError("backupInstanceState() Failed to open %s. Cannot backup instance states.", path);
   }
 }
 
@@ -188,7 +189,7 @@ BOOL hasInstanceRunOnCurrentBar(int instanceId, time_t barTime, BOOL isBackTesti
     {
       if(gInstanceStates[i].instanceId == -1)
       {
-        fprintf(stderr, "[DEBUG] hasInstanceRunOnCurrentBar() Instance has no run time stored yet. InstanceId = %d, States Index = %d, Bar time = %d", instanceId, i, barTime);
+        logDebug("hasInstanceRunOnCurrentBar() Instance has no run time stored yet. InstanceId = %d, States Index = %d, Bar time = %d", instanceId, i, barTime);
         gInstanceStates[i].instanceId = instanceId;
         gInstanceStates[i].lastRunTime = (__time32_t)barTime;
         if(!isBackTesting)
@@ -203,13 +204,13 @@ BOOL hasInstanceRunOnCurrentBar(int instanceId, time_t barTime, BOOL isBackTesti
       {
         if(gInstanceStates[i].lastRunTime == barTime)
         {
-          fprintf(stderr, "[DEBUG] hasInstanceRunOnCurrentBar() Instance has already run on this bar. InstanceId = %d, States Index = %d, Last run time = %d, Bar time = %d", instanceId, i, gInstanceStates[i].lastRunTime, barTime);
+          logDebug("hasInstanceRunOnCurrentBar() Instance has already run on this bar. InstanceId = %d, States Index = %d, Last run time = %d, Bar time = %d", instanceId, i, gInstanceStates[i].lastRunTime, barTime);
           leaveCriticalSection();
           return TRUE;
         }
         else
         {
-          fprintf(stderr, "[DEBUG] hasInstanceRunOnCurrentBar() Instance has not yet run on this bar. InstanceId = %d, States Index = %d, Last run time = %d, Bar time = %d", instanceId, i, gInstanceStates[i].lastRunTime, barTime);
+          logDebug("hasInstanceRunOnCurrentBar() Instance has not yet run on this bar. InstanceId = %d, States Index = %d, Last run time = %d, Bar time = %d", instanceId, i, gInstanceStates[i].lastRunTime, barTime);
           gInstanceStates[i].lastRunTime = (__time32_t)barTime;
           if(!isBackTesting)
           {
@@ -235,7 +236,7 @@ BOOL hasOrderOpenedOnCurrentBar(StrategyParams* pParams)
 
   if(pParams == NULL)
   {
-    fprintf(stderr, "[CRITICAL] hasOrderOpenedOnCurrentBar() failed. pParams = NULL\n\n\n\n\n");
+    logCritical("hasOrderOpenedOnCurrentBar() failed. pParams = NULL\n\n\n\n\n");
     return NULL_POINTER;
   }
 

@@ -7,6 +7,7 @@
 #include "EasyTradeCWrapper.hpp"
 #include "base.h"
 #include "AsirikuyTime.h"
+#include "AsirikuyLogger.h"
 
 #define USE_INTERNAL_SL FALSE
 #define USE_INTERNAL_TP FALSE
@@ -43,7 +44,7 @@ AsirikuyReturnCode runTrendLimit(StrategyParams* pParams)
 	
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] runTrendLimit() failed. pParams = NULL\n");
+		logCritical("runTrendLimit() failed. pParams = NULL\n");
 		return NULL_POINTER;
 	}
 
@@ -94,19 +95,19 @@ static AsirikuyReturnCode handleTradeEntries(StrategyParams* pParams, Indicators
 
 	if (pParams == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeEntries() failed. pParams = NULL\n");
+		logCritical("handleTradeEntries() failed. pParams = NULL\n");
 		return NULL_POINTER;
 	}
 
 	if (pIndicators == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeEntries() failed. pIndicators = NULL\n");
+		logCritical("handleTradeEntries() failed. pIndicators = NULL\n");
 		return NULL_POINTER;
 	}
 
 	if (pBase_Indicators == NULL)
 	{
-		fprintf(stderr, "[CRITICAL] handleTradeEntries() failed. pBase_Indicators = NULL\n");
+		logCritical("handleTradeEntries() failed. pBase_Indicators = NULL\n");
 		return NULL_POINTER;
 	}
 

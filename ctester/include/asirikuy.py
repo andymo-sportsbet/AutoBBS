@@ -138,7 +138,9 @@ def makeRatesCoherent(historyFilePathsInput):
 
 def loadRates(historyFilePath1, arbitraryNum, symbol, updateQuotes):
 
-    symbolList=list(symbol)
+    # Python 3: symbol may be bytes, decode to string first
+    symbol_str = symbol.decode('utf-8') if isinstance(symbol, bytes) else symbol
+    symbolList=list(symbol_str)
     baseName=symbolList[0]+symbolList[1]+symbolList[2]
     termName=symbolList[3]+symbolList[4]+symbolList[5]
 
@@ -184,7 +186,8 @@ def loadRates(historyFilePath1, arbitraryNum, symbol, updateQuotes):
     endingDate = time
 
     if updateQuotes:
-        with open(baseName+termName+'_QUOTES.csv', 'wb') as f:
+        # Python 3: use 'w' mode for text, not 'wb' for binary
+        with open(baseName+termName+'_QUOTES.csv', 'w', newline='') as f:
             spamwriter  = csv.writer(f, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             for i in range(0, numCandles):
                 spamwriter.writerow([str(strftime("%d/%m/%y %H:%M", gmtime(rates[i].time))), str(rates[i].open)])
