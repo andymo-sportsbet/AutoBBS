@@ -9,8 +9,13 @@
 #include "Precompiled.h"
 #include "CTesterFrameworkDefines.h"
 #include "Logging.h"
+#include <stdio.h>
+#include <string.h>
+#include <sys/time.h>
+#include <unistd.h>
 
-const PAN_CHAR_T PANTHEIOS_FE_PROCESS_IDENTITY[] = PANTHEIOS_LITERAL_STRING("AsirikuyCTester");
+// Pantheios removed - using standard fprintf for logging
+// const PAN_CHAR_T PANTHEIOS_FE_PROCESS_IDENTITY[] = PANTHEIOS_LITERAL_STRING("AsirikuyCTester");
 
 void __stdcall getCTesterFrameworkVersion(int* pMajor, int* pMinor, int* pBugfix){
 	*pMajor  = AST_VERSION_MAJOR;
@@ -37,18 +42,19 @@ static int startCTesterFramework(char* pAsirikuyTesterLog, int severityLevel)
   static BOOL initializing = FALSE;
   /*AsirikuyReturnCode result;
   AsirikuyConfig config;*/
-  char pantheiosLogPath[MAX_FILE_PATH_CHARS] = "";
+  // Pantheios removed - using standard fprintf for logging
+  // char pantheiosLogPath[MAX_FILE_PATH_CHARS] = "";
 
   seedRand();
 
-  strcat(pantheiosLogPath, pAsirikuyTesterLog);
+  // Pantheios removed - using standard fprintf for logging
+  // strcat(pantheiosLogPath, pAsirikuyTesterLog);
+  // pantheios_init();
+  // pantheios_be_file_setFilePath((PAN_CHAR_T*)pantheiosLogPath, 0, 0, PANTHEIOS_BEID_ALL);
+  // pantheios_fe_simple_setSeverityCeiling(severityLevel);
+  // pantheios_logputs(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"Pantheios initialized.");
 
-  pantheios_init();
-  pantheios_be_file_setFilePath((PAN_CHAR_T*)pantheiosLogPath, 0, 0, PANTHEIOS_BEID_ALL);
-  pantheios_fe_simple_setSeverityCeiling(severityLevel);
-  pantheios_logputs(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"Pantheios initialized.");
-
-  pantheios_logputs(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"CTesterframework initialization complete.");
+  fprintf(stderr, "CTesterFramework initialization complete.\n");
   
   return (int)SUCCESS;
 }

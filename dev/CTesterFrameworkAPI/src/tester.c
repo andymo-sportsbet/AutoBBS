@@ -15,6 +15,8 @@
 #include "Precompiled.h"
 #include "AsirikuyTime.h"
 #include "AsirikuyDefines.h"
+#include <stdio.h>
+#include <unistd.h>
 
 #define MATHEMATICAL_EXPECTANCY_LIMIT 50
 #define MATHEMATICAL_EXPECTANCY_DIVISION 5
@@ -145,7 +147,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 		openOrders[orderIndex].lots = roundN(strategyResults->lots, getDecimals(minLotSize));
 	}
 	else {
-		pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"Order %d, lots = %lf, below minimum lot size (%lf). Order was NOT opened (rounding up is prevented to avoid increasing risk)", (int)openOrders[orderIndex].ticket,  (double)strategyResults->lots, (double) minLotSize);
+		fprintf(stderr, "Order %d, lots = %lf, below minimum lot size (%lf). Order was NOT opened (rounding up is prevented to avoid increasing risk)\n", (int)openOrders[orderIndex].ticket,  (double)strategyResults->lots, (double) minLotSize);
 		return false;
 	}
 
@@ -174,7 +176,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice - strategyResults->brokerSL <= openPrice - minimumStop && strategyResults->brokerSL != 0){
 				openOrders[orderIndex].stopLoss = openPrice - strategyResults->brokerSL;
 			} else {
-				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OpenOrder. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerSL);
+				fprintf(stderr, "OpenOrder. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerSL);
 			}
 		}
 		
@@ -182,7 +184,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice + strategyResults->brokerTP >= openPrice + minimumStop && strategyResults->brokerTP != 0){
 				openOrders[orderIndex].takeProfit = openPrice + strategyResults->brokerTP;
 			} else {
-				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OpenOrder. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerTP);
+				fprintf(stderr, "OpenOrder. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerTP);
 			}
 		}
 
@@ -197,7 +199,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice + strategyResults->brokerSL >= openPrice + minimumStop && strategyResults->brokerSL != 0){
 				openOrders[orderIndex].stopLoss = openPrice + strategyResults->brokerSL;
 			} else {
-				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OpenOrder. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerSL);
+				fprintf(stderr, "OpenOrder. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openPrice, openPrice + minimumStop, openPrice + strategyResults->brokerSL);
 			}
 		}
 
@@ -205,7 +207,7 @@ int openOrder(StrategyResults* strategyResults, int* openOrdersCount, COrderInfo
 			if (openPrice - strategyResults->brokerTP <= openPrice - minimumStop && strategyResults->brokerTP != 0){
 				openOrders[orderIndex].takeProfit = openPrice - strategyResults->brokerTP;
 			} else {
-				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OpenOrder. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerTP);
+				fprintf(stderr, "OpenOrder. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openPrice, openPrice - minimumStop, openPrice - strategyResults->brokerTP);
 			}
 		}
 		
@@ -265,7 +267,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_ASK] - strategyResults->brokerSL <= bidAsk[IDX_ASK] - minimumStop && strategyResults->brokerSL != 0){
 					openOrders[i].stopLoss = bidAsk[IDX_ASK] - strategyResults->brokerSL;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", bidAsk[IDX_ASK], bidAsk[IDX_ASK] - minimumStop, bidAsk[IDX_ASK] - strategyResults->brokerSL);
+						fprintf(stderr, "OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", bidAsk[IDX_ASK], bidAsk[IDX_ASK] - minimumStop, bidAsk[IDX_ASK] - strategyResults->brokerSL);
 					}
 				}
 
@@ -273,7 +275,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_ASK] + strategyResults->brokerTP >= bidAsk[IDX_ASK] + minimumStop && strategyResults->brokerTP != 0){
 					openOrders[i].takeProfit = bidAsk[IDX_ASK] + strategyResults->brokerTP;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", bidAsk[IDX_ASK], bidAsk[IDX_ASK] + minimumStop, bidAsk[IDX_ASK] + strategyResults->brokerTP);
+						fprintf(stderr, "OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", bidAsk[IDX_ASK], bidAsk[IDX_ASK] + minimumStop, bidAsk[IDX_ASK] + strategyResults->brokerTP);
 					}
 				}
 
@@ -281,7 +283,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice - strategyResults->brokerSL <= openOrders[i].openPrice - minimumStop && strategyResults->brokerSL != 0){
 					openOrders[i].stopLoss = openOrders[i].openPrice - strategyResults->brokerSL;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerSL);
+						fprintf(stderr, "OrderModify. Invalid SL requested. Current ask is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerSL);
 					}
 				}
 
@@ -289,7 +291,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice + strategyResults->brokerTP >= openOrders[i].openPrice + minimumStop && strategyResults->brokerTP != 0){
 					openOrders[i].takeProfit = openOrders[i].openPrice + strategyResults->brokerTP;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerTP);
+						fprintf(stderr, "OrderModify. Invalid TP requested. Current ask is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerTP);
 					}
 				}
 
@@ -307,7 +309,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					globalSignalUpdate(lastSignal);
 				}
 
-				pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
+				fprintf(stderr, "Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
 			}
 			if(openOrders[i].type == SELL || openOrders[i].type == SELLSTOP || openOrders[i].type == SELLLIMIT){
 
@@ -315,7 +317,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_BID] + strategyResults->brokerSL >= bidAsk[IDX_BID] + minimumStop){
 						openOrders[i].stopLoss = bidAsk[IDX_BID] + strategyResults->brokerSL;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", bidAsk[IDX_BID], bidAsk[IDX_BID] + minimumStop, bidAsk[IDX_BID] + strategyResults->brokerSL);
+						fprintf(stderr, "OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", bidAsk[IDX_BID], bidAsk[IDX_BID] + minimumStop, bidAsk[IDX_BID] + strategyResults->brokerSL);
 					}
 				}
 
@@ -323,7 +325,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (bidAsk[IDX_BID] - strategyResults->brokerTP <= bidAsk[IDX_BID] - minimumStop){
 						openOrders[i].takeProfit = bidAsk[IDX_BID] - strategyResults->brokerTP;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", bidAsk[IDX_BID], bidAsk[IDX_BID] - minimumStop, bidAsk[IDX_BID] - strategyResults->brokerTP);
+						fprintf(stderr, "OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", bidAsk[IDX_BID], bidAsk[IDX_BID] - minimumStop, bidAsk[IDX_BID] - strategyResults->brokerTP);
 					}
 				}
 
@@ -331,7 +333,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice + strategyResults->brokerSL >= openOrders[i].openPrice + minimumStop){
 						openOrders[i].stopLoss = openOrders[i].openPrice + strategyResults->brokerSL;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerSL);
+						fprintf(stderr, "OrderModify. Invalid SL requested. Current bid is %lf, minimum allowed SL is %lf, attempted SL is %lf. This SL modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice + minimumStop, openOrders[i].openPrice + strategyResults->brokerSL);
 					}
 				}
 
@@ -339,7 +341,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					if (openOrders[i].openPrice - strategyResults->brokerTP <= openOrders[i].openPrice - minimumStop){
 						openOrders[i].takeProfit = openOrders[i].openPrice - strategyResults->brokerTP;
 					} else {
-						pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerTP);
+						fprintf(stderr, "OrderModify. Invalid TP requested. Current bid is %lf, minimum allowed TP is %lf, attempted TP is %lf. This TP modification has been aborted.\n", openOrders[i].openPrice, openOrders[i].openPrice - minimumStop, openOrders[i].openPrice - strategyResults->brokerTP);
 					}
 				}
 
@@ -358,7 +360,7 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 					globalSignalUpdate(lastSignal);
 				}
 
-				pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
+				fprintf(stderr, "Update Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[i].ticket, openOrders[i].instanceId, openOrders[i].openPrice, openOrders[i].stopLoss, openOrders[i].takeProfit);
 			}
 
 			if (strategyResults->brokerTP == 0) openOrders[i].takeProfit = 0;
@@ -382,7 +384,7 @@ double closeOrder(StrategyResults* strategyResults, int* openOrdersCount, COrder
 			
 			// if the close time is before the open time then continue
             if (openOrders[i].openTime > closeTime){
-                pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Close time is earlier than open time. Ignoring close order. OpenTime = %lf, CloseTime = %d", openOrders[i].openTime, closeTime);				
+                fprintf(stderr, "Close time is earlier than open time. Ignoring close order. OpenTime = %lf, CloseTime = %d\n", openOrders[i].openTime, closeTime);				
                 return false;
             }
 
@@ -457,14 +459,14 @@ double checkTPSL(double bid, double ask, int i, int shift1, CRates *rates0, int*
 					openOrders[i].closePrice = openOrders[i].stopLoss;
 				}
 
-				pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"BUY Order hit SL. Ticket = %f", openOrders[i].ticket);
+				fprintf(stderr, "BUY Order hit SL. Ticket = %f\n", openOrders[i].ticket);
 				touchedTPSL = true;
 				triggeredSL = true;
 			}
 			
 			if ((openOrders[i].takeProfit<=rates0[shift1].high || openOrders[i].takeProfit<=bid) && !triggeredSL && openOrders[i].takeProfit != 0){
 				openOrders[i].closePrice = openOrders[i].takeProfit;
-				pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"BUY Order hit TP. Ticket = %f", openOrders[i].ticket);
+				fprintf(stderr, "BUY Order hit TP. Ticket = %f\n", openOrders[i].ticket);
 				touchedTPSL = true;
 			}
 		}
@@ -478,13 +480,13 @@ double checkTPSL(double bid, double ask, int i, int shift1, CRates *rates0, int*
 					openOrders[i].closePrice = openOrders[i].stopLoss;
 				}
 
-				pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"SELL Order hit SL. Ticket = %f", openOrders[i].ticket);
+				fprintf(stderr, "SELL Order hit SL. Ticket = %f\n", openOrders[i].ticket);
 				triggeredSL = true;
 				touchedTPSL = true;
 			}
 
 			if((openOrders[i].takeProfit>=rates0[shift1].low+spread || openOrders[i].takeProfit>=ask) && !triggeredSL && openOrders[i].takeProfit != 0){
-				pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"SELL Order hit TP. Ticket = %f", openOrders[i].ticket);
+				fprintf(stderr, "SELL Order hit TP. Ticket = %f\n", openOrders[i].ticket);
 				openOrders[i].closePrice = openOrders[i].takeProfit;
 				touchedTPSL = true;
 			}
@@ -493,7 +495,7 @@ double checkTPSL(double bid, double ask, int i, int shift1, CRates *rates0, int*
 
 			// if the close time is before the open time then continue
             if (openOrders[i].openTime > closeTime){
-                pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Close time is earlier than open time. Ignoring SL/TP hit. OpenTime = %lf, CloseTime = %d", openOrders[i].openTime, closeTime);				
+                fprintf(stderr, "Close time is earlier than open time. Ignoring SL/TP hit. OpenTime = %lf, CloseTime = %d\n", openOrders[i].openTime, closeTime);				
                 return false;
             }
 
@@ -566,7 +568,7 @@ int addInterest(int* openOrdersCount, COrderInfo* openOrders, int instanceId, in
 
 			if(timeInfo.tm_wday == 3) swapInterest *= 3;	
 
-			pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Adding Swap interest = %lf, swapLong = %lf, swapShort = %lf, hours = %d, dayOfweek = %d, contractSize = %lf, volume = %lf BidAsk = %lf/%lf", swapInterest, swapLong, swapShort, timeInfo.tm_hour, timeInfo.tm_wday, contractSize, openOrders[i].lots, bidAsk[IDX_BID], bidAsk[IDX_ASK]);
+			fprintf(stderr, "Adding Swap interest = %lf, swapLong = %lf, swapShort = %lf, hours = %d, dayOfweek = %d, contractSize = %lf, volume = %lf BidAsk = %lf/%lf\n", swapInterest, swapLong, swapShort, timeInfo.tm_hour, timeInfo.tm_wday, contractSize, openOrders[i].lots, bidAsk[IDX_BID], bidAsk[IDX_ASK]);
 			openOrders[i].swap += swapInterest; 
 			newAdditionTime = currentTime;
 		}
@@ -714,7 +716,7 @@ void save_openorder_to_file(){
 	
 	openOrderFile = fopen("results.open", "w");
 	if (openOrderFile == NULL)
-		pantheios_logputs(PANTHEIOS_SEV_CRITICAL, (PAN_CHAR_T*)"Failed to save openOrderFile.");
+		fprintf(stderr, "Failed to save openOrderFile.\n");
 
 	fprintf(openOrderFile, "Open order exist!");
 
@@ -731,7 +733,7 @@ void save_statistics_to_file(TestResult testResult,
             
 			statisticsFile = fopen("allStatistics.csv","w");
 			if(statisticsFile == NULL)
-			pantheios_logputs(PANTHEIOS_SEV_CRITICAL, (PAN_CHAR_T*)"Failed to save general statistics.");
+			fprintf(stderr, "Failed to save general statistics.\n");
 
 
 			fprintf(statisticsFile, "total_return, %f\n", finalBalance/initialBalance);
@@ -1056,7 +1058,7 @@ TestResult __stdcall runPortfolioTest (
 
 	for (n=0; n<numSystems; n++){
 		sprintf (buffer, "%s_TICK.csv", pInTradeSymbol[n]);
-		pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Searching for tick data: %s", buffer);
+		fprintf(stderr, "Searching for tick data: %s\n", buffer);
 		tickFiles[n] = NULL;
 		tickFiles[n] = fopen(buffer , "r+" );
 	}
@@ -1103,22 +1105,22 @@ TestResult __stdcall runPortfolioTest (
 			numBarsRequired[j][n] = (int)(pRatesInfo[j][n].totalBarsRequired * 1.2 * pRatesInfo[j][n].requiredTimeframe/pRatesInfo[j][n].actualTimeframe);
 		}
 
-		pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Bar requirements for all rates:");
+		fprintf(stderr, "Bar requirements for all rates:\n");
 
 		for (n=0;n<10;n++){
-			pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"rates %d = %d bars", n, numBarsRequired[j][n]);
+			fprintf(stderr, "rates %d = %d bars\n", n, numBarsRequired[j][n]);
 			pRatesInfo[j][n].ratesArraySize = numBarsRequired[j][n];
 			if (numBarsRequired[j][n] > maxNumbarsRequired) maxNumbarsRequired = numBarsRequired[j][n];
 		}
 
-		pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"-- strategy settings --");
+		fprintf(stderr, "-- strategy settings --\n");
 		for (n=0;n<64;n++){
-			pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Setting No.%d = %lf", n, pInSettings[j][n]);
+			fprintf(stderr, "Setting No.%d = %lf\n", n, pInSettings[j][n]);
 		}
 
-		pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"-- Pairs loaded --");
+		fprintf(stderr, "-- Pairs loaded --\n");
 		for (n=0;n<numSystems;n++){
-			pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Symbol No.%d= %s", n, pInTradeSymbol[n]);
+			fprintf(stderr, "Symbol No.%d= %s\n", n, pInTradeSymbol[n]);
 		}
 
 	if(signalUpdate != NULL) numSignals[j] = 1;
@@ -1153,16 +1155,16 @@ TestResult __stdcall runPortfolioTest (
 					sprintf(error_t, "Error %d initiating strategy\n", result);
 					break;
 			}
-			pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"%s", error_t);
+			fprintf(stderr, "%s\n", error_t);
 		}
 	}
 
 	// get base/quote symbols for all systems
-    pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Starting base/quote symbol extraction");
+    fprintf(stderr, "Starting base/quote symbol extraction\n");
 	
 	for (n=0; n<numSystems; n++){
 
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"For system No.%d,pInSettings[n][ADDITIONAL_PARAM_8] = %lf",n,pInSettings[n][ADDITIONAL_PARAM_8]);
+		fprintf(stderr, "For system No.%d,pInSettings[n][ADDITIONAL_PARAM_8] = %lf\n",n,pInSettings[n][ADDITIONAL_PARAM_8]);
 
 		baseSymbols[n] = (char*)malloc(MAX_FILE_PATH_CHARS * sizeof(char));
 		quoteSymbols[n] = (char*)malloc(MAX_FILE_PATH_CHARS * sizeof(char));
@@ -1178,39 +1180,39 @@ TestResult __stdcall runPortfolioTest (
         if (strlen(baseSymbolTemp) != 0){
             strncpy(baseSymbols[n], baseSymbolTemp, 6);
             baseSymbols[n][6] = '\0';
-            pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"For system No.%d, base symbol is %s", n, baseSymbols[n]);
+            fprintf(stderr, "For system No.%d, base symbol is %s\n", n, baseSymbols[n]);
         }
         
         if (strlen(quoteSymbolTemp) != 0){
             strncpy(quoteSymbols[n], quoteSymbolTemp, 6);
             quoteSymbols[n][6] = '\0';
-            pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"For system No.%d, quote symbol is %s", n, quoteSymbols[n]);
+            fprintf(stderr, "For system No.%d, quote symbol is %s\n", n, quoteSymbols[n]);
         }
         
 		baseFiles[n] = NULL;
 		quoteFiles[n] = NULL;
 
 		if(strlen(baseSymbols[n]) != 0){
-			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Opening base file");
+			fprintf(stderr, "Opening base file\n");
 			sprintf (buffer, "%s_QUOTES.csv", baseSymbols[n]);			
 			baseFiles[n] = fopen(buffer , "r" );
 			if (baseFiles[n] == NULL) {
-    			pantheios_logprintf(PANTHEIOS_SEV_EMERGENCY, (PAN_CHAR_T*)"Error. Quotes for base symbol %s not found. Trading results will be inaccurate.", baseSymbols[n]);
+    			fprintf(stderr, "Error. Quotes for base symbol %s not found. Trading results will be inaccurate.\n", baseSymbols[n]);
 			}
 		}
 
 		if(strlen(quoteSymbols[n]) != 0){
-			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Opening quotes file");
+			fprintf(stderr, "Opening quotes file\n");
 			sprintf (buffer, "%s_QUOTES.csv", quoteSymbols[n]);		
 			quoteFiles[n] = fopen(buffer , "r" );
 			if (quoteFiles[n] == NULL) {
-    			pantheios_logprintf(PANTHEIOS_SEV_EMERGENCY, (PAN_CHAR_T*)"Error. Quotes for quote symbol %s not found. Trading results will be inaccurate.",  quoteSymbols[n]);
+    			fprintf(stderr, "Error. Quotes for quote symbol %s not found. Trading results will be inaccurate.\n",  quoteSymbols[n]);
 			}
 		}
 	}
 
-	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Starting main test loop. Max numbars required = %d, numCandles = %d", maxNumbarsRequired, numCandles);
-	pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Requested testing limits. StartDate = %d, EndDate = %d", testSettings[0].fromDate, testSettings[0].toDate);
+	fprintf(stderr, "Starting main test loop. Max numbars required = %d, numCandles = %d\n", maxNumbarsRequired, numCandles);
+	fprintf(stderr, "Requested testing limits. StartDate = %d, EndDate = %d\n", testSettings[0].fromDate, testSettings[0].toDate);
 
 	for(s = 0; s<numSystems; s++){
 	rates[s][0] = (CRates*)malloc(sizeof(CRates) * numBarsRequired[s][0]);
@@ -1244,7 +1246,7 @@ TestResult __stdcall runPortfolioTest (
 				continue;
 			}
 
-		pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"bar = %d, finishedCount = %d, numSystem = %d", i[s], finishedCount, s);
+		fprintf(stderr, "bar = %d, finishedCount = %d, numSystem = %d\n", i[s], finishedCount, s);
 
 		currentBrokerTime = 0;
 
@@ -1545,13 +1547,13 @@ TestResult __stdcall runPortfolioTest (
 		if(result!=SUCCESS){
 			switch (result){
 				case NULL_POINTER:
-					pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Null Pointer. Check the Asirikuy Framework log for more detail");
+					fprintf(stderr, "Null Pointer. Check the Asirikuy Framework log for more detail\n");
 					break;
 				case NOT_ENOUGH_RATES_DATA:
-					pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Not enough rates. Check the Asirikuy Framework log for more detail");
+					fprintf(stderr, "Not enough rates. Check the Asirikuy Framework log for more detail\n");
 					break;
 				default:
-					pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Error %d running strategy\n", result);
+					fprintf(stderr, "Error %d running strategy\n", result);
 					break;
 			}
 		}
@@ -1567,9 +1569,9 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_OPEN_BUYLIMIT) != 0) updateOrderType = BUYLIMIT;
 					if ((operation & SIGNAL_OPEN_BUYSTOP) != 0) updateOrderType = BUYSTOP;
 
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"BUY signal type %d. Instance ID = %d", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					fprintf(stderr, "BUY signal type %d. Instance ID = %d\n", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					openOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], &totalTrades, currentBrokerTime, bidAsk[IDX_ASK], (int)updateOrderType,lastSignal, numSignals, finalBalance, minLotSize, pInAccountInfo[s][IDX_MINIMUM_STOP]);
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
+					fprintf(stderr, "Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
 					numLongs++;
 
 
@@ -1584,7 +1586,7 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_CLOSE_BUYLIMIT) != 0) updateOrderType = BUYLIMIT;
 					if ((operation & SIGNAL_CLOSE_BUYSTOP) != 0) updateOrderType = BUYSTOP;
 
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Close BUY Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					fprintf(stderr, "Close BUY Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					if (closeOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], currentBrokerTime, bidAsk[IDX_BID], &lastOrder, pInTradeSymbol[s], (int)updateOrderType, &profit, pInAccountInfo[s][IDX_CONTRACT_SIZE], globalSignalUpdate,lastSignal, numSignals, finalBalance, conversionRate, &testResult.avgTradeDuration)){
 						finalBalance += profit;
 						if(is_optimization == FALSE){
@@ -1603,7 +1605,7 @@ TestResult __stdcall runPortfolioTest (
 				}
 				if((operation & SIGNAL_UPDATE_BUY) != 0 || (operation & SIGNAL_UPDATE_BUYLIMIT) != 0 || (operation & SIGNAL_UPDATE_BUYSTOP) != 0)
 				{
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Update BUY Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					fprintf(stderr, "Update BUY Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					
 					if ((operation & SIGNAL_UPDATE_BUY) != 0) updateOrderType = BUY;
 					if ((operation & SIGNAL_UPDATE_BUYLIMIT) != 0) updateOrderType = BUYLIMIT;
@@ -1619,9 +1621,9 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_OPEN_SELLLIMIT) != 0) updateOrderType = SELLLIMIT;
 					if ((operation & SIGNAL_OPEN_SELLSTOP) != 0) updateOrderType = SELLSTOP;
 
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"SELL signal type %d. Instance ID = %d", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					fprintf(stderr, "SELL signal type %d. Instance ID = %d\n", (int)updateOrderType, (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					openOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], &totalTrades, currentBrokerTime, bidAsk[IDX_BID], (int)updateOrderType,lastSignal, numSignals, finalBalance, minLotSize, pInAccountInfo[s][IDX_MINIMUM_STOP]);
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
+					fprintf(stderr, "Open Order. ticket = %lf, instanceID = %lf, Entry = %lf, SL = %lf, TP =%lf\n", openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].ticket, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].instanceId, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].openPrice, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].stopLoss, openOrders[openOrdersCount[BUY]+openOrdersCount[SELL]-1].takeProfit);
 					numShorts++;
 
 					if(is_optimization == FALSE && updateOrderType == SELL) calculate_mathematical_expectancy(SELL, numCandles, i[s], bidAsk[IDX_BID], pRates[s][0], fabs(bidAsk[IDX_ASK]-bidAsk[IDX_BID]), testSettings[0].is_calculate_expectancy) ;
@@ -1633,7 +1635,7 @@ TestResult __stdcall runPortfolioTest (
 					if ((operation & SIGNAL_CLOSE_SELLLIMIT) != 0) updateOrderType = SELLLIMIT;
 					if ((operation & SIGNAL_CLOSE_SELLSTOP) != 0) updateOrderType = SELLSTOP;
 
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Close SELL Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					fprintf(stderr, "Close SELL Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 					if (closeOrder(&strategyResults[m], openOrdersCount, openOrders, (int)pInSettings[s][STRATEGY_INSTANCE_ID], currentBrokerTime, bidAsk[IDX_ASK], &lastOrder, pInTradeSymbol[s], (int)updateOrderType, &profit, pInAccountInfo[s][IDX_CONTRACT_SIZE], globalSignalUpdate,lastSignal, numSignals, finalBalance, conversionRate, &testResult.avgTradeDuration)){
 						finalBalance += profit;
 						if(is_optimization == FALSE){
@@ -1651,7 +1653,7 @@ TestResult __stdcall runPortfolioTest (
 				}
 				if((operation & SIGNAL_UPDATE_SELL) != 0 || (operation & SIGNAL_UPDATE_SELLLIMIT) != 0 || (operation & SIGNAL_UPDATE_SELLSTOP) != 0)
 				{
-					pantheios_logprintf(PANTHEIOS_SEV_DEBUG, (PAN_CHAR_T*)"Update SELL Signal. Instance ID = %d", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
+					fprintf(stderr, "Update SELL Signal. Instance ID = %d\n", (int)pInSettings[s][STRATEGY_INSTANCE_ID]);
 
 					if ((operation & SIGNAL_UPDATE_SELL) != 0) updateOrderType = SELL;
 					if ((operation & SIGNAL_UPDATE_SELLLIMIT) != 0) updateOrderType = SELLLIMIT;

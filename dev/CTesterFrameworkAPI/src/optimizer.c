@@ -1,7 +1,8 @@
 #include "CTesterFrameworkDefines.h"
-#include "gaul.h"
+#include "gaul.h"  // From vendor/Gaul/src/gaul.h
 #include "Precompiled.h"
 #include <stdlib.h>
+#include <stdio.h>
 //#include <vld.h>
 
 #ifdef _OPENMP
@@ -46,7 +47,7 @@ static boolean generationHook(int generation, population *pop)
 	//Stop optmization if we get to max number of generations
 	if (globalOptimizationSettings.maxGenerations > 0 && generation > globalOptimizationSettings.maxGenerations - 1)
 	{
-		pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"Max num of generations (%d) reached!", globalOptimizationSettings.maxGenerations);
+		fprintf(stderr, "Max num of generations (%d) reached!\n", globalOptimizationSettings.maxGenerations);
 		return FALSE;
 	}
 
@@ -69,16 +70,16 @@ static boolean generationHook(int generation, population *pop)
 
 		for (i=0;i<5;i++){
 			standardDeviation += (generationDifferences[i]-averageDifference)*(generationDifferences[i]-averageDifference)/5 ;
-			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Past %d generation -> best fit = %lf", i, generationDifferences[i]);
+			fprintf(stderr, "Past %d generation -> best fit = %lf\n", i, generationDifferences[i]);
 			if(generationDifferences[i] < 0) generationDifferencesFull = 0;
 		}
 
 		standardDeviation = sqrt(standardDeviation);
 
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Best fit average = %lf, stdDev = %lf", averageDifference, standardDeviation);
+		fprintf(stderr, "Best fit average = %lf, stdDev = %lf\n", averageDifference, standardDeviation);
 
 		if ( standardDeviation < 0.05*averageDifference && generationDifferencesFull == 1){
-		pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"Solutions have converged!");
+		fprintf(stderr, "Solutions have converged!\n");
 		return FALSE;
 		}
 	
@@ -87,11 +88,11 @@ static boolean generationHook(int generation, population *pop)
 	//Stop optimization if stopOptimization was called
 	if (stopOpti == 1)
 	{
-		pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"stopOptimization was called -> Stoping optimization");
+		fprintf(stderr, "stopOptimization was called -> Stoping optimization\n");
 		return FALSE;
 	}
 	
-	pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"Generation %d started", generation +1);
+	fprintf(stderr, "Generation %d started\n", generation +1);
 	return TRUE;	/* TRUE indicates that evolution should continue. */
 }
 
@@ -138,9 +139,9 @@ boolean testFitnessMultipleSymbols(population *pop, entity *entity)
 	}
 	
 	#ifdef _OPENMP
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Starting Iteration %d on thread %d", localCurrentIteration, omp_get_thread_num());	
+		fprintf(stderr, "Starting Iteration %d on thread %d\n", localCurrentIteration, omp_get_thread_num());	
 	#else
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Starting Iteration %d", localCurrentIteration);
+		fprintf(stderr, "Starting Iteration %d\n", localCurrentIteration);
 	#endif
 
 	entity->fitness = 0.0;
@@ -166,14 +167,14 @@ boolean testFitnessMultipleSymbols(population *pop, entity *entity)
 	localRates = (ASTRates ***)malloc(1 * sizeof(ASTRates**));
 	localRates[0] = (ASTRates **)malloc(10 * sizeof(ASTRates*));
 
-	pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"SavingRates");
+	fprintf(stderr, "SavingRates\n");
 	for (k=0;k<10;k++){
 		if (localRatesInfo[0][k].totalBarsRequired > 0) {
 			localRates[0][k] = (ASTRates *)malloc(globalNumCandles * sizeof(ASTRates));
 			memcpy (localRates[0][k], globalRates[n][k], globalNumCandles * sizeof(ASTRates));
 		}
 	}
-	pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"endSavingRates");
+	fprintf(stderr, "endSavingRates\n");
 
 	localAccountInfo = (AccountInfo**)malloc(1 * sizeof(AccountInfo*));
 	localAccountInfo[0] = (AccountInfo*)malloc(1 * sizeof(AccountInfo));
@@ -186,7 +187,7 @@ boolean testFitnessMultipleSymbols(population *pop, entity *entity)
     {
 		chromosomeValue = ((int*)entity->chromosome[0])[k];
 		chromosomeMappedValue = mapParamValue(chromosomeValue, globalOptimizationParams[k]);
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Iteration: %d. Gen %d mapped to %lf from gen value %d", localCurrentIteration, k, chromosomeMappedValue, chromosomeValue);
+		fprintf(stderr, "Iteration: %d. Gen %d mapped to %lf from gen value %d\n", localCurrentIteration, k, chromosomeMappedValue, chromosomeValue);
 		localSettings[0][globalOptimizationParams[k].index] = chromosomeMappedValue;
 		currentSet[k*2] = (double)globalOptimizationParams[k].index;
 		currentSet[k*2+1] = chromosomeMappedValue;
@@ -233,23 +234,23 @@ boolean testFitnessMultipleSymbols(population *pop, entity *entity)
 			entity->fitness += testResult.cagr/testResult.maxDDDepth;
 			break;
 		default:
-			pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Optimization Goal %d not supported", globalOptimizationSettings.optimizationGoal);
+			fprintf(stderr, "Optimization Goal %d not supported\n", globalOptimizationSettings.optimizationGoal);
 			return false;
 	}
 
 	if (testResult.finalBalance-localAccountInfo[0]->balance < 0){ 
 		entity->fitness = 0.0;
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Iteration %d gave negative balance ... killing it", localCurrentIteration);
+		fprintf(stderr, "Iteration %d gave negative balance ... killing it\n", localCurrentIteration);
 	}
 	
 	if (globalOptimizationSettings.discardAssymetricSets && fabs(testResult.numShorts - testResult.numLongs) > 0.5*min(testResult.numShorts, testResult.numLongs)){
 		entity->fitness = 0.0;
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Iteration %d gave assymetric results (%d longs %d shorts) ... killing it", localCurrentIteration, testResult.numShorts, testResult.numLongs);
+		fprintf(stderr, "Iteration %d gave assymetric results (%d longs %d shorts) ... killing it\n", localCurrentIteration, testResult.numShorts, testResult.numLongs);
 	}
 
 	if (testResult.totalTrades/testResult.yearsTraded < globalOptimizationSettings.minTradesAYear){
 		entity->fitness = 0.0;
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Iteration %d gave less than %d trades a year in average... killing it", localCurrentIteration, globalOptimizationSettings.minTradesAYear);
+		fprintf(stderr, "Iteration %d gave less than %d trades a year in average... killing it\n", localCurrentIteration, globalOptimizationSettings.minTradesAYear);
 	}
 
 	for (k=0;k<10;k++){
@@ -350,8 +351,8 @@ int __stdcall runOptimizationMultipleSymbols(
 	if (globalExecUnderMPI){	
 		MPI_Comm_size(MPI_COMM_WORLD ,&numProcs);
 		MPI_Comm_rank(MPI_COMM_WORLD ,&myId);
-		pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"MPI enabled. Using %d cores", numProcs);
-		pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"MPI thread %d up & running", myId);
+		fprintf(stderr, "MPI enabled. Using %d cores\n", numProcs);
+		fprintf(stderr, "MPI thread %d up & running\n", myId);
 	}
 	#endif
 
@@ -363,19 +364,19 @@ int __stdcall runOptimizationMultipleSymbols(
 		#endif
 		if(numThreads > omp_get_num_procs()) numThreads = omp_get_num_procs();
 		omp_set_num_threads(numThreads);
-		pantheios_logprintf(PANTHEIOS_SEV_NOTICE, (PAN_CHAR_T*)"OpenMP enabled. Using %d cores", numThreads);
+		fprintf(stderr, "OpenMP enabled. Using %d cores\n", numThreads);
 	#endif
 
 	numParamsInSet = numOptimizedParams;
 
 	if (optimizationType == OPTI_BRUTE_FORCE){
 		//Parameter space generation
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Calculating possible parameter combinations.");
+		fprintf(stderr, "Calculating possible parameter combinations.\n");
 		numCombinations = getParameterSetsNumber(0, numOptimizedParams, optimizationParams);
-		pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Number of parameter combinations is %d", numCombinations);
+		fprintf(stderr, "Number of parameter combinations is %d\n", numCombinations);
 
 		if (numCombinations > MAXIMUM_PARAMETER_COMBINATIONS){
-			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Number of parameter combinations is too large (exceeds 10 million). Try a genetic optimization instead.");
+			fprintf(stderr, "Number of parameter combinations is too large (exceeds 10 million). Try a genetic optimization instead.\n");
 			if(optimizationFinished != NULL) optimizationFinished();
 			return true;
 		}
@@ -403,7 +404,7 @@ int __stdcall runOptimizationMultipleSymbols(
 			n++;
 		}
 
-		pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*)"Finished parameter generation, starting runs.");
+		fprintf(stderr, "Finished parameter generation, starting runs.\n");
 		//Run the optimization for each set
 		#pragma omp parallel for shared(pRates, pInSettings, pInAccountInfo, pRatesInfo) private(p, localTestSettings, localSettings, localRates, localSymbol, localAccountInfo, testResult, currentSet, localRatesInfo, n)
 		
@@ -414,9 +415,9 @@ int __stdcall runOptimizationMultipleSymbols(
 			if (stopOpti == 0)
 			{
 				#ifdef _OPENMP
-					pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Starting Iteration %d on thread %d", i, omp_get_thread_num());	
+					fprintf(stderr, "Starting Iteration %d on thread %d\n", i, omp_get_thread_num());	
 				#else
-					pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"Starting Iteration %d", i);
+					fprintf(stderr, "Starting Iteration %d\n", i);
 				#endif			
 				
 
@@ -458,7 +459,7 @@ int __stdcall runOptimizationMultipleSymbols(
 					localSettings[0][optimizationParams[p].index] = sets[i*numOptimizedParams+p];
 					currentSet[p*2] = (double)optimizationParams[p].index;
 					currentSet[p*2+1] = (double)sets[i*numOptimizedParams+p];
-					pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"localSettings[0][optimizationParams[p].index]= %lf, currentSet[p*2] =%lf,currentSet[p*2+1]=%lf", 
+					fprintf(stderr, "localSettings[0][optimizationParams[p].index]= %lf, currentSet[p*2] =%lf,currentSet[p*2+1]=%lf\n", 
 						localSettings[0][optimizationParams[p].index],currentSet[p*2],currentSet[p*2+1]);
 				}
 
@@ -470,7 +471,7 @@ int __stdcall runOptimizationMultipleSymbols(
 
 				localSettings[0][STRATEGY_INSTANCE_ID] = (testId+1)+2*(n+1);
 
-				pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*)"localSettings[0][ADDITIONAL_PARAM_8]= %lf", localSettings[0][ADDITIONAL_PARAM_8]);
+				fprintf(stderr, "localSettings[0][ADDITIONAL_PARAM_8]= %lf\n", localSettings[0][ADDITIONAL_PARAM_8]);
 
 				testResult = runPortfolioTest(testId++, localSettings, localSymbol, pInAccountCurrency, pInBrokerName, pInRefBrokerName, (double **)localAccountInfo, 
 									localTestSettings, localRatesInfo, numCandles, 1, localRates, minLotSize, NULL, NULL, NULL);
@@ -578,7 +579,7 @@ int __stdcall runOptimizationMultipleSymbols(
 				crossoverFunction = ga_crossover_integer_allele_mixing;
 				break;
 			default:
-				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*) "Crossover Mode %d not implemented\n", optimizationSettings.crossoverMode);
+				fprintf(stderr, "Crossover Mode %d not implemented\n", optimizationSettings.crossoverMode);
 				return false;
 		}
 
@@ -596,7 +597,7 @@ int __stdcall runOptimizationMultipleSymbols(
 				mutateFunction = ga_mutate_integer_allpoint;
 				break;
 			default:
-				pantheios_logprintf(PANTHEIOS_SEV_ERROR, (PAN_CHAR_T*) "Mutate Mode %d not implemented\n", optimizationSettings.mutationMode);
+				fprintf(stderr, "Mutate Mode %d not implemented\n", optimizationSettings.mutationMode);
 				return false;
 		}
 
@@ -621,7 +622,7 @@ int __stdcall runOptimizationMultipleSymbols(
 			   NULL										/* void *                 userdata */
 			);
 
-			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*) "Attaching slave with rank = %d", myId);
+			fprintf(stderr, "Attaching slave with rank = %d", myId);
 			ga_attach_mpi_slave( pop );
 		}
 		//Main thread for MPI and no MPI
@@ -645,7 +646,7 @@ int __stdcall runOptimizationMultipleSymbols(
 			   NULL										/* void *                 userdata */
 			);
 
-			pantheios_logprintf(PANTHEIOS_SEV_INFORMATIONAL, (PAN_CHAR_T*) "Main thread genetic process with rank = %d", myId);
+			fprintf(stderr, "Main thread genetic process with rank = %d", myId);
 
 			ga_population_set_allele_min_integer(pop, 1);
 			ga_population_set_allele_max_integer(pop, 100);

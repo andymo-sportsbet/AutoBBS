@@ -1,86 +1,128 @@
-# TradingStrategies Python Integration Refactor
+# TradingStrategies Integration & Refactoring
 
 ## Quick Start
 
-This specification describes the refactoring of the TradingStrategies C library to enable Python integration via broker REST APIs, removing Windows DLL dependencies.
+This specification describes the integration of TradingStrategies with existing Python 2 systems (CTester and Live Trading Platform) and the refactoring of TradingStrategies for improved maintainability.
 
 ## Specification Documents
 
 - **[spec.md](./spec.md)** - Complete specification with requirements, architecture, and timeline
-- **[plan.md](./plan.md)** - Detailed implementation plan with phases and milestones
+- **[MIGRATION_PLAN.md](./MIGRATION_PLAN.md)** - Detailed migration plan with phases and milestones
+- **[plan.md](./plan.md)** - Implementation plan with task breakdown
 - **[tasks.md](./tasks.md)** - Task breakdown with dependencies and parallel execution
 - **[architecture.md](./architecture.md)** - Technical architecture and design details
-- **[ARCHITECTURE_DECISION.md](./ARCHITECTURE_DECISION.md)** - Architecture decision: AsirikuyFrameworkAPI vs TradingStrategiesPythonAPI
 
 ## Overview
 
+### Objectives
+
+1. **Integrate with existing CTester (Python 2 backtester)** - Connect AsirikuyFrameworkAPI with existing Python 2 CTester system
+2. **Integrate with existing Live Trading Platform (Python 2)** - Connect AsirikuyFrameworkAPI with existing Python 2 live trading system
+3. **Refactor TradingStrategies for maintainability** - Improve code organization, structure, and manageability (C++ or Python)
+4. **Future: Python API Interface** - Consider adding cleaner Python API interface (deferred)
+
 ### Problem
-The TradingStrategies C library is currently built as a Windows DLL for MQL4/MQL5 integration. We need to integrate it with Python trading platforms using broker REST APIs, which requires:
-- Removing DLL dependencies
-- Creating a Python-friendly API
-- Maintaining existing strategy logic
+
+- Existing Python 2 systems (CTester and Live Trading Platform) need to integrate with TradingStrategies
+- TradingStrategies codebase has maintainability issues (monolithic files, complex dependencies)
+- AsirikuyFrameworkAPI exists and works from Python (verified on macOS)
+- Need to modernize and refactor codebase while maintaining backward compatibility
 
 ### Solution
-Create a new Python-friendly C API layer (`TradingStrategiesPythonAPI`) that wraps the existing strategy execution logic, enabling Python integration via ctypes while keeping all strategy code unchanged.
 
-**Architecture Decision**: Use new `TradingStrategiesPythonAPI` instead of existing `AsirikuyFrameworkAPI` (CTester interface) for better cross-platform compatibility and Python optimization. See [ARCHITECTURE_DECISION.md](./ARCHITECTURE_DECISION.md) for detailed comparison.
+1. **Integration**: Use existing AsirikuyFrameworkAPI (CTester interface) to integrate with Python 2 systems
+2. **Refactoring**: Refactor TradingStrategies into maintainable modules (approach to be determined)
+3. **Future**: Consider Python API interface for cleaner Python integration
 
 ### Key Features
-- ✅ Standard C calling convention (no `__stdcall`)
-- ✅ Python-friendly data structures
-- ✅ Clean Python API using ctypes
-- ✅ No changes to existing strategy logic
-- ✅ Cross-platform support (Linux, macOS, Windows)
+
+- ✅ AsirikuyFrameworkAPI works from Python (verified)
+- ✅ `__stdcall` ignored on macOS/Linux (no special handling needed)
+- ✅ Cross-platform support (Windows, macOS, Linux)
+- ✅ Backward compatibility maintained
+- 🔄 Python 2 integration (CTester and Live Trading)
+- 🔄 Code refactoring for maintainability
+
+## Architecture Decision
+
+**Decision**: Use existing AsirikuyFrameworkAPI (CTester interface) for Python 2 integration
+
+**Rationale**:
+- ✅ Already built and tested on macOS
+- ✅ Works from Python (verified)
+- ✅ `__stdcall` is ignored on macOS/Linux
+- ✅ No new code needed for integration
+- ✅ Maintains single API layer
+
+**Future Consideration**: TradingStrategiesPythonAPI for cleaner Python API (deferred)
+
+## Migration Phases
+
+### Phase 1: Integration (Weeks 1-3) - Priority 1
+- **Week 1**: CTester Integration
+- **Week 2**: Live Trading Platform Integration
+- **Week 3**: Integration Testing & Polish
+
+### Phase 2: Refactoring (Weeks 4-8) - Priority 2
+- **Week 4**: Code Analysis
+- **Week 5**: Refactoring Decision & Planning
+- **Weeks 6-8**: Refactoring Implementation
+
+### Phase 3: Future Enhancements (Future) - Priority 3
+- Python API Interface (deferred)
+
+## Prerequisites
+
+### Required Access
+- ⏳ Access to existing CTester Python 2 codebase (to be provided)
+- ⏳ Access to existing Live Trading Platform Python 2 codebase (to be provided)
+
+### Completed
+- ✅ AsirikuyFrameworkAPI built and tested on macOS
+- ✅ Python loading verified (`test_asirikuy_framework_api.py`)
+- ✅ Build system working
+- ✅ Dependencies resolved
 
 ## Quick Reference
 
-### Implementation Approach
-**Option 1: Minimal Refactor** (Recommended)
-- Create Python API wrapper layer
-- Build as shared library
-- Python ctypes integration
-- **Effort**: 3-5 days
-- **Risk**: Low
+### Integration Approach
+1. Create Python 2 wrappers using ctypes
+2. Map existing data structures to CTester structures
+3. Integrate with existing Python 2 systems
+4. Test and validate
 
-### Key Files
-- `include/TradingStrategiesPythonAPI.h` - C API header
-- `src/TradingStrategiesPythonAPI.c` - C API implementation
-- `python/trading_strategies.py` - Python wrapper
-- `python/example_usage.py` - Usage examples
-
-### Timeline
-- **Phase 1**: C API Implementation (8-10 days)
-- **Phase 2**: Build System Updates (2-3 days)
-- **Phase 3**: Python Wrapper (5-7 days)
-- **Phase 4**: Testing & Validation (3-5 days)
-- **Phase 5**: Documentation (2-3 days)
-
-**Total**: 4-6 weeks
+### Refactoring Approach (To Be Determined)
+- **Option A**: C++ refactoring
+- **Option B**: Python refactoring
+- **Option C**: Hybrid approach (recommended)
 
 ## Status
 
-- ✅ Specification complete
-- ✅ Implementation plan complete
-- ✅ Task breakdown complete
-- ✅ Architecture documented
-- 📋 Ready for implementation
+### Completed
+- ✅ Specification and planning
+- ✅ Build system (macOS)
+- ✅ Python loading verification
+- ✅ Documentation
+
+### In Progress
+- 🔄 Waiting for access to existing Python 2 codebases
+
+### Planned
+- 📋 CTester integration
+- 📋 Live Trading Platform integration
+- 📋 Code refactoring
 
 ## Next Steps
 
-1. Review specification documents
-2. Set up development environment
-3. Start Phase 1: C API Implementation
-4. Follow task breakdown in `tasks.md`
+1. **Immediate**: Obtain access to existing Python 2 codebases
+2. **Week 1**: Review CTester codebase and start integration
+3. **Week 2**: Review Live Trading Platform codebase and start integration
+4. **Week 3**: Complete integration testing
+5. **Week 4+**: Begin refactoring analysis and implementation
 
-## Questions?
+## References
 
-Refer to:
-- `spec.md` for detailed requirements
-- `plan.md` for implementation timeline
-- `architecture.md` for technical details
-- `tasks.md` for task breakdown
-
-## Future Enhancements
-
-- **TrendStrategy.c Refactoring**: See `future_considerations/TrendStrategy-refactoring.md` for plan to refactor the monolithic 8,988-line file into maintainable strategy modules
-
+- `README_BUILD.md` - Build instructions for AsirikuyFrameworkAPI
+- `test_asirikuy_framework_api.py` - Python loading test script
+- Existing CTester Python 2 codebase (to be provided)
+- Existing Live Trading Platform Python 2 codebase (to be provided)

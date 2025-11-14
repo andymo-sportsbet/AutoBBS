@@ -10,10 +10,11 @@ project "CTesterFrameworkAPI"
   links{
 	"AsirikuyFrameworkAPI",
 	"Gaul",
-	"Pantheios_core", 
-	"Pantheios_utils", 
-	"Pantheios_frontend", 
-	"Pantheios_backend",
+	// Pantheios removed - using standard fprintf for logging
+	// "Pantheios_core", 
+	// "Pantheios_utils", 
+	// "Pantheios_frontend", 
+	// "Pantheios_backend",
 	"AsirikuyCommon", 
 	"Log"
   }
