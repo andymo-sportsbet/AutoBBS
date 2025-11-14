@@ -138,7 +138,7 @@ result = runPortfolioTest(
 
 ## References
 
-- **CTesterDefines.h**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h`
-- **CTesterTradingStrategiesAPI.h**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h`
-- **Interface Documentation**: `dev/specs/001-trading-strategies-python-refactor/CTESTER_INTERFACE_DOCUMENTATION.md`
+- **CTesterDefines.h**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h`
+- **CTesterTradingStrategiesAPI.h**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h`
+- **Interface Documentation**: `specs/001-trading-strategies-python-refactor/CTESTER_INTERFACE_DOCUMENTATION.md`
 

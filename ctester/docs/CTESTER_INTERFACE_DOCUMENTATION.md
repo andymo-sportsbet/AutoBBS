@@ -21,7 +21,7 @@ int __stdcall initCTesterFramework(char* pAsirikuyTesterLog, int severityLevel);
   - `pAsirikuyTesterLog`: Path to log file
   - `severityLevel`: Log severity level
 - **Returns**: Error code (0 = success)
-- **Location**: `dev/CTesterFrameworkAPI/include/CTesterFrameworkAPI.h:17`
+- **Location**: `core/CTesterFrameworkAPI/include/CTesterFrameworkAPI.h:17`
 - **Python Usage**: `asirikuy_strategy_tester.py:188`
 
 #### Version
@@ -29,7 +29,7 @@ int __stdcall initCTesterFramework(char* pAsirikuyTesterLog, int severityLevel);
 void __stdcall getCTesterFrameworkVersion(int* pMajor, int* pMinor, int* pBugfix);
 ```
 - **Purpose**: Get framework version
-- **Location**: `dev/CTesterFrameworkAPI/include/CTesterFrameworkAPI.h:16`
+- **Location**: `core/CTesterFrameworkAPI/include/CTesterFrameworkAPI.h:16`
 
 #### Portfolio Test
 ```c
@@ -54,7 +54,7 @@ TestResult __stdcall runPortfolioTest(
 ```
 - **Purpose**: Execute portfolio test with multiple strategies
 - **Returns**: `TestResult` structure
-- **Location**: `dev/CTesterFrameworkAPI/include/tester.h:82-99`
+- **Location**: `core/CTesterFrameworkAPI/include/tester.h:82-99`
 - **Python Usage**: `asirikuy_strategy_tester.py:573-578, 616-621`
 
 #### Optimization
@@ -84,7 +84,7 @@ int __stdcall runOptimizationMultipleSymbols(
 ```
 - **Purpose**: Run optimization (genetic algorithm or brute force)
 - **Returns**: Error code (0 = success)
-- **Location**: `dev/CTesterFrameworkAPI/include/optimizer.h:55`
+- **Location**: `core/CTesterFrameworkAPI/include/optimizer.h:55`
 - **Python Usage**: `asirikuy_strategy_tester.py:501-522`
 
 #### Stop Optimization
@@ -92,7 +92,7 @@ int __stdcall runOptimizationMultipleSymbols(
 void __stdcall stopOptimization();
 ```
 - **Purpose**: Stop running optimization
-- **Location**: `dev/CTesterFrameworkAPI/include/optimizer.h:52`
+- **Location**: `core/CTesterFrameworkAPI/include/optimizer.h:52`
 
 ### 1.2 Current CTester Structures (Python ctypes)
 
@@ -275,14 +275,14 @@ int __stdcall initInstanceC(int instanceId, int isTesting, char* pAsirikuyConfig
   - `pAsirikuyConfig`: Path to config file
   - `pAccountName`: Account name
 - **Returns**: `AsirikuyReturnCode` (0 = SUCCESS)
-- **Location**: `dev/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h:118`
+- **Location**: `core/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h:118`
 
 #### Deinitialization
 ```c
 void __stdcall deinitInstance(int instanceId);
 ```
 - **Purpose**: Clean up instance
-- **Location**: `dev/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h:96`
+- **Location**: `core/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h:96`
 
 #### Run Strategy
 ```c
@@ -313,7 +313,7 @@ int __stdcall c_runStrategy(
 ```
 - **Purpose**: Execute strategy for one bar/candle
 - **Returns**: `AsirikuyReturnCode` (0 = SUCCESS)
-- **Location**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h:57-79`
+- **Location**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h:57-79`
 - **Note**: This is called per-bar, not for entire test
 
 #### Get Framework Version
@@ -321,7 +321,7 @@ int __stdcall c_runStrategy(
 void __stdcall getFrameworkVersion(int* pMajor, int* pMinor, int* pBugfix);
 ```
 - **Purpose**: Get framework version
-- **Location**: `dev/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h:101`
+- **Location**: `core/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h:101`
 
 ### 2.2 Target Structures (CTesterDefines.h)
 
@@ -337,7 +337,7 @@ typedef struct CRates_t
     int    time;
 } CRates;
 ```
-- **Location**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h:45-53`
+- **Location**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h:45-53`
 - **Size**: 6 fields
 - **Note**: Single candle, no swap data
 
@@ -362,7 +362,7 @@ typedef struct COrderInfo_t
     double isOpen;
 } COrderInfo;
 ```
-- **Location**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h:55-72`
+- **Location**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h:55-72`
 - **Size**: 15 fields
 - **Note**: Matches Python OrderInfo structure
 
@@ -379,7 +379,7 @@ typedef struct CRatesInfo_t
     double digits;
 } CRatesInfo;
 ```
-- **Location**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h:74-83`
+- **Location**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h:74-83`
 - **Size**: 7 fields
 - **Note**: Field name difference: `requiredTimeframe` vs `requiredTimeFrame`
 
@@ -863,11 +863,11 @@ def c_runStrategy(
 
 ## 12. References
 
-- **CTesterDefines.h**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h`
-- **CTesterTradingStrategiesAPI.h**: `dev/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h`
-- **AsirikuyFrameworkAPI.h**: `dev/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h`
+- **CTesterDefines.h**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h`
+- **CTesterTradingStrategiesAPI.h**: `core/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h`
+- **AsirikuyFrameworkAPI.h**: `core/AsirikuyFrameworkAPI/include/AsirikuyFrameworkAPI.h`
 - **Current CTester Structures**: `ctester/include/asirikuy.py`
-- **Current CTester API**: `dev/CTesterFrameworkAPI/include/tester.h`
+- **Current CTester API**: `core/CTesterFrameworkAPI/include/tester.h`
 
 ## 13. Next Steps
 

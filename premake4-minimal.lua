@@ -45,21 +45,21 @@ else
     -- Header directories (minimal - only what's needed)
 	includedirs{
       boostdir,
-	  "dev/AsirikuyCommon/include", 
-	  "dev/SymbolAnalyzer/include", 
-	  "dev/Log/include", 
-	  "dev/AsirikuyTechnicalAnalysis/include", 
-	  "dev/OrderManager/include", 
-	  "dev/TradingStrategies/include", 
-	  "dev/TradingStrategies/include/strategies", 
-	  "dev/AsirikuyEasyTrade/include",
-	  "dev/NTPClient/include", 
-	  "dev/AsirikuyFrameworkAPI/include", 
-	  "dev/AsirikuyFrameworkAPI/include/MQL", 
-	  "dev/AsirikuyFrameworkAPI/include/jforex",
-	  "dev/AsirikuyFrameworkAPI/include/CTester",
-	  "dev/UnitTests/include",
-	  "dev/CTesterFrameworkAPI/include"
+	  "core/AsirikuyCommon/include", 
+	  "core/SymbolAnalyzer/include", 
+	  "core/Log/include", 
+	  "core/AsirikuyTechnicalAnalysis/include", 
+	  "core/OrderManager/include", 
+	  "core/TradingStrategies/include", 
+	  "core/TradingStrategies/include/strategies", 
+	  "core/AsirikuyEasyTrade/include",
+	  "core/NTPClient/include", 
+	  "core/AsirikuyFrameworkAPI/include", 
+	  "core/AsirikuyFrameworkAPI/include/MQL", 
+	  "core/AsirikuyFrameworkAPI/include/jforex",
+	  "core/AsirikuyFrameworkAPI/include/CTester",
+	  "core/UnitTests/include",
+	  "core/CTesterFrameworkAPI/include"
 	}
 	
     -- Global build settings
@@ -89,17 +89,17 @@ else
 	  libdirs{"bin/" .. _ACTION .. "/x64/Release/lib"}
 	
 	-- Core projects only (no vendor dependencies)
-	include "dev/AsirikuyCommon"
-	include "dev/Log"
-	include "dev/SymbolAnalyzer"
-	include "dev/AsirikuyEasyTrade"
-	include "dev/AsirikuyTechnicalAnalysis"
-	include "dev/OrderManager"
-	include "dev/TradingStrategies"
-	include "dev/NTPClient"
+	include "core/AsirikuyCommon"
+	include "core/Log"
+	include "core/SymbolAnalyzer"
+	include "core/AsirikuyEasyTrade"
+	include "core/AsirikuyTechnicalAnalysis"
+	include "core/OrderManager"
+	include "core/TradingStrategies"
+	include "core/NTPClient"
 	-- Optional: Uncomment if needed
-	-- include "dev/AsirikuyFrameworkAPI"
-	-- include "dev/CTesterFrameworkAPI"
-	-- include "dev/UnitTests"
+	-- include "core/AsirikuyFrameworkAPI"
+	-- include "core/CTesterFrameworkAPI"
+	-- include "core/UnitTests"
 end
 

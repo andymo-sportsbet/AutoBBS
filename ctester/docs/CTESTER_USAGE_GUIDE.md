@@ -62,7 +62,7 @@ python3 --version
 The `CTesterFrameworkAPI` shared library must be built first:
 
 ```bash
-cd dev/CTesterFrameworkAPI
+cd core/CTesterFrameworkAPI
 premake4 gmake
 cd build/gmake
 make

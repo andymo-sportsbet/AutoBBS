@@ -6,8 +6,8 @@ CTesterDefines.h. These structures are used for interfacing with the
 AsirikuyFrameworkAPI C library.
 
 References:
-    - dev/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h
-    - dev/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h
+    - core/AsirikuyFrameworkAPI/include/CTester/CTesterDefines.h
+    - core/AsirikuyFrameworkAPI/include/CTester/CTesterTradingStrategiesAPI.h
 """
 
 from ctypes import Structure, c_double, c_int, c_char_p, POINTER

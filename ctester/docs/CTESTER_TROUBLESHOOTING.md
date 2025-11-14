@@ -31,7 +31,7 @@ OSError: dlopen(libCTesterFrameworkAPI.dylib, 0x0006): tried: 'libCTesterFramewo
 
 1. **Build the library**:
 ```bash
-cd dev/CTesterFrameworkAPI
+cd core/CTesterFrameworkAPI
 premake4 gmake
 cd build/gmake
 make
