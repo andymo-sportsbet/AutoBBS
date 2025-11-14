@@ -50,9 +50,6 @@ else
 	includedirs{
       boostdir .. "/include",
 	  "vendor/STLSoft/include", 
-	  "vendor/Pantheios/include", 
-	  "vendor/Pantheios/include/pantheios/backends", 
-	  "vendor/Pantheios/include/pantheios/frontends", 
 	  "vendor/MiniXML", 
 	  "vendor/MiniXML/vcnet", 
 	  "vendor/TALib/c/include", 
@@ -91,25 +88,25 @@ else
 	  "vendor/Gaul/util/gaul",
 	  "vendor/MPICH2/include",
 	  "vendor/Waffles/src",
-	  "dev/AsirikuyCommon/include", 
-	  "dev/SymbolAnalyzer/include", 
-	  "dev/Log/include", 
-	  "dev/AsirikuyTechnicalAnalysis/include", 
-	  "dev/OrderManager/include", 
-	  "dev/TradingStrategies/include", 
-	  "dev/TradingStrategies/include/strategies", 
-	  "dev/AsirikuyEasyTrade/include",
-	  "dev/NTPClient/include", 
-	  "dev/AsirikuyFrameworkAPI/include", 
-	  "dev/AsirikuyFrameworkAPI/include/MQL", 
-	  "dev/AsirikuyFrameworkAPI/include/jforex",
-	  "dev/AsirikuyFrameworkAPI/include/CTester",
-	  "dev/UnitTests/include",
-	  "dev/CTesterFrameworkAPI/include"
+	  "core/AsirikuyCommon/include", 
+	  "core/SymbolAnalyzer/include", 
+	  "core/Log/include", 
+	  "core/AsirikuyTechnicalAnalysis/include", 
+	  "core/OrderManager/include", 
+	  "core/TradingStrategies/include", 
+	  "core/TradingStrategies/include/strategies", 
+	  "core/AsirikuyEasyTrade/include",
+	  "core/NTPClient/include", 
+	  "core/AsirikuyFrameworkAPI/include", 
+	  "core/AsirikuyFrameworkAPI/include/MQL", 
+	  "core/AsirikuyFrameworkAPI/include/jforex",
+	  "core/AsirikuyFrameworkAPI/include/CTester",
+	  "core/UnitTests/include",
+	  "core/CTesterFrameworkAPI/include"
 	}
 	
 	if _ARGS[1] == "WITH_R" then
-		includedirs{"dev/AsirikuyRWrapper/include"}
+		includedirs{"core/AsirikuyRWrapper/include"}
 	end
 	
     -- Global build settings
@@ -215,7 +212,7 @@ else
 	  libdirs{"bin/" .. _ACTION .. "/x64/Release/lib", "vendor/ChartDirector/lib/universal", "vendor/MPICH2/lib/universal/x64"}
 		
 	if _ARGS[1] == "WITH_R" then	
-		include "dev/AsirikuyRWrapper"
+		include "core/AsirikuyRWrapper"
     end
 	
 	-- Projects
@@ -224,7 +221,8 @@ else
 	if os.isdir("vendor/dSFMT") then include "vendor/dSFMT" end
 	if os.isdir("vendor/FANN") then include "vendor/FANN" end
 	if os.isdir("vendor/TALib") then include "vendor/TALib" end
-	if os.isdir("vendor/Pantheios") then include "vendor/Pantheios" end
+	-- Pantheios removed - using standard fprintf for logging
+	-- if os.isdir("vendor/Pantheios") then include "vendor/Pantheios" end
 	if os.isdir("vendor/Shark") then include "vendor/Shark" end
 	if os.isdir("vendor/DevIL") then include "vendor/DevIL" end
 	if os.isdir("vendor/Jasper") then include "vendor/Jasper" end
@@ -235,17 +233,17 @@ else
 	if os.isdir("vendor/Zlib") then include "vendor/Zlib" end
 	if os.isdir("vendor/Gaul") then include "vendor/Gaul" end
 	if os.isdir("vendor/Waffles") then include "vendor/Waffles" end
-	include "dev/AsirikuyCommon"
-	include "dev/Log"
-	include "dev/SymbolAnalyzer"
-	include "dev/AsirikuyEasyTrade"
-	include "dev/AsirikuyTechnicalAnalysis"
-	include "dev/OrderManager"
-	include "dev/TradingStrategies"
-	include "dev/NTPClient"
-	include "dev/AsirikuyFrameworkAPI"
-	include "dev/CTesterFrameworkAPI"
-	include "dev/UnitTests"
+	include "core/AsirikuyCommon"
+	include "core/Log"
+	include "core/SymbolAnalyzer"
+	include "core/AsirikuyEasyTrade"
+	include "core/AsirikuyTechnicalAnalysis"
+	include "core/OrderManager"
+	include "core/TradingStrategies"
+	include "core/NTPClient"
+	include "core/AsirikuyFrameworkAPI"
+	include "core/CTesterFrameworkAPI"
+	include "core/UnitTests"
     if os.get() == "windows" then
 	  if os.isdir("vendor/curl") then include "vendor/curl" end
     end
