@@ -142,6 +142,42 @@ fi
 
 cd ../..
 
+# Step 4.4: Move TradingStrategies library to correct location if needed
+# Check multiple possible locations where the library might be created
+TRADING_STRATEGIES_FOUND=false
+
+# Check in core/TradingStrategies/bin/gmake/ (if targetdir was set)
+if [ -f "core/TradingStrategies/bin/gmake/x64/Debug/lib/libtrading_strategies.so" ] || [ -f "core/TradingStrategies/bin/gmake/x64/Debug/lib/libtrading_strategies.dylib" ]; then
+  echo -e "${YELLOW}Moving TradingStrategies library to correct location...${NC}"
+  mkdir -p bin/gmake/x64/Debug/lib
+  mv core/TradingStrategies/bin/gmake/x64/Debug/lib/libtrading_strategies.* bin/gmake/x64/Debug/lib/ 2>/dev/null || true
+  TRADING_STRATEGIES_FOUND=true
+  # Also check for other configurations
+  for config_dir in core/TradingStrategies/bin/gmake/*/Debug/lib core/TradingStrategies/bin/gmake/*/Release/lib; do
+    if [ -d "$config_dir" ]; then
+      config_name=$(basename $(dirname $(dirname "$config_dir")))
+      build_type=$(basename $(dirname "$config_dir"))
+      mkdir -p "bin/gmake/$config_name/$build_type/lib"
+      mv "$config_dir/libtrading_strategies."* "bin/gmake/$config_name/$build_type/lib/" 2>/dev/null || true
+    fi
+  done
+fi
+
+# Check in core/TradingStrategies/ (default location when no targetdir is set)
+if [ -f "core/TradingStrategies/libtrading_strategies.so" ] || [ -f "core/TradingStrategies/libtrading_strategies.dylib" ]; then
+  if [ "$TRADING_STRATEGIES_FOUND" = false ]; then
+    echo -e "${YELLOW}Moving TradingStrategies library to correct location...${NC}"
+  fi
+  mkdir -p bin/gmake/x64/Debug/lib
+  mv core/TradingStrategies/libtrading_strategies.* bin/gmake/x64/Debug/lib/ 2>/dev/null || true
+  TRADING_STRATEGIES_FOUND=true
+fi
+
+if [ "$TRADING_STRATEGIES_FOUND" = true ]; then
+  echo -e "${GREEN}✓ Library moved${NC}"
+  echo ""
+fi
+
 # Step 4.5: Rename .so to .dylib on macOS (in case build created new .so files)
 if [ "$(uname -s)" = "Darwin" ]; then
   echo -e "${YELLOW}Renaming .so files to .dylib on macOS...${NC}"
@@ -267,11 +303,10 @@ if [ "$PROJECT" = "TradingStrategies" ] || [ "$PROJECT" = "all" ]; then
 fi
 
 if [ "$PROJECT" = "CTesterFrameworkAPI" ] || [ "$PROJECT" = "all" ]; then
-  # CTesterFrameworkAPI output is in bin/gmake/x64/Debug/lib/ directory
-  CTESTER_DYLIB=$(find bin/gmake -name "*CTesterFrameworkAPI.dylib" -o -name "*CTesterFrameworkAPI.so" 2>/dev/null | head -1)
-  if [ -n "$CTESTER_DYLIB" ]; then
+  # CTesterFrameworkAPI output is in bin/gmake/x64/Debug/ directory (one level up from lib/, same as AsirikuyFrameworkAPI)
+  if [ -f "bin/gmake/x64/Debug/libCTesterFrameworkAPI.dylib" ] || [ -f "bin/gmake/x64/Debug/libCTesterFrameworkAPI.so" ]; then
     echo -e "${GREEN}✓ CTesterFrameworkAPI built successfully${NC}"
-    ls -lh "$CTESTER_DYLIB"
+    ls -lh bin/gmake/x64/Debug/libCTesterFrameworkAPI.* 2>/dev/null | head -1
   else
     echo -e "${YELLOW}⚠ CTesterFrameworkAPI not found (may not be built)${NC}"
   fi

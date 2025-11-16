@@ -55,7 +55,7 @@
 #include "Screening.h"
 #include "TakeOver.h"
 #include "Screening.h"
-#include "AutoBBS.h"
+#include "strategies/autobbs/AutoBBS.h"
 #include "TrendLimit.h"
 
 typedef enum strategyId_t

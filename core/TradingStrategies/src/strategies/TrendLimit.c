@@ -5,7 +5,7 @@
 #include "OrderManagement.h"
 #include "Logging.h"
 #include "EasyTradeCWrapper.hpp"
-#include "base.h"
+#include "strategies/autobbs/base/Base.h"
 #include "AsirikuyTime.h"
 #include "AsirikuyLogger.h"
 

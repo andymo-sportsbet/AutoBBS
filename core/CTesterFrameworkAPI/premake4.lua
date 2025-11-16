@@ -7,6 +7,12 @@ project "CTesterFrameworkAPI"
     "src/**.def",
 	"include/**.h",
   }
+  includedirs{
+    "src",
+    "include",
+    "../../../vendor/Gaul/src",  -- Gaul headers (gaul.h)
+    "../../../vendor/Gaul/util/gaul"  -- Gaul utility headers (gaul_util.h)
+  }
   links{
 	"AsirikuyFrameworkAPI",
 	"Gaul",
@@ -19,7 +25,9 @@ project "CTesterFrameworkAPI"
 	"Log"
   }
   libdirs{
-	"../../bin/**"
+	"../../bin/**",
+	"../../../bin/" .. _ACTION .. "/x64/Debug/lib",  -- Gaul library location
+	"../../../bin/" .. _ACTION .. "/x32/Debug/lib"
   }
   configuration{"macosx"}
     libdirs{

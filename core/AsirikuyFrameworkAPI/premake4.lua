@@ -11,7 +11,8 @@ project "AsirikuyFrameworkAPI"
 	"**.hpp"
   }
   includedirs{
-    "src"
+    "src",
+    "../../../vendor/MiniXML"  -- MiniXML headers (mxml-private.h)
   }
   links{ "NTPClient" }
   configuration{"windows"}
