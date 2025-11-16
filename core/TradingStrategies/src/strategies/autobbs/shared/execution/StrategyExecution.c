@@ -4,6 +4,11 @@
  * Provides strategy execution functions for workoutExecutionTrend.
  * Contains all workoutExecutionTrend_* functions that determine entry/exit signals
  * based on various trading strategies.
+ * 
+ * This module serves as the central dispatcher for all AutoBBS trading strategies.
+ * It routes execution to specific strategy implementations based on the
+ * AUTOBBS_TREND_MODE parameter, calculates risk metrics, and applies filters
+ * for account risk limits and side restrictions.
  */
 
 #include "Precompiled.h"
@@ -23,25 +28,85 @@
 #include "strategies/autobbs/shared/ordermanagement/OrderManagement.h"
 #include "strategies/autobbs/shared/execution/StrategyExecution.h"
 
+// Commodity symbol prefixes that use start hour = 1
+#define COMMODITY_SYMBOL_XAU "XAU"
+#define COMMODITY_SYMBOL_XTI "XTI"
+#define COMMODITY_SYMBOL_SPOTCRUDE "SpotCrude"
+#define COMMODITY_SYMBOL_XAG "XAG"
+#define COMMODITY_SYMBOL_XPD "XPD"
+#define COMMODITY_START_HOUR 1
+#define DEFAULT_START_HOUR 0
+
+/**
+ * Main strategy execution dispatcher.
+ * 
+ * This is the central entry point for all AutoBBS trading strategies. It:
+ * 1. Calculates strategy risk metrics (market volatility risk, strategy risk, PNL risk)
+ * 2. Routes execution to specific strategy functions based on AUTOBBS_TREND_MODE
+ * 3. Applies account risk limits (prevents entry if account risk exceeds limit)
+ * 4. Applies side filters (prevents entry if signal conflicts with AUTOBBS_ONE_SIDE setting)
+ * 
+ * @param pParams Strategy parameters containing rates, settings, and account info
+ * @param pIndicators Strategy indicators structure to populate with execution signals
+ * @param pBase_Indicators Base indicators structure containing trend and ATR data
+ * @return SUCCESS on success, error code on failure
+ * 
+ * Strategy modes (AUTOBBS_TREND_MODE):
+ * - 0: 4H BBS Swing
+ * - 2: Limit orders
+ * - 3: Limit orders with breakout on pivot
+ * - 9: Limit orders with BBS
+ * - 10: Weekly Auto
+ * - 13: Weekly Swing New
+ * - 14: Auto Hedge
+ * - 15: XAUUSD Day Trading
+ * - 16: GBPJPY Day Trading Ver2
+ * - 17: Weekly ATR Prediction
+ * - 18: 4H BBS Swing BoDuan
+ * - 19: Day Trading Execution Only
+ * - 20: 4H BBS Swing XAUUSD BoDuan
+ * - 21: Multiple Day
+ * - 22: Multiple Day V2
+ * - 23: MACD Daily
+ * - 24: MACD Weekly
+ * - 25: Auto (with tradeMode = 1)
+ * - 26: Limit BBS Long Term
+ * - 27: Ichimoku Daily Index
+ * - 28: Ichimoku Daily Index (duplicate)
+ * - 30: 4H Shellington
+ * - 31: Ichimoku Daily New
+ * - 32: MACD Daily New
+ * - 33: MACD BEILI
+ * - 34: Short Term
+ * - 35: Ichimoku Weekly Index
+ * - 36: (reserved/empty)
+ * - 101: Ichimoku Daily Index Regression Test
+ * - 102: ASI
+ */
 AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators)
 {
 	struct tm timeInfo;
 	char timeString[MAX_TIME_STRING_SIZE] = "";
 	int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	int startHour = 0;
+	int startHour = DEFAULT_START_HOUR;
 
-	if (strstr(pParams->tradeSymbol, "XAU") != NULL || strstr(pParams->tradeSymbol, "XTI") != NULL || strstr(pParams->tradeSymbol, "SpotCrude") != NULL || strstr(pParams->tradeSymbol, "XAG") != NULL || strstr(pParams->tradeSymbol, "XPD") != NULL)
-		startHour = 1;
+	// Set start hour for commodity symbols (XAU, XTI, SpotCrude, XAG, XPD)
+	if (strstr(pParams->tradeSymbol, COMMODITY_SYMBOL_XAU) != NULL || 
+	    strstr(pParams->tradeSymbol, COMMODITY_SYMBOL_XTI) != NULL || 
+	    strstr(pParams->tradeSymbol, COMMODITY_SYMBOL_SPOTCRUDE) != NULL || 
+	    strstr(pParams->tradeSymbol, COMMODITY_SYMBOL_XAG) != NULL || 
+	    strstr(pParams->tradeSymbol, COMMODITY_SYMBOL_XPD) != NULL)
+	{
+		startHour = COMMODITY_START_HOUR;
+	}
 
 	safe_gmtime(&timeInfo, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 	safe_timeString(timeString, pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index]);
 
-	// Strategy risk
+	// Calculate strategy risk metrics
 	pIndicators->strategyMarketVolRisk = caculateStrategyVolRiskEasy(pBase_Indicators->dailyATR);
-
 	pIndicators->strategyRisk = caculateStrategyRiskEasy(FALSE);
 	pIndicators->strategyRiskWithoutLockedProfit = caculateStrategyRiskEasy(TRUE);
-
 	pIndicators->riskPNL = caculateStrategyPNLEasy(FALSE);
 	pIndicators->riskPNLWithoutLockedProfit = caculateStrategyPNLEasy(TRUE);
 
@@ -97,13 +162,13 @@ AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pI
 	case 24:
 		workoutExecutionTrend_MACD_Weekly(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 25: // 
+	case 25:
+		// Auto strategy with tradeMode = 1
 		pIndicators->tradeMode = 1;
 		workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 26: 
-		//pIndicators->tradeMode = 0;
-		//workoutExecutionTrend_Auto(pParams, pIndicators, pBase_Indicators);
+	case 26:
+		// Limit BBS Long Term strategy
 		workoutExecutionTrend_Limit_BBS_LongTerm(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 27:
@@ -112,8 +177,8 @@ AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pI
 	case 28:
 		workoutExecutionTrend_Ichimoko_Daily_Index(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 30:		
-		//workoutExecutionTrend_4H_ShellingtonVer1(pParams, pIndicators, pBase_Indicators);
+	case 30:
+		// 4H Shellington strategy (using Ver2, Ver1 is deprecated)
 		workoutExecutionTrend_4H_Shellington(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 31:
@@ -142,17 +207,21 @@ AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pI
 	}
 
 
-	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && pParams->accountInfo.totalOpenTradeRiskPercent < parameter(AUTOBBS_MAX_ACCOUNT_RISK) * -1) //if account risk is more than 3%, stop entring trades.
+	// Apply account risk limit filter (only in live trading, not backtesting)
+	// If account risk exceeds maximum allowed, prevent new entries
+	if ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE && 
+	    pParams->accountInfo.totalOpenTradeRiskPercent < parameter(AUTOBBS_MAX_ACCOUNT_RISK) * -1.0)
 	{
-		logWarning("System InstanceID = %d, BarTime = %s, Over max riks %lf, skip this entry signal=%d",
+		logWarning("System InstanceID = %d, BarTime = %s, Over max risk %lf, skip this entry signal = %d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, parameter(AUTOBBS_MAX_ACCOUNT_RISK), pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
 
-	//Filter out macro trend
+	// Filter out entry signals that conflict with AUTOBBS_ONE_SIDE setting
+	// If side is restricted (1 = buy only, -1 = sell only) and entry signal conflicts, block entry
 	if (pIndicators->side != 0 && pIndicators->entrySignal != 0 && pIndicators->side != pIndicators->entrySignal)
 	{
-		logWarning("System InstanceID = %d, BarTime = %s,Againt Side =%ld, skip this entry signal=%d",
+		logWarning("System InstanceID = %d, BarTime = %s, Against Side = %ld, skip this entry signal = %d",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->side, pIndicators->entrySignal);
 		pIndicators->entrySignal = 0;
 	}
@@ -168,206 +237,7 @@ AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pI
 	return SUCCESS;
 }
 
-// workoutExecutionTrend_KeyK is implemented in MiscStrategies.c - removed duplicate
-#if 0
-// 1% risk
-AsirikuyReturnCode workoutExecutionTrend_KeyK(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators)
-{
-	AsirikuyReturnCode returnCode = SUCCESS;
-	int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	int shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-	double keyHigh, keyLow;
-
-	pIndicators->risk = 2;
-	pIndicators->splitTradeMode = 9;
-	pIndicators->tpMode = 0;
-
-	keyHigh = iHigh(B_PRIMARY_RATES, shift0Index - pBase_Indicators->intradyIndex);
-	keyLow = iLow(B_PRIMARY_RATES, shift0Index - pBase_Indicators->intradyIndex);
-
-	if (pBase_Indicators->intradayTrend == 1)
-	{
-		if (pIndicators->side >= 0)
-		{
-			pIndicators->executionTrend = 1;
-			pIndicators->exitSignal = EXIT_SELL;
-			pIndicators->entryPrice = pParams->bidAsk.ask[0];
-			pIndicators->stopLossPrice = keyLow;
-			if (fabs(pIndicators->stopLossPrice - pBase_Indicators->dailyLow) >= 0.5 * pBase_Indicators->dailyATR)
-				pIndicators->risk = 1;
-
-			if (pBase_Indicators->intradyIndex == shift1Index)
-			{
-				pIndicators->entrySignal = 1;
-			}
-		}
-		else
-			pBase_Indicators->intradayTrend = 0;
-	}
-
-	if (pBase_Indicators->intradayTrend == -1)
-	{
-		if (pIndicators->side <= 0)
-		{
-			pIndicators->executionTrend = -1;
-			pIndicators->exitSignal = EXIT_BUY;
-			pIndicators->entryPrice = pParams->bidAsk.bid[0];
-			pIndicators->stopLossPrice = keyHigh;
-			if (fabs(pIndicators->stopLossPrice - pBase_Indicators->dailyHigh) >= 0.5 * pBase_Indicators->dailyATR)
-				pIndicators->risk = 1;
-
-			if (pBase_Indicators->intradyIndex == shift1Index)
-			{
-				pIndicators->entrySignal = -1;
-			}
-		}
-		else
-			pBase_Indicators->intradayTrend = 0;
-	}
-
-	return returnCode;
-}
-#endif
-
-// workoutExecutionTrend_Auto_Hedge is implemented in HedgeStrategy.c - removed duplicate
-#if 0
-AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators)
-{
-	double stopLoss;
-	double riskPNL;
-	char timeString[MAX_TIME_STRING_SIZE] = "";
-	int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	time_t currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-	safe_timeString(timeString, currentTime);
-
-	switch (pBase_Indicators->dailyTrend_Phase)
-	{
-	case MIDDLE_UP_RETREAT_PHASE:
-	case MIDDLE_DOWN_RETREAT_PHASE:
-	case RANGE_PHASE:
-		// Execute hedge strategy for range-bound trading
-		workoutExecutionTrend_Hedge(pParams, pIndicators, pBase_Indicators);
-		break;
-	case BEGINNING_UP_PHASE:
-	case BEGINNING_DOWN_PHASE:
-	case MIDDLE_UP_PHASE:
-	case MIDDLE_DOWN_PHASE:
-		break;
-	}
-
-	profitManagement(pParams, pIndicators, pBase_Indicators);
-
-	return SUCCESS;
-}
-#endif
-
 // workoutExecutionTrend_Auto is implemented in MiscStrategies.c - removed duplicate
-#if 0
-AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators)
-{
-	double stopLoss;
-	double riskPNL;
-	char timeString[MAX_TIME_STRING_SIZE] = "";
-	int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-	time_t currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-	struct tm timeInfo1;
-
-	double close_prev1 = iClose(B_DAILY_RATES, 1), close_prev2 = iClose(B_DAILY_RATES, 2);
-	int execution_tf, euro_index_rate, count;
-	double ATR0_EURO = 10;
-	double preHigh, preLow, preClose;
-	double pivot, S3, R3;
-
-	safe_gmtime(&timeInfo1, currentTime);
-	safe_timeString(timeString, currentTime);
-
-	pIndicators->strategyMaxRisk = pParams->settings[AUTOBBS_MAX_STRATEGY_RISK] * -1;
-	pIndicators->limitRiskPNL = pParams->settings[AUTOBBS_MAX_STRATEGY_RISK] * -1;
-
-	// Check out if Key K is triggered. If yes, take piority with other strategies.,
-	// TODO Need to test riskPNL parameter, disabled for now
-	if ((int)parameter(AUTOBBS_KEYK) == 1)
-	{
-		workoutExecutionTrend_KeyK(pParams, pIndicators, pBase_Indicators);
-		if (pIndicators->entrySignal != 0)
-			return SUCCESS;
-		if (pBase_Indicators->intradayTrend == 1 && pBase_Indicators->dailyTrend_Phase < 0)
-			return SUCCESS;
-		if (pBase_Indicators->intradayTrend == -1 && pBase_Indicators->dailyTrend_Phase > 0)
-			return SUCCESS;
-	}
-
-	switch (pBase_Indicators->dailyTrend_Phase)
-	{
-	case BEGINNING_UP_PHASE:
-	case BEGINNING_DOWN_PHASE:
-		// workoutExecutionTrend_BEGINNING_PHASE(pParams, pIndicators, pBase_Indicators);
-		workoutExecutionTrend_MIDDLE_PHASE(pParams, pIndicators, pBase_Indicators, TRUE);
-		if (pIndicators->entrySignal == 0) // Try 15M BBS if no entry signal
-			workoutExecutionTrend_BEGINNING_PHASE(pParams, pIndicators, pBase_Indicators, FALSE);
-		pIndicators->splitTradeMode = 0;
-
-		break;
-	case MIDDLE_UP_PHASE:
-	case MIDDLE_DOWN_PHASE:
-		workoutExecutionTrend_MIDDLE_PHASE(pParams, pIndicators, pBase_Indicators, FALSE);
-		if (pIndicators->entrySignal == 0) // Try 15M BBS if no entry signal
-			workoutExecutionTrend_BEGINNING_PHASE(pParams, pIndicators, pBase_Indicators, TRUE);
-		if (pIndicators->entrySignal == 0) // Try 15M BBS if no entry signal
-			workoutExecutionTrend_KongJian(pParams, pIndicators, pBase_Indicators);
-		if ((int)parameter(AUTOBBS_LONG_SHORT_MODE) == 1)
-			pIndicators->splitTradeMode = 0;
-		else
-			pIndicators->splitTradeMode = 6;
-
-		break;
-	case MIDDLE_UP_RETREAT_PHASE:
-	case MIDDLE_DOWN_RETREAT_PHASE:
-		workoutExecutionTrend_MIDDLE_RETREAT_PHASE(pParams, pIndicators, pBase_Indicators);
-		break;
-	case RANGE_PHASE:
-		if ((int)parameter(AUTOBBS_RANGE) == 1)
-		{
-			if (pBase_Indicators->weeklyMATrend == RANGE)
-				pIndicators->exitSignal = EXIT_ALL;
-			else
-			{
-				// closeAllWithNegativeEasy(1, currentTime, 3);
-
-				if (totalOpenOrders(pParams, BUY) > 0)
-				{
-					stopLoss = fabs(pParams->bidAsk.ask[0] - pBase_Indicators->dailyS) + pIndicators->adjust;
-					modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0, FALSE);
-				}
-				if (totalOpenOrders(pParams, SELL) > 0)
-				{
-					stopLoss = fabs(pParams->bidAsk.bid[0] - pBase_Indicators->dailyR) + pIndicators->adjust;
-					modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0, FALSE);
-				}
-			}
-		}
-		else
-			pIndicators->exitSignal = EXIT_ALL;
-		break;
-	}
-
-	if (timeInfo1.tm_hour >= 17)
-	{
-		execution_tf = (int)pParams->settings[TIMEFRAME];
-		euro_index_rate = shift1Index - ((timeInfo1.tm_hour - 17) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
-
-		count = (17 - 1) * (60 / execution_tf) - 1;
-		iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, euro_index_rate, count, &(pIndicators->euro_high), &(pIndicators->euro_low));
-		pIndicators->euro_low = min(close_prev1, pIndicators->euro_low);
-		pIndicators->euro_high = max(close_prev1, pIndicators->euro_high);
-		pIndicators->euro_open = close_prev1;
-		pIndicators->euro_close = iClose(B_PRIMARY_RATES, euro_index_rate);
-
-		ATR0_EURO = fabs(pIndicators->euro_high - pIndicators->euro_low);
-	}
-
-	return SUCCESS;
-}
 
 // XAUUSD Daily Stop Check - checks if orders should be closed after 15 minutes
 static void XAUUSD_Daily_Stop_Check(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
@@ -625,425 +495,17 @@ if (pIndicators->executionTrend == -1)
 	pIndicators->exitSignal = EXIT_BUY;
 }
 
-return SUCCESS;
+	return SUCCESS;
 }
-#endif
 
+// workoutExecutionTrend_WeeklyPivot - kept for potential future use
 // workoutExecutionTrend_Hedge is implemented in HedgeStrategy.c - removed duplicate
-#if 0
-AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
-{
-double closestR;
-int shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-int shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
-time_t currentTime;
-struct tm timeInfo1;
-char timeString1[MAX_TIME_STRING_SIZE] = "";
-double currentLow = iLow(B_DAILY_RATES, 0);
-double currentHigh = iHigh(B_DAILY_RATES, 0);
-
-double down_gap = pIndicators->entryPrice - pBase_Indicators->pDailyLow;
-double up_gap = pBase_Indicators->pDailyHigh - pIndicators->entryPrice;
-
-currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
-safe_gmtime(&timeInfo1, currentTime);
-
-// closeAllWithNegativeEasy(1, currentTime, 3);
-if (timeInfo1.tm_hour == 23 && timeInfo1.tm_min > 25)
-{
-	pIndicators->exitSignal = EXIT_ALL;
-	return SUCCESS;
-}
-
-shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-
-pIndicators->risk = 1;
-pIndicators->tpMode = 0;
-pIndicators->splitTradeMode = 14;
-
-// Asia hour, risk 50%
-if (timeInfo1.tm_hour <= 8)
-	pIndicators->risk = 0.5;
-
-if (pBase_Indicators->dailyTrend_Phase > 0)
-{
-	pIndicators->executionTrend = -1;
-	pIndicators->entryPrice = pParams->bidAsk.bid[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-
-	if (pIndicators->bbsTrend_excution == -1 && pIndicators->bbsIndex_excution == shift1Index && timeInfo1.tm_hour < 23 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))
-		pIndicators->entrySignal = -1;
-
-	pIndicators->exitSignal = EXIT_BUY;
-}
-else if (pBase_Indicators->dailyTrend_Phase < 0)
-{
-	pIndicators->executionTrend = 1;
-	pIndicators->entryPrice = pParams->bidAsk.ask[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-	// Hedge strategy execution
-	if (pIndicators->bbsTrend_excution == 1 && pIndicators->bbsIndex_excution == shift1Index && timeInfo1.tm_hour < 23 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))
-		pIndicators->entrySignal = 1;
-
-	pIndicators->exitSignal = EXIT_SELL;
-}
-else
-{
-	// [Comment removed - encoding corrupted]
-	if (up_gap <= pBase_Indicators->pDailyATR / 3)
-	{
-		pIndicators->executionTrend = -1;
-		pIndicators->entryPrice = pParams->bidAsk.bid[0];
-		pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-		pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-
-		if (pIndicators->bbsTrend_excution == -1 && pIndicators->bbsIndex_excution == shift1Index && timeInfo1.tm_hour < 23 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))
-			pIndicators->entrySignal = -1;
-
-		pIndicators->exitSignal = EXIT_BUY;
-	}
-	else if (down_gap <= pBase_Indicators->pDailyATR / 3)
-	{
-		pIndicators->executionTrend = 1;
-		pIndicators->entryPrice = pParams->bidAsk.ask[0];
-		pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-		pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-		// [Comment removed - encoding corrupted]
-		if (pIndicators->bbsTrend_excution == 1 && pIndicators->bbsIndex_excution == shift1Index && timeInfo1.tm_hour < 23 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))
-			pIndicators->entrySignal = 1;
-
-		pIndicators->exitSignal = EXIT_SELL;
-	}
-}
-return SUCCESS;
-}
-
-AsirikuyReturnCode workoutExecutionTrend_KongJian(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
-{
-double closestR;
-int shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-int shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
-time_t currentTime;
-struct tm timeInfo1;
-char timeString1[MAX_TIME_STRING_SIZE] = "";
-double currentLow = iLow(B_DAILY_RATES, 0);
-double currentHigh = iHigh(B_DAILY_RATES, 0);
-double intradayClose = iClose(B_DAILY_RATES, 0), intradayHigh = iHigh(B_DAILY_RATES, 0), intradayLow = iLow(B_DAILY_RATES, 0);
-
-currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
-safe_gmtime(&timeInfo1, currentTime);
-
-closeAllWithNegativeEasy(1, currentTime, 3);
-
-shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-
-pIndicators->risk = 1;
-pIndicators->tpMode = 0;
-pIndicators->splitTradeMode = 0;
-
-pIndicators->tradeMode = 1;
-
-if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE)
-{
-	pIndicators->executionTrend = 1;
-	pIndicators->entryPrice = pParams->bidAsk.ask[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-	if (pParams->bidAsk.ask[0] - intradayLow > pBase_Indicators->dailyATR / 3 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime) && timeInfo1.tm_hour < 23)
-	{
-		pIndicators->entrySignal = 1;
-	}
-	pIndicators->exitSignal = EXIT_SELL;
-}
-
-if (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE)
-{
-
-	pIndicators->executionTrend = -1;
-	pIndicators->entryPrice = pParams->bidAsk.bid[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-	if (intradayHigh - pParams->bidAsk.bid[0] > pBase_Indicators->dailyATR / 3 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime) && timeInfo1.tm_hour < 23)
-	{
-		pIndicators->entrySignal = -1;
-	}
-	pIndicators->exitSignal = EXIT_BUY;
-}
-
-	return SUCCESS;
-}
-#endif
 
 // workoutExecutionTrend_KongJian is implemented in MiscStrategies.c - removed duplicate
-#if 0
-// It should always use 15M
-AsirikuyReturnCode workoutExecutionTrend_BEGINNING_PHASE(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators, BOOL ignored)
-{
-double closestR;
-int shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-int shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
-time_t currentTime;
-struct tm timeInfo1;
-char timeString1[MAX_TIME_STRING_SIZE] = "";
-double currentLow = iLow(B_DAILY_RATES, 0);
-double currentHigh = iHigh(B_DAILY_RATES, 0);
-
-currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
-safe_gmtime(&timeInfo1, currentTime);
-
-closeAllWithNegativeEasy(1, currentTime, 3);
-
-shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-// shift1Index = filterExcutionTF_ByTime(pParams, pIndicators, pBase_Indicators);
-
-pIndicators->risk = 1;
-pIndicators->tpMode = 0;
-pIndicators->splitTradeMode = 3;
-
-pIndicators->tradeMode = 1;
-
-// if (timeInfo1.tm_hour < 5)
-//	pIndicators->risk = 0.5;
-
-if (pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE || (ignored && pBase_Indicators->dailyTrend_Phase > 0))
-{
-	pIndicators->executionTrend = 1;
-	pIndicators->entryPrice = pParams->bidAsk.ask[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-	if (pIndicators->bbsTrend_excution == 1 && pIndicators->bbsIndex_excution == shift1Index && pIndicators->entryPrice > pBase_Indicators->dailyS + pIndicators->adjust && ((pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3)) || (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))))
-		pIndicators->entrySignal = 1;
-	// Override the entry signal if the current daily low has been lower than stop loss price.
-	if (pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && currentLow < pBase_Indicators->dailyS - pIndicators->adjust && pIndicators->entrySignal == 1)
-		pIndicators->entrySignal = 0;
-
-	pIndicators->exitSignal = EXIT_SELL;
-}
-
-if (pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE || (ignored && pBase_Indicators->dailyTrend_Phase < 0))
-{
-	pIndicators->executionTrend = -1;
-	pIndicators->entryPrice = pParams->bidAsk.bid[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-
-	if (pIndicators->bbsTrend_excution == -1 && pIndicators->bbsIndex_excution == shift1Index && pIndicators->entryPrice < pBase_Indicators->dailyS - pIndicators->adjust && ((pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3)) || (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))))
-		pIndicators->entrySignal = -1;
-
-	// Override the entry signal if the current daily high has been higher than stop loss price.
-	if (pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && currentHigh > pBase_Indicators->dailyS + pIndicators->adjust && pIndicators->entrySignal == -1)
-		pIndicators->entrySignal = 0;
-
-	pIndicators->exitSignal = EXIT_BUY;
-}
-return SUCCESS;
-}
-
-AsirikuyReturnCode workoutExecutionTrend_MIDDLE_PHASE(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators, BOOL ignored)
-{
-double closestR;
-int shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-int shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
-time_t currentTime;
-struct tm timeInfo1;
-double currentLow = iLow(B_DAILY_RATES, 0);
-double currentHigh = iHigh(B_DAILY_RATES, 0);
-
-double stopLoss;
-double preHigh = iHigh(B_SECONDARY_RATES, 1);
-double preLow = iLow(B_SECONDARY_RATES, 1);
-double preClose = iClose(B_SECONDARY_RATES, 1);
-
-currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
-safe_gmtime(&timeInfo1, currentTime);
-
-closeAllWithNegativeEasy(1, currentTime, 3);
-
-shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-// shift1Index = filterExcutionTF_ByTime(pParams, pIndicators, pBase_Indicators);
-
-pIndicators->risk = 1;
-pIndicators->tpMode = 0;
-pIndicators->splitTradeMode = 6;
-
-pIndicators->tradeMode = 1;
-
-// if (timeInfo1.tm_hour < 5)
-//	pIndicators->risk = 0.5;
-
-// [Comment removed - encoding corrupted]
-if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE || (ignored && pBase_Indicators->dailyTrend_Phase > 0))
-{
-	pIndicators->executionTrend = 1;
-	pIndicators->entryPrice = pParams->bidAsk.ask[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-	if (pIndicators->entryPrice > pBase_Indicators->dailyS + pIndicators->adjust && preLow < pBase_Indicators->dailyPivot && preClose > pBase_Indicators->dailyPivot && timeInfo1.tm_hour >= 2 && timeInfo1.tm_hour <= 22
-		//&& bbsTrend == 1
-		&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3)) || (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))))
-		pIndicators->entrySignal = 1;
-
-	// Override the entry signal if the current daily low has been lower than stop loss price.
-	if (pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && currentLow < pBase_Indicators->dailyS - pIndicators->adjust && pIndicators->entrySignal == 1)
-		pIndicators->entrySignal = 0;
-
-	pIndicators->exitSignal = EXIT_SELL;
-}
-
-if (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE || (ignored && pBase_Indicators->dailyTrend_Phase < 0))
-{
-	pIndicators->executionTrend = -1;
-	pIndicators->entryPrice = pParams->bidAsk.bid[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-
-	if (pIndicators->entryPrice < pBase_Indicators->dailyS - pIndicators->adjust && preHigh > pBase_Indicators->dailyPivot && preClose < pBase_Indicators->dailyPivot && timeInfo1.tm_hour >= 2 && timeInfo1.tm_hour <= 22
-		//&& bbsTrend == -1
-		&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3)) || (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))))
-		pIndicators->entrySignal = -1;
-
-	// Override the entry signal if the current daily high has been higher than stop loss price.
-	if (pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && currentHigh > pBase_Indicators->dailyS + pIndicators->adjust && pIndicators->entrySignal == -1)
-		pIndicators->entrySignal = 0;
-
-	pIndicators->exitSignal = EXIT_BUY;
-}
-
-return SUCCESS;
-}
-
-// [Comment removed - encoding corrupted]
-// [Comment removed - encoding corrupted]
-// [Comment removed - encoding corrupted]
-AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
-{
-double closestR;
-int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-int shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
-time_t currentTime;
-struct tm timeInfo1;
-
-currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-safe_gmtime(&timeInfo1, currentTime);
-
-closeAllWithNegativeEasy(1, currentTime, 3);
-
-shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-// shift1Index = filterExcutionTF_ByTime(pParams, pIndicators, pBase_Indicators);
-
-pIndicators->risk = 1;
-pIndicators->tpMode = 0;
-pIndicators->splitTradeMode = 0;
-
-pIndicators->tradeMode = 1;
-
-// [Comment removed - encoding corrupted]
-if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_RETREAT_PHASE)
-{
-	pIndicators->executionTrend = 1;
-	pIndicators->entryPrice = pParams->bidAsk.ask[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-	if (pIndicators->bbsTrend_excution == 1 && pIndicators->bbsIndex_excution == shift1Index && pIndicators->entryPrice > pBase_Indicators->dailyS + pIndicators->adjust && fabs(pIndicators->entryPrice - pBase_Indicators->dailyS) <= pBase_Indicators->dailyATR * 0.666 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime))
-		pIndicators->entrySignal = 1;
-
-	pIndicators->exitSignal = EXIT_SELL;
-}
-
-if (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_RETREAT_PHASE)
-{
-	pIndicators->executionTrend = -1;
-	pIndicators->entryPrice = pParams->bidAsk.bid[0];
-	pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-	pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-
-	if (pIndicators->bbsTrend_excution == -1 && pIndicators->bbsIndex_excution == shift1Index && pIndicators->entryPrice < pBase_Indicators->dailyS - pIndicators->adjust && fabs(pIndicators->entryPrice - pBase_Indicators->dailyS) <= pBase_Indicators->dailyATR * 0.666
-		//&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
-	)
-		pIndicators->entrySignal = -1;
-
-	pIndicators->exitSignal = EXIT_BUY;
-}
-
-return SUCCESS;
-}
-#endif
 
 // workoutExecutionTrend_WeeklyAuto is implemented in WeeklyAutoStrategy.c - removed duplicate
-#if 0
-AsirikuyReturnCode workoutExecutionTrend_WeeklyAuto(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
-{
-double stopLoss;
-
-// Check out if Key K is triggered. If yes, take piority with other strategies.
-if ((int)parameter(AUTOBBS_KEYK) == 1)
-{
-	workoutExecutionTrend_KeyK(pParams, pIndicators, pBase_Indicators);
-	if (pIndicators->entrySignal != 0)
-		return SUCCESS;
-	if (pBase_Indicators->intradayTrend == 1 && pBase_Indicators->weeklyTrend_Phase < 0)
-		return SUCCESS;
-	if (pBase_Indicators->intradayTrend == -1 && pBase_Indicators->weeklyTrend_Phase > 0)
-		return SUCCESS;
-}
-
-switch (pBase_Indicators->weeklyTrend_Phase)
-{
-case BEGINNING_UP_PHASE:
-case BEGINNING_DOWN_PHASE:
-	workoutExecutionTrend_Weekly_MIDDLE_PHASE(pParams, pIndicators, pBase_Indicators, TRUE);
-	if (pIndicators->entrySignal == 0) // Try 1H BBS if no entry signal
-		workoutExecutionTrend_Weekly_BEGINNING_PHASE(pParams, pIndicators, pBase_Indicators, TRUE);
-	pIndicators->splitTradeMode = 11;
-	break;
-case MIDDLE_UP_PHASE:
-case MIDDLE_DOWN_PHASE:
-	workoutExecutionTrend_Weekly_MIDDLE_PHASE(pParams, pIndicators, pBase_Indicators, TRUE);
-	if (pIndicators->entrySignal == 0) // Try 1H BBS if no entry signal
-		workoutExecutionTrend_Weekly_BEGINNING_PHASE(pParams, pIndicators, pBase_Indicators, TRUE);
-	pIndicators->splitTradeMode = 7;
-	break;
-case MIDDLE_UP_RETREAT_PHASE:
-case MIDDLE_DOWN_RETREAT_PHASE:
-	workoutExecutionTrend_Weekly_MIDDLE_RETREAT_PHASE(pParams, pIndicators, pBase_Indicators, TRUE);
-	break;
-case RANGE_PHASE:
-	if ((int)parameter(AUTOBBS_RANGE) == 1)
-	{
-		if (totalOpenOrders(pParams, BUY) > 0)
-		{
-			stopLoss = fabs(pParams->bidAsk.ask[0] - pBase_Indicators->weeklyS) + pIndicators->adjust;
-			modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0, FALSE);
-		}
-		if (totalOpenOrders(pParams, SELL) > 0)
-		{
-			stopLoss = fabs(pParams->bidAsk.bid[0] - pBase_Indicators->weeklyR) + pIndicators->adjust;
-			modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0, FALSE);
-		}
-	}
-	else
-		pIndicators->exitSignal = EXIT_ALL;
-	break;
-}
-
-profitManagementWeekly(pParams, pIndicators, pBase_Indicators);
-
-return SUCCESS;
-}
-#endif
 
 // Weekly retreat strategy, only for EUR, AUD, crossing currencies
-// [Comment removed - encoding corrupted]
-// [Comment removed - encoding corrupted]
-// [Comment removed - encoding corrupted]
 AsirikuyReturnCode workoutExecutionTrend_WeeklyRetreat(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
 {
 double closestR;
@@ -1295,146 +757,6 @@ if (pIndicators->bbsTrend_primary == -1)
 
 // XAUUSD_DayTrading_Allow_Trade and XAUUSD_DayTrading_Entry are implemented in DayTradingHelpers.c
 // Removed duplicate implementations - using the ones from DayTradingHelpers.c
-#if 0
-/*
-
-1.ATR > 20
-2.Close -  Close > 10
-3.> 7 or 8?
-4.3
-5.10
-6.15MA too close,  21H MA 
-*/
-BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
-{
-int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-int count, asia_index_rate, euro_index_rate, execution_tf;
-time_t currentTime;
-struct tm timeInfo1;
-double preHigh, preLow, preClose;
-double pivot, S3, R3;
-char timeString[MAX_TIME_STRING_SIZE] = "";
-double close_prev1 = iClose(B_DAILY_RATES, 1), close_prev2 = iClose(B_DAILY_RATES, 2);
-
-currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-safe_gmtime(&timeInfo1, currentTime);
-safe_timeString(timeString, currentTime);
-
-// execution_tf = pIndicators->executionRateTF;
-execution_tf = (int)pParams->settings[TIMEFRAME];
-
-if (timeInfo1.tm_hour < 10)
-	return FALSE;
-
-asia_index_rate = shift1Index - ((timeInfo1.tm_hour - 10) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
-
-count = (10 - 1) * (60 / execution_tf) - 1;
-iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, asia_index_rate, count, &(pIndicators->asia_high), &(pIndicators->asia_low));
-pIndicators->asia_low = min(close_prev1, pIndicators->asia_low);
-pIndicators->asia_high = max(close_prev1, pIndicators->asia_high);
-pIndicators->asia_open = close_prev1;
-pIndicators->asia_close = iClose(B_PRIMARY_RATES, asia_index_rate);
-
-if (timeInfo1.tm_hour >= 17) // [Comment removed - encoding corrupted]
-{
-	euro_index_rate = shift1Index - ((timeInfo1.tm_hour - 17) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
-
-	count = (17 - 1) * (60 / execution_tf) - 1;
-	iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, euro_index_rate, count, &(pIndicators->euro_high), &(pIndicators->euro_low));
-	pIndicators->euro_low = min(close_prev1, pIndicators->euro_low);
-	pIndicators->euro_high = max(close_prev1, pIndicators->euro_high);
-	pIndicators->euro_open = close_prev1;
-	pIndicators->euro_close = iClose(B_PRIMARY_RATES, euro_index_rate);
-}
-//// Workout Euro time bar( 10 - 15)
-// if (timeInfo1.tm_hour >= 10 && timeInfo1.tm_hour < 17)
-//{
-//	count = (timeInfo1.tm_hour - 10) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf) - 1;
-//	iSRLevels(pParams, pIndicators, B_PRIMARY_RATES, shift1Index, count, &(pIndicators->euro_high), &(pIndicators->euro_low));
-//	pIndicators->euro_open = pIndicators->asia_close;
-//	pIndicators->euro_close = iClose(B_PRIMARY_RATES, 1);
-// }
-
-// if (timeInfo1.tm_hour >= 15 && timeInfo1.tm_hour < 24)
-//{
-//	count = (timeInfo1.tm_hour - 15) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf) - 1;
-//	iSRLevels(pParams, pIndicators, B_PRIMARY_RATES, shift1Index, count, &(pIndicators->us_high), &(pIndicators->us_low));
-//	pIndicators->us_open = pIndicators->euro_close;
-//	pIndicators->us_close = iClose(B_PRIMARY_RATES, 1);
-// }
-
-if (fabs(pIndicators->asia_high - pIndicators->asia_low) >= 7.5)
-	return FALSE;
-
-if (iAtr(B_DAILY_RATES, 1, 1) >= 20)
-	return FALSE;
-if (fabs(close_prev1 - close_prev2) >= 10)
-	return FALSE;
-
-preHigh = iHigh(B_DAILY_RATES, 2);
-preLow = iLow(B_DAILY_RATES, 2);
-preClose = iClose(B_DAILY_RATES, 2);
-
-pivot = (preHigh + preLow + preClose) / 3;
-S3 = preLow - 2 * (preHigh - pivot);
-R3 = preHigh + 2 * (pivot - preLow);
-
-if (close_prev1 > R3 || close_prev1 < S3)
-	return FALSE;
-
-// [Comment removed - encoding corrupted]
-// if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
-//{
-//	fprintf(stderr, ("[INFO] (PAN_CHAR_T*)"System InstanceID = %d, BarTime = %s No Trade on  Non Farm PayRoll day\n\n",
-//		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
-//	return FALSE;
-// }
-
-return TRUE;
-}
-
-void XAUUSD_DayTrading_Entry(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators, OrderType orderType, double ATR0_EURO, double stopLoss, double Range)
-{
-int shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-time_t currentTime;
-struct tm timeInfo1;
-
-currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
-safe_gmtime(&timeInfo1, currentTime);
-
-if (orderType == SELL)
-{
-	pIndicators->executionTrend = 1;
-	pIndicators->entryPrice = pParams->bidAsk.ask[0];
-	pIndicators->stopLossPrice = pIndicators->entryPrice - stopLoss;
-
-	pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
-	pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
-	if (ATR0_EURO > Range && pIndicators->lossTimes < 3 && pIndicators->winTimes == 0 && timeInfo1.tm_hour < 22)
-	{
-		pIndicators->risk = pow(2, pIndicators->lossTimes);
-		pIndicators->entrySignal = 1;
-	}
-	pIndicators->exitSignal = EXIT_SELL;
-}
-
-if (orderType == BUY)
-{
-	pIndicators->executionTrend = -1;
-	pIndicators->entryPrice = pParams->bidAsk.bid[0];
-	pIndicators->stopLossPrice = pIndicators->entryPrice + stopLoss;
-	pIndicators->lossTimes = getLossTimesInDayEasy(currentTime, &pIndicators->total_lose_pips);
-	pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
-	if (ATR0_EURO > Range && pIndicators->lossTimes < 3 && pIndicators->winTimes == 0 && timeInfo1.tm_hour < 22)
-	{
-		pIndicators->risk = pow(2, pIndicators->lossTimes);
-		pIndicators->entrySignal = -1;
-	}
-
-	pIndicators->exitSignal = EXIT_BUY;
-}
-}
-#endif
 
 // workoutExecutionTrend_XAUUSD_DayTrading is implemented in DayTradingStrategy.c
 // Removed duplicate/broken implementation - using the one from DayTradingStrategy.c

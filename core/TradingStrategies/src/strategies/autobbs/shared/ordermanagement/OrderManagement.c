@@ -71,6 +71,8 @@ AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pIndicators
 				modifyTradeEasy_new(SELL, -1, stopLoss, -1, tpMode, FALSE); // New day TP change as
 		}
 	}
+
+	return SUCCESS;
 }
 AsirikuyReturnCode handleTradeEntries(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators)
 {

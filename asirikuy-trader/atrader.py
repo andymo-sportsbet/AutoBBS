@@ -170,6 +170,9 @@ def main():
         if isJava:
             logger.info('Initializing Oanda Java account')
             class OandaStreaming:
+                def __init__(self, logger):
+                    self.logger = logger
+                
                 def onTick(self, symbol, bid, ask):
                     try:
                         account.streamingHB = time()
@@ -183,9 +186,8 @@ def main():
                             for strategy in account.strategies:
                                 account.getTrades(strategy.settings[ORDERINFO_ARRAY_SIZE], strategy.instanceID)
                             sleep(5)
-                    except Exception: 
-                        e = Exception
-                        self.logger.critical('Error in general Oanda JAVA Call %s: %s', type(e), sys.exc_info()[1])
+                    except Exception as e: 
+                        self.logger.critical('Error in general Oanda JAVA Call %s: %s', type(e).__name__, str(e))
                         print e
                     return
                     
@@ -220,7 +222,7 @@ def main():
             if useStreaming:
                 subscribeSymbols = ['EUR/USD', 'EUR/CHF', 'GBP/USD', 'USD/JPY']
                 for symbol in subscribeSymbols:
-                    oanda_streaming = OandaStreaming()
+                    oanda_streaming = OandaStreaming(logger)
                     package = jpype.JPackage('asirikuy')
                     oanda_wrapper = package.OandaWrapper
                     proxy = jpype.JProxy(oanda_wrapper, inst=oanda_streaming)
@@ -276,7 +278,7 @@ def main():
             )
         else:
             startJVM(jpype.getDefaultJVMPath(),
-                     '-Djava.awt.headless=true' \
+                     '-Djava.awt.headless=true',
                      '-Djava.class.path=./config:' \
                      './include/asirikuy.jar:' \
                      './vendor/DDS2-jClient-JForex-2.45.37.jar:' \

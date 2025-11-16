@@ -16,33 +16,56 @@
 #include "InstanceStates.h"
 #include "StrategyUserInterface.h"
 #include "strategies/autobbs/swing/daytrading/DayTradingHelpers.h"
+
+/* Trading session hour constants */
+#define EURO_SESSION_START_HOUR 17  /* Euro session starts at 17:00 */
+
+/* Filter thresholds */
+#define ASIA_ATR_MAX 7.5            /* Maximum Asia session ATR */
+#define DAILY_ATR_MAX 20.0           /* Maximum daily ATR */
+#define DAILY_CLOSE_GAP_MAX 10.0     /* Maximum daily close gap */
+
+/**
+ * Determines if XAUUSD day trading is allowed based on market conditions.
+ * 
+ * Filtering criteria:
+ * - Must be after start trading hour
+ * - Filters out key dates (NFP, etc.)
+ * - Asia session ATR must be < 7.5
+ * - Daily ATR must be < 20
+ * - Daily close gap must be < 10
+ * - Price must be within pivot S3/R3 range
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure
+ * @return TRUE if trading is allowed, FALSE otherwise
+ */
 BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
-	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-	int count, asia_index_rate,euro_index_rate,execution_tf;
+	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
+	int    shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
+	int count, asia_index_rate, euro_index_rate, execution_tf;
 	time_t currentTime;
 	struct tm timeInfo1;
 	double preHigh, preLow, preClose;
 	double pivot, S3, R3;
-	char       timeString[MAX_TIME_STRING_SIZE] = "";
-	double close_prev1 = iClose(B_DAILY_RATES, 1), close_prev2 = iClose(B_DAILY_RATES, 2);	
-	double MATrend_1H, MATrend_15M;
+	char timeString[MAX_TIME_STRING_SIZE] = "";
+	double close_prev1 = iClose(B_DAILY_RATES, 1);
+	double close_prev2 = iClose(B_DAILY_RATES, 2);
 	int startTradingTime = pIndicators->startHour;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	//execution_tf = pIndicators->executionRateTF;
 	execution_tf = (int)pParams->settings[TIMEFRAME];
 
-	//if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
-	//	startTradingTime = 15;
-
-	// filter US rate day
+	/* Filter out key dates (NFP, etc.) */
 	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators))
 		return FALSE;
 
+	/* Check if current time is after start trading hour */
 	if (timeInfo1.tm_hour < startTradingTime)
 		return FALSE;
 
@@ -92,12 +115,16 @@ BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicat
 	logInfo("System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low);
 
-	if (fabs(pIndicators->asia_high - pIndicators->asia_low) >= 7.5)
-		return FALSE; 
-
-	if (iAtr(B_DAILY_RATES, 1, 1) >= 20)
+	/* Filter: Asia session ATR must be < 7.5 */
+	if (fabs(pIndicators->asia_high - pIndicators->asia_low) >= ASIA_ATR_MAX)
 		return FALSE;
-	if (fabs(close_prev1 - close_prev2) >= 10)
+
+	/* Filter: Daily ATR must be < 20 */
+	if (iAtr(B_DAILY_RATES, 1, 1) >= DAILY_ATR_MAX)
+		return FALSE;
+
+	/* Filter: Daily close gap must be < 10 */
+	if (fabs(close_prev1 - close_prev2) >= DAILY_CLOSE_GAP_MAX)
 		return FALSE;
 
 	preHigh = iHigh(B_DAILY_RATES, 2);
@@ -130,6 +157,23 @@ BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicat
 	return TRUE;
 }
 
+/**
+ * Sets up entry signals for XAUUSD day trading strategy.
+ * 
+ * Entry conditions:
+ * - ATR0_EURO must be > Range
+ * - lossTimes < 2
+ * - winTimes == 0
+ * - Current hour < 22
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure (unused)
+ * @param orderType Order type (BUY or SELL)
+ * @param ATR0_EURO Euro session ATR value
+ * @param stopLoss Stop loss distance
+ * @param Range Minimum ATR range required for entry
+ */
 void XAUUSD_DayTrading_Entry(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, OrderType orderType, double ATR0_EURO, double stopLoss, double Range)
 {
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -149,12 +193,10 @@ void XAUUSD_DayTrading_Entry(StrategyParams* pParams, Indicators* pIndicators, B
 		pIndicators->winTimes = getWinTimesInDayEasy(currentTime);
 		if (ATR0_EURO > Range && pIndicators->lossTimes < 2 && pIndicators->winTimes == 0 && timeInfo1.tm_hour < 22)
 		{
-			//pIndicators->risk = pow(2, pIndicators->lossTimes);
 			pIndicators->entrySignal = 1;
 		}
 		pIndicators->exitSignal = EXIT_SELL;
 	}
-
 
 	if (orderType == BUY)
 	{
@@ -166,27 +208,42 @@ void XAUUSD_DayTrading_Entry(StrategyParams* pParams, Indicators* pIndicators, B
 
 		if (ATR0_EURO > Range && pIndicators->lossTimes < 2 && pIndicators->winTimes == 0 && timeInfo1.tm_hour < 22)
 		{
-			//pIndicators->risk = pow(2, pIndicators->lossTimes);
 			pIndicators->entrySignal = -1;
 		}
 
 		pIndicators->exitSignal = EXIT_BUY;
 	}
 }
+/**
+ * Version 2 of XAUUSD day trading filter with additional ATR-based filtering.
+ * 
+ * Enhanced filtering criteria:
+ * - Must be within trading hours (startHour to endHour)
+ * - Filters out Non-Farm Payroll (NFP) days (first Friday of month)
+ * - Filters out non-full trading days
+ * - Daily predicted ATR must be >= euro ATR range
+ * - Weekly ATR must be within predicted range
+ * - Daily ATR must be < max(20, weeklyPredictATR/2)
+ * - Daily close gap must be < max(10, weeklyPredictATR/3)
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing ATR predictions
+ * @param shouldFilter If FALSE, skips ATR-based filtering
+ * @return TRUE if trading is allowed, FALSE otherwise
+ */
 BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, BOOL shouldFilter)
 {
-	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-	int count, asia_index_rate, euro_index_rate, execution_tf;
+	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
+	int    shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
+	int execution_tf;
 	time_t currentTime;
 	struct tm timeInfo1;
-	double preHigh, preLow, preClose;
-	double pivot, S3, R3;
-	char       timeString[MAX_TIME_STRING_SIZE] = "";
-	double close_prev1 = iClose(B_DAILY_RATES, 1), close_prev2 = iClose(B_DAILY_RATES, 2);
+	char timeString[MAX_TIME_STRING_SIZE] = "";
+	double close_prev1 = iClose(B_DAILY_RATES, 1);
+	double close_prev2 = iClose(B_DAILY_RATES, 2);
 	int startTradingTime = pIndicators->startHour;
-	//int startTradingTime = 2;
-	double ATRWeekly0,ATRDaily0;
-	double weeklyATR = (pBase_Indicators->pWeeklyPredictMaxATR + pBase_Indicators->pWeeklyPredictATR) / 2;
+	double ATRWeekly0, ATRDaily0;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_gmtime(&timeInfo1, currentTime);
@@ -218,44 +275,24 @@ BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicators* pIn
 	}
 
 	
+	/* Filter: Skip non-full trading days */
 	if (XAUUSD_not_full_trading_day(pParams, pIndicators, pBase_Indicators) == TRUE)
-	{		
+	{
 		logWarning("System InstanceID = %d, BarTime = %s, %s",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->status);
 		return FALSE;
 	}
 
-
-	//asia_index_rate = shift1Index - ((timeInfo1.tm_hour - startTradingTime) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
-
-	//count = (startTradingTime-1) * (60 / execution_tf) - 1;
-	//if (count >= 1)
-	//	iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, asia_index_rate, count, &(pIndicators->asia_high), &(pIndicators->asia_low));
-	//else
-	//	return FALSE;
-
-	//pIndicators->asia_low = min(close_prev1, pIndicators->asia_low);
-	//pIndicators->asia_high = max(close_prev1, pIndicators->asia_high);
-	//pIndicators->asia_open = close_prev1;
-	//pIndicators->asia_close = iClose(B_PRIMARY_RATES, asia_index_rate);
-
-	//
-	//logInfo("System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf",
-	//	(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low);
-
-	//if (fabs(pIndicators->asia_high - pIndicators->asia_low) > pIndicators->atr_euro_range*1.2)
-	//	return FALSE;
+	/* Skip ATR-based filtering if shouldFilter is FALSE */
 	if (shouldFilter == FALSE)
 		return TRUE;
-
-	//if ((pBase_Indicators->dailyTrend == 6 || pBase_Indicators->dailyTrend == -6))
-	//	return TRUE;
 
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
 	logInfo("System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictMaxATR=%lf,pWeeklyPredictATR=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, ATRWeekly0, pBase_Indicators->pWeeklyPredictMaxATR, pBase_Indicators->pWeeklyPredictATR);
 
+	/* Filter: Daily predicted ATR must be >= euro ATR range */
 	if (pBase_Indicators->pDailyPredictATR < pIndicators->atr_euro_range)
 	{
 		sprintf(pIndicators->status, "pDailyPredictATR %lf is less than atr_euro_range %lf",
@@ -267,7 +304,8 @@ BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicators* pIn
 		return FALSE;
 	}
 
-	if (ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR && pBase_Indicators->pDailyPredictATR < 10)	
+	/* Filter: Weekly ATR must be within predicted range if daily ATR is low */
+	if (ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR && pBase_Indicators->pDailyPredictATR < 10.0)	
 	{
 		sprintf(pIndicators->status, "ATRWeekly0 %lf is greater than pWeeklyPredictMaxATR %lf and pDailyPredictATR > 10",
 			ATRWeekly0, pBase_Indicators->pWeeklyPredictMaxATR, pBase_Indicators->pDailyPredictATR);

@@ -1,7 +1,21 @@
 /*
  * MACD Daily Strategy Module (New Version)
  * 
- * Provides MACD Daily strategy execution functions.
+ * Provides MACD Daily strategy execution functions with extensive symbol-specific
+ * configurations. This strategy uses daily MACD indicators, volume analysis, and
+ * various filters to determine entry and exit signals.
+ * 
+ * Features:
+ * - Symbol-specific MACD parameters (fast/slow/signal periods)
+ * - Volume confirmation (CMF Volume, Volume Gap, standard volume)
+ * - Weekly baseline filtering
+ * - BeiLi (divergence) detection
+ * - Maximum level risk control
+ * - End-of-day entry support
+ * - ATR-based stop loss management
+ * 
+ * Supported symbols include: XTIUSD, XAUUSD, XAUEUR, GBPJPY, GBPCHF, AUDJPY,
+ * EURJPY, CADJPY, GBPAUD, GBPUSD, AUDNZD, and default (EURUSD).
  */
 
 #include "Precompiled.h"
@@ -16,6 +30,67 @@
 #include "strategies/autobbs/trend/macd/MACDDailyStrategy.h"
 #include "strategies/autobbs/trend/macd/MACDOrderSplitting.h"
 
+// Strategy configuration constants
+#define SPLIT_TRADE_MODE_MACD_DAILY 24     // Split trade mode for MACD Daily strategy
+#define TP_MODE_DAILY_ATR 3                // Take profit mode: daily ATR
+#define TP_MODE_STANDARD 1                 // Standard trade mode
+
+// Default MACD parameters (standard)
+#define MACD_FAST_PERIOD_STANDARD 12       // Standard fast MA period
+#define MACD_SLOW_PERIOD_STANDARD 26       // Standard slow MA period
+#define MACD_SIGNAL_STANDARD 9             // Standard signal MA period
+
+// Short-term MACD parameters (used for most symbols)
+#define MACD_FAST_PERIOD_SHORT 5           // Short-term fast MA period
+#define MACD_SLOW_PERIOD_SHORT 10          // Short-term slow MA period
+#define MACD_SIGNAL_SHORT 5                // Short-term signal MA period
+
+// Time constants
+#define START_HOUR_DEFAULT 1               // Default start hour for trading
+#define END_OF_DAY_HOUR 23                 // Hour for end-of-day entry check
+#define MACD_LIMIT_DIVISOR 2               // Divisor for MACD limit at EOD (level / 2)
+
+// ATR and price gap constants
+#define ATR_PERIOD_FOR_CHECK 5             // ATR period for volatility check
+#define PRICE_GAP_THRESHOLD_FACTOR 0.2     // Factor for price gap threshold (20% of daily ATR)
+#define ATR_PRICE_PERCENTAGE_FACTOR 0.01   // ATR as percentage of price (1%)
+#define ATR_PRICE_MULTIPLIER 0.55          // Additional multiplier for ATR price check
+
+// MA baseline period
+#define MA_BASELINE_PERIOD_20 20           // MA period for 20-day baseline
+#define MA_BASELINE_PERIOD_50 50           // MA period for 50-day baseline
+
+// Weekly baseline calculation
+#define WEEKLY_SR_LEVELS_LONG 26           // Number of bars for long-term weekly SR levels
+#define WEEKLY_SR_LEVELS_SHORT 9          // Number of bars for short-term weekly SR levels
+
+// Historical MACD bars to check
+#define HISTORICAL_MACD_BARS 5             // Number of historical MACD bars to check
+
+/**
+ * @brief Executes MACD Daily strategy (New Version).
+ * 
+ * This function implements a comprehensive MACD-based daily trading strategy with
+ * extensive symbol-specific configurations. It:
+ * 1. Configures MACD parameters and filters based on trade symbol.
+ * 2. Loads MACD indicators and volume data.
+ * 3. Determines entry signals based on MACD crossover, trend, and volume.
+ * 4. Applies various filters (BeiLi, max level, volume, weekly baseline).
+ * 5. Sets stop loss and take profit levels.
+ * 6. Manages exit signals based on MACD crossover reversal.
+ * 
+ * The strategy supports multiple symbols with different parameter sets and
+ * risk management rules. Entry conditions vary by symbol but generally require:
+ * - MACD fast crossing above/below threshold level
+ * - Trend alignment (daily/weekly)
+ * - Volume confirmation
+ * - Price gap within acceptable range
+ * 
+ * @param pParams Strategy parameters.
+ * @param pIndicators Strategy indicators to populate with entry/exit signals.
+ * @param pBase_Indicators Base indicators containing trend and ATR data.
+ * @return SUCCESS on success.
+ */
 AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -100,7 +175,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 
 	pIndicators->stopMovingBackSL = FALSE;
 
-	ma20Daily = iMA(3, B_DAILY_RATES, 20, startShift);
+	ma20Daily = iMA(3, B_DAILY_RATES, MA_BASELINE_PERIOD_20, startShift);
 	preDailyClose = iClose(B_DAILY_RATES, startShift);
 
 	if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
@@ -387,11 +462,11 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 		isDailyOnly = TRUE;
 	}
 
-	// After 23:00, check if need to enter
-	if (isEnableEntryEOD == TRUE && timeInfo1.tm_hour == 23)
+	// After end-of-day hour, check if need to enter (use current bar, relax MACD limit)
+	if (isEnableEntryEOD == TRUE && timeInfo1.tm_hour == END_OF_DAY_HOUR)
 	{
 		startShift = 0;
-		macdLimit = level / 2;
+		macdLimit = level / MACD_LIMIT_DIVISOR;
 
 		if (strstr(pParams->tradeSymbol, "XTIUSD") != NULL)
 		{
@@ -403,8 +478,8 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 	safe_gmtime(&timeInfoPreBar, preBarTime);
 
 
-	// If previous day close price not exceed 0.2 daily ATR, wait for next day
-	if (timeInfo1.tm_hour >= 1
+	// If previous day close price not exceed threshold daily ATR, wait for next day
+	if (timeInfo1.tm_hour >= START_HOUR_DEFAULT
 		&& (isDailyOnly == FALSE || timeInfo1.tm_mday != timeInfoPreBar.tm_mday)
 		) // 1:00 start, avoid the first hour
 	{
@@ -486,7 +561,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 			if (//fast > slow && preFast <= preSlow &&				
 				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
 				&& pIndicators->fast > pIndicators->preFast
-				&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
+				&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * ATR_PRICE_PERCENTAGE_FACTOR * ATR_PRICE_MULTIPLIER)
 				&& (isVolumeControl == FALSE || pIndicators->volume1 > pIndicators->volume2)
 				&& (isEnableCMFVolume == FALSE || pIndicators->cmfVolume > 0)
 				&& (isEnableCMFVolumeGap == FALSE || pIndicators->CMFVolumeGap > 0)
@@ -494,7 +569,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 				&& (isWeeklyBaseLine == FALSE ||
 				(preWeeklyClose > weekly_baseline && (weekly_baseline_short > weekly_baseline || pre3KTrend == UP))
 				)
-				&& pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift) <= 0.2 * pBase_Indicators->dailyATR
+				&& pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift) <= PRICE_GAP_THRESHOLD_FACTOR * pBase_Indicators->dailyATR
 				)
 			{
 				safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].closeTime);
@@ -599,7 +674,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily_New(StrategyParams* pParams,
 			if (//fast < slow && preFast >= preSlow &&
 				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
 				&& pIndicators->fast < pIndicators->preFast
-				&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * 0.01 * 0.55)
+				&& (isEnableATR == FALSE || atr5 > pIndicators->entryPrice * ATR_PRICE_PERCENTAGE_FACTOR * ATR_PRICE_MULTIPLIER)
 				&& (isVolumeControl == FALSE || pIndicators->volume1 > pIndicators->volume2)
 				&& (isEnableCMFVolume == FALSE || pIndicators->cmfVolume < 0)
 				&& (isEnableCMFVolumeGap == FALSE || pIndicators->CMFVolumeGap > 0)
@@ -837,7 +912,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 
 	pIndicators->stopMovingBackSL = FALSE;
 
-	ma20Daily = iMA(3, B_DAILY_RATES, 20, startShift);
+	ma20Daily = iMA(3, B_DAILY_RATES, MA_BASELINE_PERIOD_20, startShift);
 	preDailyClose = iClose(B_DAILY_RATES, startShift);
 
 	dailyBaseLine = ma20Daily;
@@ -1583,7 +1658,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						weekly_baseline_short <= weekly_baseline && pre3KTrend != UP
 						)
 					{
-						sprintf(pIndicators->status, "Weekly_baseline_short %lf is less than weekly_baseline %lf and pre3KTrend %lf is not UP.",
+						sprintf(pIndicators->status, "Weekly_baseline_short %lf is less than weekly_baseline %lf and pre3KTrend %d is not UP.",
 							weekly_baseline_short, weekly_baseline, pre3KTrend);
 
 						logWarning("System InstanceID = %d, BarTime = %s, %s",
@@ -1797,7 +1872,7 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						weekly_baseline_short >= weekly_baseline && pre3KTrend != DOWN
 						)
 					{
-						sprintf(pIndicators->status, "Weekly_baseline_short %lf is greater than weekly_baseline %lf and pre3KTrend %lf is not DOWN",
+						sprintf(pIndicators->status, "Weekly_baseline_short %lf is greater than weekly_baseline %lf and pre3KTrend %d is not DOWN",
 							weekly_baseline_short, weekly_baseline, pre3KTrend);
 
 						logWarning("System InstanceID = %d, BarTime = %s, %s",

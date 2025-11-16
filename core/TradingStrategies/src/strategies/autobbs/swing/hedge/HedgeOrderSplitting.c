@@ -16,6 +16,12 @@
 /**
  * Split buy orders for short-term ATR hedge strategy.
  * Used by splitTradeMode 14 (ATR variant).
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure containing entry price and risk
+ * @param pBase_Indicators Base indicators structure containing daily ATR and price ranges
+ * @param takePrice_primary Primary take profit target (unused, calculated internally)
+ * @param stopLoss Stop loss distance
  */
 void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
@@ -27,7 +33,7 @@ void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIn
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//Range reversal: if down_gap <= 1/3 ATR
+	/* Range reversal: Enter buy when price is within 1/3 ATR of lower range */
 	if (down_gap <= pATR / 3)
 	{
 		takePrice = up_gap / 4;
@@ -39,6 +45,12 @@ void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIn
 /**
  * Split sell orders for short-term ATR hedge strategy.
  * Used by splitTradeMode 14 (ATR variant).
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure containing entry price and risk
+ * @param pBase_Indicators Base indicators structure containing daily ATR and price ranges
+ * @param takePrice_primary Primary take profit target (unused, calculated internally)
+ * @param stopLoss Stop loss distance
  */
 void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
@@ -50,7 +62,7 @@ void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pI
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//Range reversal: if up_gap <= 1/3 ATR
+	/* Range reversal: Enter sell when price is within 1/3 ATR of upper range */
 	if (up_gap <= pATR / 3)
 	{
 		takePrice = down_gap / 4;
@@ -62,6 +74,12 @@ void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams* pParams, Indicators* pI
 /**
  * Split buy orders for short-term hedge strategy.
  * Used by splitTradeMode 14.
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure containing entry price and risk
+ * @param pBase_Indicators Base indicators structure containing daily ATR and price ranges
+ * @param takePrice_primary Primary take profit target (unused, calculated internally)
+ * @param stopLoss Stop loss distance
  */
 void splitBuyOrders_ShortTerm_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
@@ -73,20 +91,27 @@ void splitBuyOrders_ShortTerm_Hedge(StrategyParams* pParams, Indicators* pIndica
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//Range reversal: if down_gap <= 1/3 ATR
+	/* Range reversal: Enter buy when price is within 1/3 ATR of lower range */
 	if (down_gap <= pATR / 3)
 	{
 		takePrice = up_gap / 4;
+		/* Double risk if up gap is very small (within 1/4 ATR) */
 		if (up_gap <= pATR / 4)
 			pIndicators->risk *= 2;
 		lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice) * pIndicators->risk * 3;
-		openSingleLongEasy(takePrice, stopLoss, lots, 0);		
+		openSingleLongEasy(takePrice, stopLoss, lots, 0);
 	}
 }
 
 /**
  * Split sell orders for short-term hedge strategy.
  * Used by splitTradeMode 14.
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure containing entry price and risk
+ * @param pBase_Indicators Base indicators structure containing daily ATR and price ranges
+ * @param takePrice_primary Primary take profit target (unused, calculated internally)
+ * @param stopLoss Stop loss distance
  */
 void splitSellOrders_ShortTerm_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
@@ -98,10 +123,11 @@ void splitSellOrders_ShortTerm_Hedge(StrategyParams* pParams, Indicators* pIndic
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	//Range reversal: if up_gap <= 1/3 ATR
+	/* Range reversal: Enter sell when price is within 1/3 ATR of upper range */
 	if (up_gap <= pATR / 3)
 	{
 		takePrice = down_gap / 4;
+		/* Double risk if up gap is very small (within 1/4 ATR) */
 		if (up_gap <= pATR / 4)
 			pIndicators->risk *= 2;
 		lots = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, takePrice) * pIndicators->risk * 3;

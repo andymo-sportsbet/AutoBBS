@@ -2,6 +2,8 @@
  * MACD Weekly Strategy Module
  * 
  * Provides MACD Weekly strategy execution functions.
+ * This strategy uses weekly MACD indicators to determine entry and exit signals
+ * for longer-term trend-following trades.
  */
 
 #include "Precompiled.h"
@@ -16,6 +18,56 @@
 #include "strategies/autobbs/trend/macd/MACDWeeklyStrategy.h"
 #include "strategies/autobbs/trend/macd/MACDOrderSplitting.h"
 
+// Strategy configuration constants
+#define SPLIT_TRADE_MODE_MACD_WEEKLY 25    // Split trade mode for MACD Weekly strategy
+#define TP_MODE_DAILY_ATR 3                // Take profit mode: daily ATR
+#define TP_MODE_STANDARD 1                 // Standard trade mode
+
+// MACD calculation parameters
+#define MACD_FAST_PERIOD 5                 // Fast MA period for MACD
+#define MACD_SLOW_PERIOD 10                // Slow MA period for MACD
+#define MACD_SIGNAL_PERIOD 5               // Signal MA period for MACD
+
+// MACD level thresholds (symbol-specific)
+#define MACD_LEVEL_XAU 10                  // MACD level threshold for XAU symbols
+#define MACD_LEVEL_JPY 0                   // MACD level threshold for JPY pairs
+#define MACD_LEVEL_DEFAULT 0.0005          // Default MACD level threshold for other symbols
+
+// Volume MA period
+#define VOLUME_MA_PERIOD 3                 // Period for volume moving average
+
+/**
+ * @brief Executes MACD Weekly strategy.
+ * 
+ * This function implements a weekly MACD-based trading strategy that:
+ * 1. Calculates weekly MACD indicators (fast, slow, signal).
+ * 2. Determines entry signals based on MACD crossover and weekly trend.
+ * 3. Sets stop loss based on predicted weekly max ATR.
+ * 4. Uses volume confirmation for entry signals.
+ * 
+ * Entry Conditions (BUY):
+ * - MACD fast > level threshold (symbol-specific)
+ * - Weekly trend > 0
+ * MACD fast > MACD slow (bullish crossover)
+ * - Volume1 > Volume2 (volume confirmation)
+ * - MACD fast > previous MACD fast (momentum)
+ * 
+ * Entry Conditions (SELL):
+ * - MACD fast < -level threshold
+ * - Weekly trend < 0
+ * - MACD fast < MACD slow (bearish crossover)
+ * - Volume1 > Volume2 (volume confirmation)
+ * - MACD fast < previous MACD fast (momentum)
+ * 
+ * Exit Conditions:
+ * - BUY exit: MACD fast > MACD slow AND previous MACD fast <= previous MACD slow
+ * - SELL exit: MACD fast < MACD slow AND previous MACD fast >= previous MACD slow
+ * 
+ * @param pParams Strategy parameters.
+ * @param pIndicators Strategy indicators to populate with entry/exit signals.
+ * @param pBase_Indicators Base indicators containing weekly trend and ATR data.
+ * @return SUCCESS on success.
+ */
 AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -49,36 +101,32 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, In
 
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 
-	pIndicators->splitTradeMode = 25;
-	pIndicators->tpMode = 3;
+	pIndicators->splitTradeMode = SPLIT_TRADE_MODE_MACD_WEEKLY;
+	pIndicators->tpMode = TP_MODE_DAILY_ATR;
+	pIndicators->tradeMode = TP_MODE_STANDARD;
 
-	pIndicators->tradeMode = 1;
-
-	//ma50Daily = iMA(3, B_DAILY_RATES, 50, 1);
-	//preDailyClose = iClose(B_DAILY_RATES, 1);
-
+	// Set MACD level threshold based on symbol
 	if (strstr(pParams->tradeSymbol, "XAU") != NULL)
-		level = 10; // XAUUSD
+		level = MACD_LEVEL_XAU;
 	else if (strstr(pParams->tradeSymbol, "JPY") != NULL)
-		level = 0; //GBPJPY
+		level = MACD_LEVEL_JPY;
 	else
-		level = 0.0005; //EURUSD
+		level = MACD_LEVEL_DEFAULT;
 
 	//if (timeInfo1.tm_hour == 1) // 1:00 start, avoid the first hour
 	{
-		//Volume indicator....
-		// preVolume > MA: current volume > past average volume
+		// Volume indicator: current volume > past average volume
 		volume1 = iVolume(B_WEEKLY_RATES, 1);
 		volume2 = iVolume(B_WEEKLY_RATES, 2);
-		volume_ma_3 = iMA(4, B_WEEKLY_RATES, 3, 1);
+		volume_ma_3 = iMA(4, B_WEEKLY_RATES, VOLUME_MA_PERIOD, 1);
 
-		//Load MACD
-		fast = iMACD(B_WEEKLY_RATES, 5, 10, 5, 0, 1);
-		slow = iMACD(B_WEEKLY_RATES, 5, 10, 5, 1, 1);
+		// Load MACD indicators
+		fast = iMACD(B_WEEKLY_RATES, MACD_FAST_PERIOD, MACD_SLOW_PERIOD, MACD_SIGNAL_PERIOD, 0, 1);
+		slow = iMACD(B_WEEKLY_RATES, MACD_FAST_PERIOD, MACD_SLOW_PERIOD, MACD_SIGNAL_PERIOD, 1, 1);
 
-
-		preFast = iMACD(B_WEEKLY_RATES, 5, 10, 5, 0, 2);
-		preSlow = iMACD(B_WEEKLY_RATES, 5, 10, 5, 1, 2);
+		// Previous period MACD values
+		preFast = iMACD(B_WEEKLY_RATES, MACD_FAST_PERIOD, MACD_SLOW_PERIOD, MACD_SIGNAL_PERIOD, 0, 2);
+		preSlow = iMACD(B_WEEKLY_RATES, MACD_FAST_PERIOD, MACD_SLOW_PERIOD, MACD_SIGNAL_PERIOD, 1, 2);
 
 
 		logWarning("System InstanceID = %d, BarTime = %s, preClose =%lf, fast=%lf, slow=%lf",
@@ -95,90 +143,56 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Weekly(StrategyParams* pParams, In
 		//	return FALSE;
 		//}
 
+		// BUY signal conditions
 		if (fast > level
-			//&& slow > 0 
 			&& weeklyTrend > 0 
 			&& fast > slow
-			) // Buy
+			)
 		{
 			pIndicators->executionTrend = 1;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
-
 			pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->pWeeklyPredictMaxATR;
-			//pIndicators->stopLossPrice = pIndicators->entryPrice - pBase_Indicators->dailyATR;
 
-
-			//pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			//pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
-
-			if (//fast > slow && preFast <= preSlow &&				
-				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
-				//&& atr5 > pIndicators->entryPrice * 0.01 * 0.55
-				//&& getSameSideTradesInCurrentTrendEasy(B_PRIMARY_RATES, BUY) < 4
+			// Entry signal: no open orders, volume confirmation, and MACD momentum
+			if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
 				&& volume1 > volume2
 				&& fast > preFast
 				)
 			{
 				pIndicators->entrySignal = 1;
-
-				//if (pParams->orderInfo[orderIndex].type == BUY &&
-				//	pParams->orderInfo[orderIndex].profit > 0 && fabs(pParams->orderInfo[orderIndex].closePrice - pParams->orderInfo[orderIndex].openPrice) >= 1) //GBPJPY first, over 100 points
-				//{
-				//	pIndicators->tradeMode = 2;
-				//}
 			}
 			pIndicators->exitSignal = EXIT_SELL;
-
 		}
 
+		// SELL signal conditions
 		if (fast < (level * -1)
-			//&& slow < 0 
 			&& weeklyTrend < 0
 			&& fast < slow
-			//			&& fast < preFast			
-			) // Sell
+			)
 		{
 			pIndicators->executionTrend = -1;
 			pIndicators->entryPrice = pParams->bidAsk.bid[0];
-
 			pIndicators->stopLossPrice = pIndicators->entryPrice + pBase_Indicators->pWeeklyPredictMaxATR;
-			//pIndicators->stopLossPrice = pIndicators->entryPrice + 1.5 * pBase_Indicators->dailyATR;
 
-			//pIndicators->stopLossPrice = pBase_Indicators->dailyS;
-			//pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-
-			if (//fast < slow && preFast >= preSlow &&
-				(orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
-				//&& atr5 > pIndicators->entryPrice * 0.01 * 0.55
-				//&& getSameSideTradesInCurrentTrendEasy(B_PRIMARY_RATES, SELL) < 4
+			// Entry signal: no open orders, volume confirmation, and MACD momentum
+			if ((orderIndex < 0 || (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == FALSE))
 				&& volume1 > volume2
 				&& fast < preFast
 				)
 			{
 				pIndicators->entrySignal = -1;
-
-				//if (pParams->orderInfo[orderIndex].type == SELL 
-				//	&&  pParams->orderInfo[orderIndex].profit > 0 && fabs(pParams->orderInfo[orderIndex].closePrice - pParams->orderInfo[orderIndex].openPrice) >= 1) //GBPJPY first, over 100 points
-				//{					
-				//	pIndicators->tradeMode = 2;
-				//}
 			}
 
 			pIndicators->exitSignal = EXIT_BUY;
-
 		}
 
 
-		// Exit signal from daily chart: enter range
-
-		if (fast > slow && preFast <= preSlow) // Exit SELL		
+		// Exit signals: MACD crossover reversal
+		if (fast > slow && preFast <= preSlow) // Exit SELL (close short positions)
 			pIndicators->exitSignal = EXIT_SELL;
 
-		if (fast < slow && preFast >= preSlow) // Exit SELL		
+		if (fast < slow && preFast >= preSlow) // Exit BUY (close long positions)
 			pIndicators->exitSignal = EXIT_BUY;
-
-		//if (dailyTrend == 0)		
-		//	pIndicators->exitSignal = EXIT_ALL;
 	}
 
 	return SUCCESS;

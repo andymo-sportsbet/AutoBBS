@@ -661,12 +661,13 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 // Removed duplicate definition - using the one from WeeklyAutoStrategy.c
 
 /*
-Ϊʹ15MBBS볡
-4HؼKM50,M200
-ƶֹûexit.
-ֹӯڶ̬ߵ͵ATR
-ܲԤⲨֹͣ볡ƶֹ
-*/
+ * Strategy description:
+ * - Uses 15M BBS breakout
+ * - 4H timeframe with MA50 and MA200
+ * - Stop loss: no exit on stop loss
+ * - Take profit: second level high/low ATR
+ * - Predicted stop loss breakout movement
+ */
 
 /*
 1. Check Trend by MACD and Shellington and default
@@ -1934,8 +1935,3 @@ AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams,
 	return SUCCESS;
 }
 
-
-//
-
-//
-//	return SUCCESS;

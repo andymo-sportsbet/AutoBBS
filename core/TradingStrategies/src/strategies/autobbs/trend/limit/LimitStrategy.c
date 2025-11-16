@@ -1,7 +1,29 @@
 /*
  * Limit Strategy Module
  * 
- * Provides Limit strategy execution functions.
+ * Provides Limit strategy execution functions with extensive symbol-specific
+ * configurations. This module implements limit order strategies based on:
+ * - MACD indicators for trend determination
+ * - Daily/weekly support/resistance levels
+ * - BBS (Bollinger Bands Stop) indicators
+ * - Range order management
+ * - Time-based trading restrictions
+ * - Risk management and profit targets
+ * 
+ * Features:
+ * - Symbol-specific parameter configurations (GBPJPY, USDJPY, GBPUSD, XAUUSD, EURGBP, EURUSD, BTCUSD, ETHUSD, AUDUSD)
+ * - MACD-based entry/exit signals
+ * - Range trading support
+ * - RSI filtering
+ * - Stop loss management with trailing stops
+ * - Take profit management
+ * - Date filtering (non-farm payroll, Christmas, New Year)
+ * - Time-based trading windows
+ * 
+ * Strategy Modes:
+ * - Standard limit orders at pivot/S1/R1 levels
+ * - Range orders for mean reversion
+ * - Stop orders for breakout trades
  */
 
 #include "Precompiled.h"
@@ -21,6 +43,132 @@
 #include "strategies/autobbs/trend/common/TimeManagement.h"
 #include "strategies/autobbs/trend/common/OrderSplittingUtilities.h"  // For splitBuyRangeOrders, splitSellRangeOrders
 
+// Strategy configuration constants
+#define SPLIT_TRADE_MODE_LIMIT 4             // Split trade mode for Limit strategy
+#define TP_MODE_RATIO_1_TO_1 0              // Take profit mode: 1:1 ratio
+#define DEFAULT_RISK_LEVEL 1                 // Default risk level
+
+// MACD parameters
+#define MACD_FAST_PERIOD_SHORT 5             // Short-term fast MA period for MACD
+#define MACD_SLOW_PERIOD_SHORT 10            // Short-term slow MA period for MACD
+#define MACD_SIGNAL_SHORT 5                  // Short-term signal MA period for MACD
+#define MACD_FAST_PERIOD_BTC_ETH 7          // Fast MA period for BTC/ETH
+#define MACD_SLOW_PERIOD_BTC_ETH 14         // Slow MA period for BTC/ETH
+#define MACD_SIGNAL_BTC_ETH 7               // Signal MA period for BTC/ETH
+
+// Time constants
+#define DEFAULT_CLOSE_HOUR 23                // Default close hour
+#define DEFAULT_STOP_HOUR 23                  // Default stop hour
+#define START_HOUR_GBPJPY_GBPUSD_EURGBP_EURUSD 3 // Start hour for GBPJPY, GBPUSD, EURGBP, EURUSD
+#define START_HOUR_BTC_ETH 0                 // Start hour for BTCUSD and ETHUSD
+#define START_HOUR_AUDUSD 3                  // Start hour for AUDUSD
+#define STOP_HOUR_XAUUSD 22                  // Stop hour for XAUUSD
+#define STOP_HOUR_AUDUSD 17                  // Stop hour for AUDUSD
+#define START_HOUR_ON_LIMIT_XAUUSD 8         // Start hour on limit for XAUUSD
+#define LATE_HOUR_THRESHOLD 23               // Late hour threshold for start shift adjustment
+#define LATE_MINUTE_THRESHOLD 30              // Late minute threshold for start shift adjustment
+
+// ATR and calculation constants
+#define ATR_PERIOD_4H_MA_TREND 20           // ATR period for 4H MA trend calculation
+#define ATR_PERIOD_HOURLY_DEFAULT 20        // Default ATR period for hourly calculation
+#define ATR_PERIOD_SUNDAY 50                // ATR period for Sunday
+#define ATR_PERIOD_DAILY_TAKE_PRICE 1       // ATR period for daily take price calculation
+#define DAILY_ATR_DIVISOR_FOR_PENDING_CHECK 3 // ATR divisor for pending order check
+#define DAILY_ATR_MULTIPLIER_FOR_ADJUST 0.01 // ATR multiplier for adjust calculation (1%)
+
+// Risk adjustment constants
+#define RISK_REDUCED_GBPUSD_WEDNESDAY 0.6    // Reduced risk for GBPUSD on Wednesday
+#define RISK_REDUCED_XAUUSD_WEDNESDAY 0.6    // Reduced risk for XAUUSD on Wednesday
+#define RISK_REDUCED_XAUUSD_THURSDAY 0.5     // Reduced risk for XAUUSD on Thursday
+#define RISK_REDUCED_BTC_ETH_WEEKDAYS 0.5    // Reduced risk for BTC/ETH on weekdays
+#define RISK_REDUCED_RANGE_TRADE 0.5         // Reduced risk for range trades
+
+// RSI constants
+#define RSI_LOW_THRESHOLD 20.0              // RSI low threshold
+#define RSI_HIGH_THRESHOLD 80.0             // RSI high threshold
+#define RSI_TRADING_DAYS_DEFAULT 10         // Default trading days for RSI calculation
+#define RSI_TRADING_DAYS_BTC_ETH 14         // Trading days for RSI calculation (BTC/ETH)
+
+// Date filtering constants
+#define SUNDAY_WDAY 0                       // Sunday (tm_wday == 0)
+#define WEDNESDAY_WDAY 3                    // Wednesday (tm_wday == 3)
+#define THURSDAY_WDAY 4                     // Thursday (tm_wday == 4)
+#define FRIDAY_WDAY 5                       // Friday (tm_wday == 5)
+#define NON_FARM_PAYROLL_DAY_RANGE 7          // Day range for non-farm payroll (first Friday)
+#define CHRISTMAS_MONTH 11                   // December (tm_mon == 11)
+#define CHRISTMAS_EVE_DAY 24                 // December 24
+#define NEW_YEAR_EVE_DAY 31                  // December 31
+
+// Stop loss and take profit constants
+#define STOP_LOSS_LEVEL_1X 1.0              // Stop loss level multiplier (1x take profit)
+#define STOP_LOSS_LEVEL_2X 2.0              // Stop loss level multiplier (2x take profit)
+#define MINUTES_FOR_HIGH_LOW_LOOKBACK 5      // Minutes for high/low price lookback (5 * 60)
+#define MINUTES_FOR_TP_MOVE_CHECK 4         // Minutes for TP move check (4 * 60)
+#define MINUTES_FOR_TP_MOVE_CHECK_MAX 6     // Maximum minutes for TP move check (6 * 60)
+#define MINUTES_FOR_STOP_LOSS_MOVE_XAUUSD 9 // Minutes for stop loss move (XAUUSD) (9 * 60)
+#define HOUR_FOR_STOP_LOSS_MOVE_XAUUSD_START 15 // Start hour for stop loss move (XAUUSD)
+#define HOUR_FOR_STOP_LOSS_MOVE_XAUUSD_END 16   // End hour for stop loss move (XAUUSD)
+
+// Daily SR levels calculation
+#define DAILY_SR_LEVELS_LONG 26             // Number of bars for long-term daily SR levels
+#define DAILY_SR_LEVELS_SHORT 9             // Number of bars for short-term daily SR levels
+
+// MA calculation constants
+#define MA_PERIOD_DAILY_BASELINE 50         // MA period for daily baseline calculation
+#define MA_PERIOD_FLAT_TREND_CHECK 20       // MA period for flat trend check
+#define MA_PERIOD_960M 960                   // MA period for 960-minute calculation
+
+// Loss management constants
+#define MAX_LOSS_TIMES_THRESHOLD 2          // Maximum loss times threshold
+#define TOO_FAR_LIMIT_DEFAULT 1             // Default too far limit
+#define TOO_FAR_LIMIT_BTC_ETH 2             // Too far limit for BTC/ETH
+
+// Spread constants
+#define SPREAD_MULTIPLIER_THRESHOLD 1.5     // Spread multiplier threshold
+
+// Auto mode constants
+#define AUTO_MODE_CANCEL_ALL_ORDERS 3       // Auto mode: cancel all orders
+#define AUTO_MODE_DISABLED 0                // Auto mode disabled
+
+// Entry mode constants
+#define ENTRY_MODE_1_TO_1 1                 // Entry mode: 1:1 risk/reward ratio
+#define ENTRY_MODE_ATR_RANGE 3               // Entry mode: ATR range
+
+/**
+ * @brief Executes Limit strategy.
+ * 
+ * This function implements a comprehensive limit order strategy with extensive
+ * symbol-specific configurations. It determines entry and exit signals based on:
+ * - Daily trend and MACD trend alignment
+ * - BBS indicators
+ * - Support/resistance levels
+ * - Time-based restrictions
+ * - Risk management rules
+ * 
+ * Entry Conditions:
+ * - Trend determined by daily trend, MACD, and optional Shellington/flat trend filters
+ * - Price action relative to pivot/S1/R1 levels
+ * - Time window restrictions
+ * - Range order conditions (if enabled)
+ * 
+ * Exit Conditions:
+ * - Take profit hit
+ * - Stop loss hit
+ * - Time-based exit (stop hour)
+ * - Trend reversal (if exit mode enabled)
+ * 
+ * Additional Features:
+ * - Stop loss trailing (move to break-even, then trail)
+ * - Take profit adjustment
+ * - Range order management
+ * - Loss limit protection
+ * - Spread filtering
+ * 
+ * @param pParams Strategy parameters.
+ * @param pIndicators Strategy indicators to populate with entry/exit signals.
+ * @param pBase_Indicators Base indicators containing trend and ATR data.
+ * @return SUCCESS on success.
+ */
 AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -35,11 +183,11 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	double fast1, fast2;
 	double slow1, slow2;
 	double dailyBaseLine;
-	int fastMAPeriod = 5, slowMAPeriod = 10, signalMAPeriod = 5;
+	int fastMAPeriod = MACD_FAST_PERIOD_SHORT, slowMAPeriod = MACD_SLOW_PERIOD_SHORT, signalMAPeriod = MACD_SIGNAL_SHORT;
 	int startShift = 1;
-	double preDailyClose,preDailyHigh,preDailyLow,preDailyOpen;
+	double preDailyClose, preDailyHigh, preDailyLow, preDailyOpen;
 	int trend_4H = 0, trend_KeyK = 0, trend_MA = 0;
-	int entryMode = 1; // 1 to 1 (risk/reward ratio) 3: ATR range
+	int entryMode = ENTRY_MODE_1_TO_1; // 1:1 risk/reward ratio
 	double stopLossLevel = (double)parameter(AUTOBBS_RISK_CAP);
 	double moveTPLimit = (double)parameter(AUTOBBS_KEYK);
 	int autoMode = (int)parameter(AUTOBBS_IS_AUTO_MODE);	
@@ -48,7 +196,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	double highPrice, lowPrice;
 	int isMoveTP = (int)parameter(AUTOBBS_TP_MODE);
 	BOOL isMoveTPInNewDay = TRUE;
-	int closeHour = 23, startHour = pIndicators->startHour;
+	int closeHour = DEFAULT_CLOSE_HOUR, startHour = pIndicators->startHour;
 	BOOL isEnableRangeTrade = FALSE;
 	int trend = UNKNOWN;
 	int truningPointIndex = -1, minPointIndex = -1;
@@ -61,17 +209,17 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	BOOL isEnableFlatTrend = FALSE;
 	BOOL isEnableWeeklyATR = TRUE;
 	BOOL isEnableTooFar = FALSE;
-	int stopHour = 23;		
-	double tooFarLimit = 1;
+	int stopHour = DEFAULT_STOP_HOUR;		
+	double tooFarLimit = TOO_FAR_LIMIT_DEFAULT;
 	int barState = BAR_UNKNOWN;
 	double shortDailyHigh = 0.0, shortDailyLow = 0.0, dailyHigh = 0.0, dailyLow = 0.0;
 	double daily_baseline = 0.0, daily_baseline_short = 0.0;
-	double rsi = 0.0, rsiLow = 20.0, rsiHigh = 80.0;
-	int tradingDays = 10;
+	double rsi = 0.0, rsiLow = RSI_LOW_THRESHOLD, rsiHigh = RSI_HIGH_THRESHOLD;
+	int tradingDays = RSI_TRADING_DAYS_DEFAULT;
 	BOOL isEnableRSI = FALSE;
 	BOOL isEnableDoubleEntry = FALSE, isEnableDoubleEntry2 = FALSE;
 	int rangeType = 0;
-	int atrTimes = 20;
+	int atrTimes = ATR_PERIOD_HOURLY_DEFAULT;
 	BOOL isEnableTooBigSpread = FALSE;
 	double ma960M = 0.0;
 	int count = 0;
@@ -80,29 +228,28 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	pIndicators->splitTradeMode = 4;
-	pIndicators->tpMode = 0;
-
+	pIndicators->splitTradeMode = SPLIT_TRADE_MODE_LIMIT;
+	pIndicators->tpMode = TP_MODE_RATIO_1_TO_1;
 	pIndicators->executionTrend = 0;
-
-	pIndicators->risk = 1;
+	pIndicators->risk = DEFAULT_RISK_LEVEL;
 	pIndicators->isEnableLimitSR1 = FALSE;
 
 	pIndicators->takePriceLevel = (double)parameter(AUTOBBS_IS_ATREURO_RANGE);
 
-	//Move to break event if it moves to more than 2 *TP 
+	// Move to break-even if price moves to more than 2 * TP
 	orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
-	//Find the highest close price after order is opened			
-	getHighLowPrice(pParams, pIndicators, pBase_Indicators, B_PRIMARY_RATES, 5 * 60, orderIndex, &highPrice, &lowPrice);
+	// Find the highest/lowest price after order is opened
+	getHighLowPrice(pParams, pIndicators, pBase_Indicators, B_PRIMARY_RATES, MINUTES_FOR_HIGH_LOW_LOOKBACK * 60, orderIndex, &highPrice, &lowPrice);
 
 	pIndicators->adjust = fabs(pParams->bidAsk.bid[0] - pParams->bidAsk.ask[0]);	
 
 	count = timeInfo1.tm_hour * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]);
 
-	ma960M = iMA(3, B_PRIMARY_RATES, 960, 1+ count);
+	ma960M = iMA(3, B_PRIMARY_RATES, MA_PERIOD_960M, 1 + count);
 	
-	if (timeInfo1.tm_wday == 0)
-		atrTimes = 50;
+	// Use longer ATR period on Sunday
+	if (timeInfo1.tm_wday == SUNDAY_WDAY)
+		atrTimes = ATR_PERIOD_SUNDAY;
 
 	logInfo("System InstanceID = %d, BarTime = %s,ask=%lf,bid=%lf,adjsut=%lf",
 		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString,pParams->bidAsk.ask[0], pParams->bidAsk.bid[0], pIndicators->adjust);
@@ -110,7 +257,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 	if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
 	{
-		startHour = 3;
+		startHour = START_HOUR_GBPJPY_GBPUSD_EURGBP_EURUSD;
 		if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
 			&& (pParams->orderInfo[orderIndex].type == BUY && pBase_Indicators->maTrend < 0
 			|| pParams->orderInfo[orderIndex].type == SELL && pBase_Indicators->maTrend > 0)
@@ -136,10 +283,11 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPUSD") != NULL)
 	{
-		if (timeInfo1.tm_wday == 3)
-			pIndicators->risk = 0.6;
+		// Reduce risk on Wednesday for GBPUSD
+		if (timeInfo1.tm_wday == WEDNESDAY_WDAY)
+			pIndicators->risk = RISK_REDUCED_GBPUSD_WEDNESDAY;
 
-		startHour = 3;
+		startHour = START_HOUR_GBPJPY_GBPUSD_EURGBP_EURUSD;
 
 		//isEnableFlatTrend = TRUE;
 		//isEnableShellingtonTrend = TRUE;
@@ -150,9 +298,9 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	}
 	else if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{		
-
-		if (timeInfo1.tm_wday == 3)
-			pIndicators->risk = 0.6;
+		// Reduce risk on Wednesday for XAUUSD
+		if (timeInfo1.tm_wday == WEDNESDAY_WDAY)
+			pIndicators->risk = RISK_REDUCED_XAUUSD_WEDNESDAY;
 
 		if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
 			&& (pParams->orderInfo[orderIndex].type == BUY && pBase_Indicators->maTrend < 0
@@ -160,13 +308,12 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			)
 			isCloseOrdersEOD = TRUE;
 		
-		startHour = 3;
-		pIndicators->startHourOnLimt = 8;
+		startHour = START_HOUR_GBPJPY_GBPUSD_EURGBP_EURUSD;
+		pIndicators->startHourOnLimt = START_HOUR_ON_LIMIT_XAUUSD;
+		stopHour = STOP_HOUR_XAUUSD;
 
-		stopHour = 22;
-
-		// filter non-farm payroll day
-		if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
+		// Filter non-farm payroll day (first Friday of the month)
+		if (timeInfo1.tm_wday == FRIDAY_WDAY && timeInfo1.tm_mday - NON_FARM_PAYROLL_DAY_RANGE < 1)
 		{
 
 			strcpy(pIndicators->status, "Filter Non-farm day\n");
@@ -179,7 +326,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 
 		//filter christmas eve and new year eve
-		if (timeInfo1.tm_mon == 11 && (timeInfo1.tm_mday == 24 || timeInfo1.tm_mday == 31))
+		if (timeInfo1.tm_mon == CHRISTMAS_MONTH && (timeInfo1.tm_mday == CHRISTMAS_EVE_DAY || timeInfo1.tm_mday == NEW_YEAR_EVE_DAY))
 		{
 			strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n");
 
@@ -189,8 +336,9 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			return SUCCESS;
 		}
 
-		if (timeInfo1.tm_wday == 4)
-			pIndicators->risk = 0.5;
+		// Reduce risk on Thursday for XAUUSD
+		if (timeInfo1.tm_wday == THURSDAY_WDAY)
+			pIndicators->risk = RISK_REDUCED_XAUUSD_THURSDAY;
 
 		isEnableShellingtonTrend = TRUE;
 		pIndicators->isEnableLimitSR1 = TRUE;
@@ -202,7 +350,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	}
 	else if (strstr(pParams->tradeSymbol, "EURGBP") != NULL)
 	{
-		startHour = 3;
+		startHour = START_HOUR_GBPJPY_GBPUSD_EURGBP_EURUSD;
 
 		if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
 			&& (pParams->orderInfo[orderIndex].type == BUY && pBase_Indicators->maTrend < 0
@@ -214,7 +362,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	}
 	else if (strstr(pParams->tradeSymbol, "EURUSD") != NULL)
 	{
-		startHour = 3;
+		startHour = START_HOUR_GBPJPY_GBPUSD_EURGBP_EURUSD;
 
 		if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
 			&& (pParams->orderInfo[orderIndex].type == BUY && pBase_Indicators->maTrend < 0
@@ -231,9 +379,8 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	}
 	else if (strstr(pParams->tradeSymbol, "BTCUSD") != NULL)
 	{
-		pIndicators->adjust = pBase_Indicators->dailyATR * 0.01;
-
-		startHour = 0;
+		pIndicators->adjust = pBase_Indicators->dailyATR * DAILY_ATR_MULTIPLIER_FOR_ADJUST;
+		startHour = START_HOUR_BTC_ETH;
 		pIndicators->startHourOnLimt = startHour;
 		if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
 			&& (pParams->orderInfo[orderIndex].type == BUY && pBase_Indicators->maTrend < 0
@@ -244,8 +391,9 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//if (timeInfo1.tm_wday == 0 || timeInfo1.tm_wday == 6)
 		//	pIndicators->risk = 0.6;
 
+		// Reduce risk on weekdays (Tuesday-Thursday) for BTCUSD
 		if (timeInfo1.tm_wday == 2 || timeInfo1.tm_wday == 3 || timeInfo1.tm_wday == 4)
-			pIndicators->risk = 0.5;
+			pIndicators->risk = RISK_REDUCED_BTC_ETH_WEEKDAYS;
 
 		if (timeInfo1.tm_wday == 0 || timeInfo1.tm_wday == 1)
 		{
@@ -263,7 +411,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//}
 
 		//filter christmas eve and new year eve
-		if (timeInfo1.tm_mon == 11 && (timeInfo1.tm_mday == 24 || timeInfo1.tm_mday == 31))
+		if (timeInfo1.tm_mon == CHRISTMAS_MONTH && (timeInfo1.tm_mday == CHRISTMAS_EVE_DAY || timeInfo1.tm_mday == NEW_YEAR_EVE_DAY))
 		{
 			strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n");
 
@@ -293,7 +441,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//if (timeInfo1.tm_wday == 6)
 		//	stopHour = 16;
 
-		tooFarLimit = 2;
+		tooFarLimit = TOO_FAR_LIMIT_BTC_ETH;
 
 		isEnableRangeTrade = FALSE;
 
@@ -301,22 +449,22 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 		isEnableTooFar = TRUE;
 
-		fastMAPeriod = 7;
-		slowMAPeriod = 14;
-		signalMAPeriod = 7;
+		fastMAPeriod = MACD_FAST_PERIOD_BTC_ETH;
+		slowMAPeriod = MACD_SLOW_PERIOD_BTC_ETH;
+		signalMAPeriod = MACD_SIGNAL_BTC_ETH;
 
-		tradingDays = 14;
+		tradingDays = RSI_TRADING_DAYS_BTC_ETH;
 	}
 	else if (strstr(pParams->tradeSymbol, "ETHUSD") != NULL)
 	{
-		if (fabs(pParams->bidAsk.ask[0] - pParams->bidAsk.bid[0]) > pIndicators->adjust * 1.5){
-
+		// Enable too big spread filter if spread exceeds threshold
+		if (fabs(pParams->bidAsk.ask[0] - pParams->bidAsk.bid[0]) > pIndicators->adjust * SPREAD_MULTIPLIER_THRESHOLD)
+		{
 			isEnableTooBigSpread = TRUE;
 		}
 		
-		pIndicators->adjust = pBase_Indicators->dailyATR * 0.01;
-
-		startHour = 0;
+		pIndicators->adjust = pBase_Indicators->dailyATR * DAILY_ATR_MULTIPLIER_FOR_ADJUST;
+		startHour = START_HOUR_BTC_ETH;
 		pIndicators->startHourOnLimt = startHour;
 		if (orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE
 			&& (pParams->orderInfo[orderIndex].type == BUY && pBase_Indicators->maTrend < 0
@@ -327,8 +475,9 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//if (timeInfo1.tm_wday == 0 || timeInfo1.tm_wday == 6)
 		//	pIndicators->risk = 0.6;
 
+		// Reduce risk on Tuesday and Thursday for ETHUSD
 		if (timeInfo1.tm_wday == 2 || timeInfo1.tm_wday == 4)
-			pIndicators->risk = 0.5;
+			pIndicators->risk = RISK_REDUCED_BTC_ETH_WEEKDAYS;
 
 		if (timeInfo1.tm_wday == 0 || timeInfo1.tm_wday == 1)
 		{
@@ -346,7 +495,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//}
 
 		//filter christmas eve and new year eve
-		if (timeInfo1.tm_mon == 11 && (timeInfo1.tm_mday == 24 || timeInfo1.tm_mday == 31))
+		if (timeInfo1.tm_mon == CHRISTMAS_MONTH && (timeInfo1.tm_mday == CHRISTMAS_EVE_DAY || timeInfo1.tm_mday == NEW_YEAR_EVE_DAY))
 		{
 			strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n");
 
@@ -376,7 +525,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		//if (timeInfo1.tm_wday == 6)
 		//	stopHour = 16;
 
-		tooFarLimit = 2;
+		tooFarLimit = TOO_FAR_LIMIT_BTC_ETH;
 
 		isEnableRangeTrade = FALSE;
 
@@ -384,11 +533,11 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 		isEnableTooFar = TRUE;
 
-		fastMAPeriod = 7;
-		slowMAPeriod = 14;
-		signalMAPeriod = 7;
+		fastMAPeriod = MACD_FAST_PERIOD_BTC_ETH;
+		slowMAPeriod = MACD_SLOW_PERIOD_BTC_ETH;
+		signalMAPeriod = MACD_SIGNAL_BTC_ETH;
 
-		tradingDays = 14;
+		tradingDays = RSI_TRADING_DAYS_BTC_ETH;
 
 
 	
@@ -402,7 +551,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			)
 			isCloseOrdersEOD = TRUE;
 
-		stopHour = 17;
+		stopHour = STOP_HOUR_AUDUSD;
 
 		isEnableMACDSlow = FALSE;
 		isEnableFlatTrend = TRUE;
@@ -416,7 +565,8 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		
 
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
-	if (timeInfo1.tm_hour >= 23 && timeInfo1.tm_min >= 30)
+	// Adjust start shift if late in the day
+	if (timeInfo1.tm_hour >= LATE_HOUR_THRESHOLD && timeInfo1.tm_min >= LATE_MINUTE_THRESHOLD)
 		startShift = 0;
 
 	//Load MACD
@@ -436,12 +586,12 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	preDailyLow = iLow(B_DAILY_RATES, startShift);
 	preDailyOpen = iOpen(B_DAILY_RATES, startShift);
 
-	dailyBaseLine = iMA(3, B_DAILY_RATES, 50, startShift);
+	dailyBaseLine = iMA(3, B_DAILY_RATES, MA_PERIOD_DAILY_BASELINE, startShift);
 
-	iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 26, &dailyHigh, &dailyLow);
+	iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, DAILY_SR_LEVELS_LONG, &dailyHigh, &dailyLow);
 	daily_baseline = (dailyHigh + dailyLow) / 2;
 
-	iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, 9, &shortDailyHigh, &shortDailyLow);
+	iSRLevels(pParams, pBase_Indicators, B_DAILY_RATES, shift1Index_Daily, DAILY_SR_LEVELS_SHORT, &shortDailyHigh, &shortDailyLow);
 	daily_baseline_short = (shortDailyHigh + shortDailyLow) / 2;
 
 	pBase_Indicators->mACDInTrend = 0;
@@ -482,7 +632,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		pBase_Indicators->mACDInTrend = -1;
 	}
 
-	trend_MA = getMATrend(iAtr(B_FOURHOURLY_RATES, 20, 1), B_FOURHOURLY_RATES, 1);
+	trend_MA = getMATrend(iAtr(B_FOURHOURLY_RATES, ATR_PERIOD_4H_MA_TREND, 1), B_FOURHOURLY_RATES, 1);
 
 	if (trend_MA > 0)
 		trend_4H = 1;
@@ -497,7 +647,8 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	//if (trend_4H == -1 && pIndicators->bbsTrend_4H == -1)
 	//	pBase_Indicators->shellingtonInTrend = -1;
 
-	if (fabs(iMA(3, B_DAILY_RATES, 20, 1) - iMA(3, B_DAILY_RATES, 20, 5)) / pBase_Indicators->dailyATR <= 0.05)
+	// Check for flat trend: if 20-period MA hasn't moved much relative to ATR
+	if (fabs(iMA(3, B_DAILY_RATES, MA_PERIOD_FLAT_TREND_CHECK, 1) - iMA(3, B_DAILY_RATES, MA_PERIOD_FLAT_TREND_CHECK, 5)) / pBase_Indicators->dailyATR <= 0.05)
 		pBase_Indicators->flatTrend = 1;
 	else
 		pBase_Indicators->flatTrend = 0;
@@ -546,7 +697,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	//AUTOBBS_IS_AUTO_MODE = 3, cancel all orders
 	//AUTOBBS_RISK_CAP=2 : stopLossLevel, by default is 2
 
-	pIndicators->takePrice = iAtr(B_HOURLY_RATES, atrTimes, 1);
+	pIndicators->takePrice = iAtr(B_HOURLY_RATES, atrTimes, ATR_PERIOD_DAILY_TAKE_PRICE);
 	pIndicators->stopLoss = stopLossLevel * pIndicators->takePrice;
 	pIndicators->stopLossPrice = 0; // No moving 
 	pIndicators->stopMovingBackSL = TRUE;
@@ -604,10 +755,11 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 	}
 	///////////////////
 
-	if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 3 || timeInfo1.tm_hour >= stopHour)
+	if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == AUTO_MODE_CANCEL_ALL_ORDERS || timeInfo1.tm_hour >= stopHour)
 	{
 		closeAllLimitAndStopOrdersEasy(currentTime);
-		if (isCloseOrdersEOD == TRUE && timeInfo1.tm_hour == 23 && timeInfo1.tm_min >= 50)
+		// Close orders at end of day if enabled
+		if (isCloseOrdersEOD == TRUE && timeInfo1.tm_hour == DEFAULT_CLOSE_HOUR && timeInfo1.tm_min >= 50)
 			closeAllCurrentDayShortTermOrdersEasy(1, currentTime);
 
 		//If the order is executed on the spot of stopHour, just close it immedeiatly. 
@@ -641,11 +793,12 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 
 
 	logInfo("System InstanceID = %d, BarTime = %s,startHour=%d,AUTOBBS_IS_AUTO_MODE=%d,isEnableRangeTrade=%d,pBase_dailyHigh=%lf,dailyLow=%lf,pDailyMaxATR=%lf,hourATR=%lf",
-		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->startHour, (int)parameter(AUTOBBS_IS_AUTO_MODE), (int)parameter(AUTOBBS_RANGE), iHigh(B_DAILY_RATES, 0), iLow(B_DAILY_RATES, 0), pBase_Indicators->pDailyMaxATR, iAtr(B_HOURLY_RATES, 20, 1));
+		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->startHour, (int)parameter(AUTOBBS_IS_AUTO_MODE), (int)parameter(AUTOBBS_RANGE), iHigh(B_DAILY_RATES, 0), iLow(B_DAILY_RATES, 0), pBase_Indicators->pDailyMaxATR, iAtr(B_HOURLY_RATES, ATR_PERIOD_HOURLY_DEFAULT, 1));
 	
 
 	totalLossTimes = getLossTimesInDayCloseOrderEasy(currentTime, &totalLossPoint);
-	if (totalLossTimes >= 2)
+	// Close all orders if loss times exceeds threshold
+	if (totalLossTimes >= MAX_LOSS_TIMES_THRESHOLD)
 	{
 		closeAllLimitAndStopOrdersEasy(currentTime);
 		closeAllCurrentDayShortTermOrdersEasy(1, currentTime);
@@ -746,7 +899,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			//	iClose(B_DAILY_RATES, 2) > iOpen(B_DAILY_RATES, 2) &&
 			//	iClose(B_DAILY_RATES, 3) > iOpen(B_DAILY_RATES, 3) &&
 			//	(orderIndex < 0 || pParams->orderInfo[orderIndex].isOpen == FALSE)
-			//	&& getWinTimesInDaywithSamePriceEasy(currentTime, pParams->bidAsk.ask[0], 3 * iAtr(B_HOURLY_RATES, 20, 1)) < 1
+			//	&& getWinTimesInDaywithSamePriceEasy(currentTime, pParams->bidAsk.ask[0], 3 * iAtr(B_HOURLY_RATES, ATR_PERIOD_HOURLY_DEFAULT, 1)) < 1
 			//	//&& getWinTimesInDayEasy(currentTime) < 1		
 			//	&& timeInfo1.tm_hour <= 15
 			//	&& iLow(B_DAILY_RATES, 0) <= iHigh(B_DAILY_RATES, 0) - pBase_Indicators->dailyATR/2				
@@ -820,7 +973,7 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			//	iClose(B_DAILY_RATES, 2) < iOpen(B_DAILY_RATES, 2) &&
 			//	iClose(B_DAILY_RATES, 3) < iOpen(B_DAILY_RATES, 3) &&
 			//	(orderIndex < 0 || pParams->orderInfo[orderIndex].isOpen == FALSE)
-			//	&& getWinTimesInDaywithSamePriceEasy(currentTime, pParams->bidAsk.ask[0], 3 * iAtr(B_HOURLY_RATES, 20, 1)) < 1
+			//	&& getWinTimesInDaywithSamePriceEasy(currentTime, pParams->bidAsk.ask[0], 3 * iAtr(B_HOURLY_RATES, ATR_PERIOD_HOURLY_DEFAULT, 1)) < 1
 			//	//&& getWinTimesInDayEasy(currentTime) < 1		
 			//	&& timeInfo1.tm_hour <= 15				
 			//	&& iHigh(B_DAILY_RATES, 0) >= iLow(B_DAILY_RATES, 0) + pBase_Indicators->dailyATR/2
@@ -832,9 +985,9 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 			//}
 
 		}
-		else if (trend == RANGE  && isEnableRangeTrade == TRUE)
-		{
-			pIndicators->risk = 0.5;
+	else if (trend == RANGE && isEnableRangeTrade == TRUE)
+	{
+		pIndicators->risk = RISK_REDUCED_RANGE_TRADE;
 			entryBuyRangeOrder(pParams, pIndicators, pBase_Indicators, orderIndex, stopHour, FALSE, TRUE);
 			entrySellRangeOrder(pParams, pIndicators, pBase_Indicators, orderIndex, stopHour, FALSE, TRUE);
 		}
@@ -950,22 +1103,25 @@ AsirikuyReturnCode workoutExecutionTrend_Limit(StrategyParams* pParams, Indicato
 		}
 	}
 
+	// Move stop loss for XAUUSD orders opened during specific hours
 	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL 
 		&& orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen		
-		&& ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE || difftime(currentTime, pParams->orderInfo[orderIndex].openTime) >= 9 * 60)
+		&& ((BOOL)pParams->settings[IS_BACKTESTING] == FALSE || difftime(currentTime, pParams->orderInfo[orderIndex].openTime) >= MINUTES_FOR_STOP_LOSS_MOVE_XAUUSD * 60)
 		&& (pParams->orderInfo[orderIndex].type == BUY || pParams->orderInfo[orderIndex].type == SELL)
-		//&& timeInfo1.tm_hour >= 15 && timeInfo1.tm_hour <= 16
 		)
 	{
 		safe_gmtime(&timeInfo2, pParams->orderInfo[orderIndex].openTime);
 
-		if (timeInfo2.tm_hour >= 15 && timeInfo2.tm_hour <= 16)		
+		// Move stop loss if order was opened between 15:00 and 16:00
+		if (timeInfo2.tm_hour >= HOUR_FOR_STOP_LOSS_MOVE_XAUUSD_START && timeInfo2.tm_hour <= HOUR_FOR_STOP_LOSS_MOVE_XAUUSD_END)		
 		{
-			if (timeInfo1.tm_hour >= 15 && timeInfo1.tm_hour <= 16)
+			// Move stop loss to break-even if still within 15:00-16:00 window
+			if (timeInfo1.tm_hour >= HOUR_FOR_STOP_LOSS_MOVE_XAUUSD_START && timeInfo1.tm_hour <= HOUR_FOR_STOP_LOSS_MOVE_XAUUSD_END)
 			{
-				move_stop_loss(pParams, pIndicators, pBase_Indicators, orderIndex, 1.0);
+				move_stop_loss(pParams, pIndicators, pBase_Indicators, orderIndex, STOP_LOSS_LEVEL_1X);
 			}
-			else if (timeInfo1.tm_hour > 16)
+			// Move stop loss to full level if past 16:00
+			else if (timeInfo1.tm_hour > HOUR_FOR_STOP_LOSS_MOVE_XAUUSD_END)
 			{
 				move_stop_loss(pParams, pIndicators, pBase_Indicators, orderIndex, stopLossLevel);
 			}

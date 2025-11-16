@@ -19,13 +19,12 @@ extern "C" {
  * using Technical Analysis Library (TALib) functions.
  */
 
-AsirikuyReturnCode iSRLevels(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shfitIndex, int shift, double *pHigh, double *pLow);
-AsirikuyReturnCode iSRLevels_close(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shfitIndex, int shift, double *pHigh, double *pLow);
-AsirikuyReturnCode iSRLevels_WithIndex(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shfitIndex, int shift, double *pHigh, double *pLow, int *pHighIndex, int *pLowIndex);
+AsirikuyReturnCode iSRLevels(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shiftIndex, int shift, double *pHigh, double *pLow);
+AsirikuyReturnCode iSRLevels_close(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shiftIndex, int shift, double *pHigh, double *pLow);
+AsirikuyReturnCode iSRLevels_WithIndex(StrategyParams* pParams, Base_Indicators* pIndicators, int ratesArrayIndex, int shiftIndex, int shift, double *pHigh, double *pLow, int *pHighIndex, int *pLowIndex);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* SUPPORT_RESISTANCE_H_ */
-

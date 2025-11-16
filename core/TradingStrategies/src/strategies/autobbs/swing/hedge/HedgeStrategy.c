@@ -19,25 +19,33 @@
 /**
  * Auto Hedge strategy execution.
  * Wrapper that calls workoutExecutionTrend_Hedge.
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure
+ * @return SUCCESS on success
  */
 AsirikuyReturnCode workoutExecutionTrend_Auto_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
-	char       timeString[MAX_TIME_STRING_SIZE] = "";
-	int        shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	time_t currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-	safe_timeString(timeString, currentTime);
-
-	// workoutExecutionTrend_ATR_Hedge was removed - call workoutExecutionTrend_Hedge instead
 	workoutExecutionTrend_Hedge(pParams, pIndicators, pBase_Indicators);
-
-	workoutExecutionTrend_Hedge(pParams, pIndicators, pBase_Indicators);
-
 	return SUCCESS;
 }
 
 /**
  * Hedge strategy execution.
- * Range reversal trading strategy.
+ * Range reversal trading strategy that enters trades when price approaches
+ * support/resistance levels within a range-bound market.
+ * 
+ * Strategy Logic:
+ * - In trending phases: Trades against the trend using BBS signals
+ * - In range phases: Trades when price is within 1/3 ATR of range boundaries
+ * - Uses execution timeframe filtering to avoid false signals
+ * - Exits all positions before end of day (23:25)
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing daily trend and ATR
+ * @return SUCCESS on success
  */
 AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {	
@@ -55,7 +63,7 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
 	safe_gmtime(&timeInfo1, currentTime);
 
-	//closeAllWithNegativeEasy(1, currentTime, 3);
+	/* Exit all positions before end of day */
 	if (timeInfo1.tm_hour == 23 && timeInfo1.tm_min > 25)
 	{
 		pIndicators->exitSignal = EXIT_ALL;
@@ -64,11 +72,11 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 
-	pIndicators->risk = 1;
+	pIndicators->risk = 1.0;
 	pIndicators->tpMode = 0;
 	pIndicators->splitTradeMode = 14;
 
-	//Asia hour, risk 50%
+	/* Reduce risk during Asia trading hours (00:00-08:00) */
 	if (timeInfo1.tm_hour <= 8)
 		pIndicators->risk = 0.5;
 
@@ -105,7 +113,7 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 	}
 	else
 	{
-		//Range reversal: if up_gap <= 1/3 ATR, Sell
+		/* Range reversal: Enter sell when price is within 1/3 ATR of upper range */
 		if (up_gap <= pBase_Indicators->pDailyATR / 3)
 		{
 			pIndicators->executionTrend = -1;
@@ -121,6 +129,7 @@ AsirikuyReturnCode workoutExecutionTrend_Hedge(StrategyParams* pParams, Indicato
 
 			pIndicators->exitSignal = EXIT_BUY;
 		}
+		/* Range reversal: Enter buy when price is within 1/3 ATR of lower range */
 		else if (down_gap <= pBase_Indicators->pDailyATR / 3)
 		{
 			pIndicators->executionTrend = 1;

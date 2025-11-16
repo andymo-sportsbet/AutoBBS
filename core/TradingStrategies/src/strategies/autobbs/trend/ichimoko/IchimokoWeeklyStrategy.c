@@ -2,6 +2,8 @@
  * Ichimoko Weekly Strategy Module
  * 
  * Provides Ichimoko Weekly strategy execution functions.
+ * This strategy uses weekly support/resistance levels and price action
+ * to determine entry signals for longer-term trend-following trades.
  */
 
 #include "Precompiled.h"
@@ -16,6 +18,70 @@
 #include "strategies/autobbs/trend/ichimoko/IchimokoWeeklyStrategy.h"
 #include "strategies/autobbs/trend/ichimoko/IchimokoOrderSplitting.h"
 
+// Strategy configuration constants
+#define SPLIT_TRADE_MODE_ICHIMOKO_WEEKLY 33 // Split trade mode for Ichimoko Weekly strategy
+#define TP_MODE_DAILY_ATR 3                 // Take profit mode: daily ATR
+#define TRADE_MODE_LONG_TERM 1              // Long-term trade mode
+
+// Time constants
+#define START_HOUR_DEFAULT 1                // Default start hour for trading
+
+// Volume step
+#define VOLUME_STEP_DEFAULT 0.1             // Default volume step for order sizing
+
+// Weekly SR levels calculation
+#define WEEKLY_SR_LEVELS_LONG 26             // Number of bars for long-term weekly SR levels
+#define WEEKLY_SR_LEVELS_SHORT 9             // Number of bars for short-term weekly SR levels
+
+// ATR calculation
+#define ATR_PERIOD_WEEKLY 20                 // ATR period for weekly calculation
+#define ATR_PERIOD_DAILY_CHECK 5             // ATR period for daily volatility check
+
+// Risk adjustment constants
+#define RISK_LEVEL_1 1                       // Base risk level
+#define RISK_LEVEL_2 2                       // Risk level when gap > 0
+#define RISK_LEVEL_3 3                       // Risk level when gap > weeklyATR
+#define RISK_LEVEL_4 4                      // Risk level when gap > 2 * weeklyATR
+
+// Stop loss and risk management
+#define STOP_LOSS_FACTOR_ENTRY_PRICE 0.5     // Stop loss as fraction of entry price (50%)
+#define ATR_MULTIPLIER_FOR_PENDING_CHECK 0.25 // ATR multiplier for pending order check (25%)
+#define RISK_PNL_THRESHOLD_LOW -5            // Low risk PNL threshold for warning
+#define RISK_PNL_THRESHOLD_HIGH -20          // High risk PNL threshold to block entry
+#define FREE_MARGIN_THRESHOLD 1              // Minimum free margin threshold
+
+/**
+ * @brief Executes Ichimoko Weekly strategy.
+ * 
+ * This function implements a weekly Ichimoko-based trading strategy that:
+ * 1. Calculates weekly support/resistance levels and baselines.
+ * 2. Determines entry signals based on price action relative to weekly baselines.
+ * 3. Adjusts risk based on distance from entry price to weekly baseline.
+ * 4. Manages profit targets and risk limits.
+ * 
+ * Entry Conditions (BUY):
+ * - Price action shows recovery pattern (preWeeklyClose1 < preWeeklyClose2 && preWeeklyClose > preWeeklyClose1)
+ *   OR entry price is between weekly baseline and short baseline.
+ * - Weekly baseline is above entry price (positive gap).
+ * - No pending orders at similar price.
+ * 
+ * Risk Adjustment:
+ * - Risk = 4: Gap > 2 * weeklyATR
+ * - Risk = 3: Gap > weeklyATR
+ * - Risk = 2: Gap > 0
+ * - Risk = 1: Otherwise
+ * 
+ * Additional Filters:
+ * - Blocks entry if orders already exist in current week.
+ * - Blocks entry if free margin is insufficient.
+ * - Blocks entry if risk PNL < -20.
+ * - Closes winning positions if risk PNL exceeds target.
+ * 
+ * @param pParams Strategy parameters.
+ * @param pIndicators Strategy indicators to populate with entry/exit signals.
+ * @param pBase_Indicators Base indicators containing weekly trend and ATR data.
+ * @return SUCCESS on success.
+ */
 AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -46,12 +112,10 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 
-	pIndicators->splitTradeMode = 33;
-	pIndicators->tpMode = 3;
-
-	pIndicators->tradeMode = 1;
-
-	pIndicators->volumeStep = 0.1;
+	pIndicators->splitTradeMode = SPLIT_TRADE_MODE_ICHIMOKO_WEEKLY;
+	pIndicators->tpMode = TP_MODE_DAILY_ATR;
+	pIndicators->tradeMode = TRADE_MODE_LONG_TERM;
+	pIndicators->volumeStep = VOLUME_STEP_DEFAULT;
 
 	targetPNL = parameter(AUTOBBS_MAX_STRATEGY_RISK);
 	strategyVolRisk = pIndicators->strategyMaxRisk;
@@ -64,13 +128,13 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 	orderIndex = getLastestOrderIndexEasy(B_PRIMARY_RATES);
 
 
-	if (timeInfo1.tm_hour >= 1) // 1:00 start, avoid the first hour
+	if (timeInfo1.tm_hour >= START_HOUR_DEFAULT)
 	{
-		// Calculate daily and weekly baseline
-		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 26, &weeklyHigh, &weeklyLow);
+		// Calculate weekly baseline from support/resistance levels
+		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, WEEKLY_SR_LEVELS_LONG, &weeklyHigh, &weeklyLow);
 		weekly_baseline = (weeklyHigh + weeklyLow) / 2;
 
-		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, 9, &shortWeeklyHigh, &shortWeeklyLow);
+		iSRLevels(pParams, pBase_Indicators, B_WEEKLY_RATES, shift1Index_Weekly, WEEKLY_SR_LEVELS_SHORT, &shortWeeklyHigh, &shortWeeklyLow);
 		weekly_baseline_short = (shortWeeklyHigh + shortWeeklyLow) / 2;
 
 		logInfo("System InstanceID = %d, BarTime = %s, weeklyHigh =%lf, weeklyLow=%lf, weekly_baseline=%lf",
@@ -84,12 +148,9 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 
 		pIndicators->executionTrend = 1;
 		pIndicators->entryPrice = pParams->bidAsk.ask[0];
-		pIndicators->stopLossPrice = pIndicators->entryPrice / 2;
-
-		//pIndicators->stopLossPrice = weekly_baseline - pBase_Indicators->weeklyATR * 0.25;
-		//pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->pWeeklyPredictMaxATR);
+		pIndicators->stopLossPrice = pIndicators->entryPrice * STOP_LOSS_FACTOR_ENTRY_PRICE;
 				
-		pBase_Indicators->weeklyATR = iAtr(B_WEEKLY_RATES, 20, 1);
+		pBase_Indicators->weeklyATR = iAtr(B_WEEKLY_RATES, ATR_PERIOD_WEEKLY, 1);
 
 		if (//preWeeklyClose > weekly_baseline						
 			//&& preWeeklyClose > weekly_baseline_short
@@ -99,24 +160,28 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 				(pIndicators->entryPrice > weekly_baseline && pIndicators->entryPrice < weekly_baseline_short)
 			)
 			//preWeeklyClose1 < preWeeklyClose2 && preWeeklyClose > preWeeklyClose1
-			&& !isSamePricePendingOrderEasy(pIndicators->entryPrice, 0.25 * pBase_Indicators->weeklyATR)
+			&& !isSamePricePendingOrderEasy(pIndicators->entryPrice, ATR_MULTIPLIER_FOR_PENDING_CHECK * pBase_Indicators->weeklyATR)
 			)
 		{
 			pIndicators->entrySignal = 1;
+			
+			// Adjust risk based on distance from entry price to weekly baseline
 			if (weekly_baseline - pIndicators->entryPrice > 2 * pBase_Indicators->weeklyATR)
 			{
-				pIndicators->risk = 4;
+				pIndicators->risk = RISK_LEVEL_4;
 			}
 			else if (weekly_baseline - pIndicators->entryPrice > pBase_Indicators->weeklyATR)
 			{
-				pIndicators->risk = 3;
+				pIndicators->risk = RISK_LEVEL_3;
 			}
 			else if (weekly_baseline - pIndicators->entryPrice > 0)
 			{
-				pIndicators->risk = 2;
+				pIndicators->risk = RISK_LEVEL_2;
 			}
 			else
-				pIndicators->risk = 1;
+			{
+				pIndicators->risk = RISK_LEVEL_1;
+			}
 		}
 
 		pIndicators->exitSignal = EXIT_SELL;
@@ -131,7 +196,8 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 		pIndicators->entrySignal = 0;
 	}
 
-	if (pIndicators->riskPNL < -5)
+	// Log warning if risk PNL is below low threshold
+	if (pIndicators->riskPNL < RISK_PNL_THRESHOLD_LOW)
 	{
 		logWarning("System InstanceID = %d, BarTime = %s pIndicators->riskPNL=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->riskPNL);
@@ -139,14 +205,16 @@ AsirikuyReturnCode workoutExecutionTrend_Ichimoko_Weekly_Index(StrategyParams* p
 
 	freeMargin = caculateFreeMarginEasy();
 	
-	if (pIndicators->entrySignal != 0 && freeMargin / pIndicators->entryPrice < 1)
+	// Block entry if free margin is insufficient
+	if (pIndicators->entrySignal != 0 && freeMargin / pIndicators->entryPrice < FREE_MARGIN_THRESHOLD)
 	{
 		logWarning("System InstanceID = %d, BarTime = %s freeMargin=%lf, Times=%lf",
 			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, freeMargin, freeMargin / pIndicators->entryPrice);
 		pIndicators->entrySignal = 0;
 	}
 
-	if (pIndicators->entrySignal != 0 && pIndicators->riskPNL < -20)
+	// Block entry if risk PNL is below high threshold
+	if (pIndicators->entrySignal != 0 && pIndicators->riskPNL < RISK_PNL_THRESHOLD_HIGH)
 	{
 		pIndicators->entrySignal = 0;
 	}

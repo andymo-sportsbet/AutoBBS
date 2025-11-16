@@ -17,6 +17,32 @@
 #include "StrategyUserInterface.h"
 #include "strategies/autobbs/swing/daytrading/DayTradingStrategy.h"
 #include "strategies/autobbs/swing/daytrading/DayTradingHelpers.h"
+
+/* Trading session hour constants */
+#define EURO_SESSION_START_HOUR 17  /* Euro session starts at 17:00 */
+#define MAX_TRADING_HOUR 22         /* Maximum trading hour (22:00) */
+
+/**
+ * XAUUSD day trading strategy execution.
+ * 
+ * Strategy logic:
+ * - Uses splitTradeMode 16 (dynamic lots) or 18 (fixed lots)
+ * - Risk adjustment based on market phase (range vs trend)
+ * - Entry conditions:
+ *   * No existing orders: Enters based on MA trend, BBS trend, and ATR conditions
+ *   * Existing orders: Adds to position or exits based on price action
+ * - Exits all negative positions at start of each bar
+ * - Filters trades based on weekly ATR predictions
+ * 
+ * Entry signals:
+ * - Trend following: MA trend matches BBS trend, ATR0_EURO > Range
+ * - Range breakout: Price breaks above/below Asia session high/low
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing MA trend and ATR
+ * @return SUCCESS on success
+ */
 AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {	
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -46,54 +72,46 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_primary];
 	safe_gmtime(&timeInfo1, currentTime);
 
-	
-
-	//Fix lots
-	//pIndicators->splitTradeMode = 18;
-	//Dyanmic lots
+	/* Use dynamic lots (splitTradeMode 16) */
 	pIndicators->splitTradeMode = 16;
 
-	pIndicators->risk = 1;
+	pIndicators->risk = 1.0;
 	pIndicators->tpMode = 0;
 
+	/* Adjust range and risk based on market phase */
 	if (pBase_Indicators->dailyTrend_Phase == RANGE_PHASE)
 	{
-		Range = pIndicators->atr_euro_range * 2 / 3;		
-		pIndicators->risk = 1;
+		Range = pIndicators->atr_euro_range * 2.0 / 3.0;
+		pIndicators->risk = 1.0;
 	}
 	else
 	{
 		Range = pIndicators->atr_euro_range;
-		
-		//if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE || pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE)
-		//	pIndicators->risk = 1.5;
-		//else
-		pIndicators->risk = 1;
+		pIndicators->risk = 1.0;
 	}
 
-	stopLoss = 10;
+	stopLoss = 10.0;
 
 	safe_timeString(timeString, currentTime);
 
+	/* Close all negative positions at start of each bar */
 	closeAllWithNegativeEasy(1, currentTime, 3);
 
-
+	/* Get MA trend from secondary timeframe (15M) */
 	pBase_Indicators->maTrend = getMATrend(2, B_SECONDARY_RATES, 1);
 
+	/* Check if trading is allowed */
 	if (XAUUSD_DayTrading_Allow_Trade(pParams, pIndicators, pBase_Indicators) == FALSE)
 		return SUCCESS;
 
 	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
 
-
+	/* Read weekly ATR predictions from file */
 	readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
 
-
-	if ( (int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR)
+	/* Filter: Skip if weekly ATR exceeds prediction in auto mode */
+	if ((int)parameter(AUTOBBS_IS_AUTO_MODE) == 1 && ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR)
 		return SUCCESS;
-
-	//if (pBase_Indicators->pDailyPredictATR >= 10 && ATRWeekly0 < pBase_Indicators->pWeeklyPredictATR)
-	//	pIndicators->risk = 2;
 
 	count = (timeInfo1.tm_hour - 1) * (60 / (int)pParams->settings[TIMEFRAME]) + (int)(timeInfo1.tm_min / (int)pParams->settings[TIMEFRAME]) - 1;
 	if (count > 1)
@@ -445,6 +463,21 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 
 	return SUCCESS;
 }
+
+/**
+ * GBPJPY day trading strategy execution (Version 2).
+ * 
+ * Similar to XAUUSD strategy but adapted for GBPJPY:
+ * - Uses splitTradeMode 16 (dynamic lots)
+ * - Risk adjustment based on market phase
+ * - Entry conditions based on MA trend and BBS signals
+ * - Filters trades based on weekly ATR predictions
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing MA trend and ATR
+ * @return SUCCESS on success
+ */
 AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -726,6 +759,20 @@ AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* 
 
 	return SUCCESS;
 }
+
+/**
+ * Day trading execution-only strategy (Old version).
+ * 
+ * Simple execution-only strategy that enters trades based on:
+ * - MA trend signals
+ * - Price gaps from daily high/low
+ * - ATR-based filtering
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing MA trend and ATR
+ * @return SUCCESS on success
+ */
 AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -1023,6 +1070,21 @@ AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyPa
 
 	return SUCCESS;
 }
+
+/**
+ * Day trading execution-only strategy (Current version).
+ * 
+ * Enhanced execution-only strategy with improved entry logic:
+ * - Uses splitTradeMode 29 (execution-only order splitting)
+ * - Entry based on MA trend and price gaps
+ * - ATR-based risk management
+ * - Filters trades based on weekly ATR predictions
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing MA trend and ATR
+ * @return SUCCESS on success
+ */
 AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;

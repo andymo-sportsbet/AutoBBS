@@ -16,6 +16,40 @@
 #include "InstanceStates.h"
 #include "strategies/autobbs/swing/macd_beili/MACDBEILIStrategy.h"
 
+/* MACD parameters for different symbols */
+#define XAUUSD_LEVEL 0.9           /* XAUUSD MACD level threshold */
+#define GBPJPY_LEVEL 0.7            /* GBPJPY MACD level threshold */
+#define XAUUSD_FAST_MA 5            /* XAUUSD fast MA period */
+#define XAUUSD_SLOW_MA 10           /* XAUUSD slow MA period */
+#define XAUUSD_SIGNAL_MA 5          /* XAUUSD signal MA period */
+#define GBPJPY_FAST_MA 5            /* GBPJPY fast MA period */
+#define GBPJPY_SLOW_MA 10           /* GBPJPY slow MA period */
+#define GBPJPY_SIGNAL_MA 5          /* GBPJPY signal MA period */
+
+/**
+ * MACD BEILI counter-trend strategy execution.
+ * 
+ * BEILI (背离) means divergence in Chinese. This is a counter-trend strategy
+ * that enters trades when MACD shows divergence signals during reversal times.
+ * 
+ * Strategy logic:
+ * - Uses splitTradeMode 28
+ * - Counter-trend entries based on MACD histogram divergence
+ * - Different parameters for XAUUSD and GBPJPY
+ * - Entry conditions:
+ *   * MACD histogram reaches extreme levels (level threshold)
+ *   * Price shows reversal patterns
+ *   * Daily trend phase indicates potential reversal
+ * 
+ * Symbol-specific settings:
+ * - XAUUSD: level=0.9, fast=5, slow=10, signal=5, enables EOD entry, stop moving SL
+ * - GBPJPY: level=0.7, fast=5, slow=10, signal=5
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing daily trend and ATR
+ * @return SUCCESS on success
+ */
 AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
@@ -79,11 +113,11 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Ind
 
 	if (strstr(pParams->tradeSymbol, "XAUUSD") != NULL)
 	{
-		level = 0.9; //precetage				
+		level = XAUUSD_LEVEL;
 
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
+		fastMAPeriod = XAUUSD_FAST_MA;
+		slowMAPeriod = XAUUSD_SLOW_MA;
+		signalMAPeriod = XAUUSD_SIGNAL_MA;
 
 		isDailyOnly = FALSE;
 		pIndicators->stopMovingBackSL = TRUE;
@@ -95,11 +129,11 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_BEILI(StrategyParams* pParams, Ind
 	}
 	else if (strstr(pParams->tradeSymbol, "GBPJPY") != NULL)
 	{
-		level = 0.7; //GBPJPY						
+		level = GBPJPY_LEVEL;
 
-		fastMAPeriod = 5;
-		slowMAPeriod = 10;
-		signalMAPeriod = 5;
+		fastMAPeriod = GBPJPY_FAST_MA;
+		slowMAPeriod = GBPJPY_SLOW_MA;
+		signalMAPeriod = GBPJPY_SIGNAL_MA;
 
 		isDailyOnly = FALSE;
 		pIndicators->stopMovingBackSL = TRUE;
