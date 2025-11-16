@@ -901,6 +901,13 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 			
 			pIndicators->stopLossPrice = max(highHourlyClosePrice,pIndicators->entryPrice) - stopLoss;
+			
+			/* Ensure stop loss is at least minimumStop away from current price (broker constraint).
+			 * When price retraces from high, the stop loss based on highHourlyClosePrice may be too close. */
+			if (pIndicators->stopLossPrice > pParams->bidAsk.ask[0] - pParams->accountInfo.minimumStop)
+			{
+				pIndicators->stopLossPrice = pParams->bidAsk.ask[0] - pParams->accountInfo.minimumStop;
+			}
 
 			if (config.isEnableNoStopLoss == TRUE && orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
 			{
@@ -1105,6 +1112,13 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			pIndicators->entryPrice = pParams->bidAsk.bid[0];	
 						
 			pIndicators->stopLossPrice = min(lowHourlyClosePrice, pIndicators->entryPrice) + stopLoss;
+			
+			/* Ensure stop loss is at least minimumStop away from current price (broker constraint).
+			 * When price retraces from low, the stop loss based on lowHourlyClosePrice may be too close. */
+			if (pIndicators->stopLossPrice < pParams->bidAsk.bid[0] + pParams->accountInfo.minimumStop)
+			{
+				pIndicators->stopLossPrice = pParams->bidAsk.bid[0] + pParams->accountInfo.minimumStop;
+			}
 
 			if (config.isEnableNoStopLoss == TRUE && orderIndex >= 0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
 			{
@@ -1320,6 +1334,10 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 			pIndicators->entrySignal = 0;
 		}
 
+		/* Price gap check: compares entry price against daily close.
+		 * TODO: At 23:00 entry, startShift=0 uses current bar which hasn't closed yet.
+		 * Consider whether to use shift 1 (previous day's close) for gap comparison at 23:00.
+		 * Defer for more testing to determine if this affects results. */
 		if (pIndicators->entrySignal > 0  &&
 			pIndicators->entryPrice - iClose(B_DAILY_RATES, startShift) > 0.2 * pBase_Indicators->dailyATR)
 		{

@@ -14,11 +14,11 @@
 #include "CTesterFrameworkAPI.h"
 #include "AsirikuyLogger.h"
 #include "stdlib.h"
-#include "Precompiled.h"
 #include "AsirikuyTime.h"
 #include "AsirikuyDefines.h"
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 
 // Forward declaration for CTester Symbol Analyzer API functions
 // These are defined in AsirikuyFrameworkAPI which CTesterFrameworkAPI links to
@@ -269,6 +269,9 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 			
 			if(openOrders[i].type == BUY || openOrders[i].type == BUYSTOP || openOrders[i].type == BUYLIMIT ){
 
+				/* Broker constraint: Stop loss must be at least minimumStop away from current price.
+				 * This can fail when price retraces from a high - the stop loss (based on highHourlyClosePrice)
+				 * may be too close to the current price, violating the broker's minimum distance requirement. */
 				if (strategyResults->brokerSL != 0 && openOrders[i].type == BUY){
 					if (bidAsk[IDX_ASK] - strategyResults->brokerSL <= bidAsk[IDX_ASK] - minimumStop && strategyResults->brokerSL != 0){
 					openOrders[i].stopLoss = bidAsk[IDX_ASK] - strategyResults->brokerSL;
@@ -319,6 +322,9 @@ int updateOrder(int instanceId, StrategyResults* strategyResults, int* openOrder
 			}
 			if(openOrders[i].type == SELL || openOrders[i].type == SELLSTOP || openOrders[i].type == SELLLIMIT){
 
+				/* Broker constraint: Stop loss must be at least minimumStop away from current price.
+				 * This can fail when price retraces from a low - the stop loss (based on lowHourlyClosePrice)
+				 * may be too close to the current price, violating the broker's minimum distance requirement. */
 				if (strategyResults->brokerSL != 0 && openOrders[i].type == SELL){
 					if (bidAsk[IDX_BID] + strategyResults->brokerSL >= bidAsk[IDX_BID] + minimumStop){
 						openOrders[i].stopLoss = bidAsk[IDX_BID] + strategyResults->brokerSL;
