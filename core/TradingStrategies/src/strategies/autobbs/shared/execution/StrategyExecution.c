@@ -75,7 +75,7 @@
  * - 28: Ichimoku Daily Index (duplicate)
  * - 30: 4H Shellington
  * - 31: Ichimoku Daily New
- * - 32: MACD Daily New
+ * - 32: (removed - use 23 for MACD Daily)
  * - 33: MACD BEILI
  * - 34: Short Term
  * - 35: Ichimoku Weekly Index
@@ -183,9 +183,6 @@ AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pI
 		break;
 	case 31:
 		workoutExecutionTrend_Ichimoko_Daily_New(pParams, pIndicators, pBase_Indicators);
-		break;
-	case 32:
-		workoutExecutionTrend_MACD_Daily_New(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 33:
 		workoutExecutionTrend_MACD_BEILI(pParams, pIndicators, pBase_Indicators);

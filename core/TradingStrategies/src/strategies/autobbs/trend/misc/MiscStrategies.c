@@ -1,7 +1,19 @@
 /*
  * Miscellaneous Strategy Module
  * 
- * Provides various miscellaneous strategy execution functions.
+ * Provides various miscellaneous strategy execution functions including:
+ * - KeyK strategy: Uses intraday key high/low levels for entry signals
+ * - KongJian strategy: Middle phase trading based on intraday price movement
+ * - DailyOpen strategy: Enters trades at daily open based on trend phase
+ * - Pivot strategy: Uses pivot point breakouts for entry signals
+ * - Auto strategy: Dispatcher that routes to appropriate strategy based on trend phase
+ * - MIDDLE_RETREAT_PHASE strategy: Enters on price retreats during middle phase
+ * - ASI strategy: Uses Accumulation Swing Index for trend determination
+ * - 4H Shellington strategy: Uses 4H MA trend and BBS for entry signals
+ * 
+ * NOTE: This file contains duplicate static functions (entryBuyRangeOrder, entrySellRangeOrder,
+ * isRangeOrder, DailyTrade_Limit_Allow_Trade) that are already implemented in
+ * RangeOrderManagement.c and TimeManagement.c. These duplicates should be removed.
  */
 
 #include "Precompiled.h"
@@ -22,20 +34,72 @@
 #include "strategies/autobbs/trend/limit/LimitOrderSplitting.h"
 #include "strategies/autobbs/trend/common/OrderSplittingUtilities.h"
 
+// Strategy configuration constants
+#define RISK_DOUBLE 2                        // Double risk (200%)
+#define SPLIT_TRADE_MODE_KEYK 9              // Split trade mode for KeyK strategy
+#define TP_MODE_RATIO_1_TO_1 0              // Take profit mode: 1:1 ratio
+#define RISK_FULL 1                          // Full risk (100%)
+#define SPLIT_TRADE_MODE_STANDARD 0          // Standard split trade mode
+#define SPLIT_TRADE_MODE_DAILY_OPEN 6        // Split trade mode for daily open strategy
+
+// ATR and distance constants
+#define ATR_FACTOR_FOR_RISK_ADJUSTMENT 0.5  // ATR factor for risk adjustment (50%)
+#define ATR_DIVISOR_FOR_ENTRY_CHECK 3       // ATR divisor for entry price check
+#define ATR_DIVISOR_FOR_PENDING_CHECK 3     // ATR divisor for pending order check
+#define ATR_FACTOR_FOR_RETREAT_DISTANCE 0.666 // ATR factor for retreat distance check (66.6%)
+
+// Time constants
+#define HOUR_BEFORE_END_OF_DAY 23           // Hour before end of day
+#define DAILY_OPEN_HOUR 1                    // Hour for daily open entry
+#define TRADING_START_HOUR 2                 // Start hour for trading
+#define TRADING_END_HOUR 22                  // End hour for trading
+#define EURO_SESSION_START_HOUR 17           // Start hour for Euro session
+#define XAUUSD_KEY_DATE_HOUR 19              // Hour for XAUUSD key date check
+#define XAUUSD_KEY_DATE_MINUTE 25            // Minute for XAUUSD key date check
+
+// Trend strength constants
+#define MIN_DAILY_TREND_STRENGTH_UP 3       // Minimum daily trend strength for UP entry
+#define MIN_DAILY_TREND_STRENGTH_DOWN -3    // Minimum daily trend strength for DOWN entry
+
+// Moving average period
+#define MA_BASELINE_PERIOD 50               // MA period for baseline calculation
+
+/**
+ * @brief Executes KeyK strategy based on intraday key high/low levels.
+ * 
+ * This function uses intraday key high/low levels to determine entry signals.
+ * It enters trades when the intraday trend aligns with the key level breakout.
+ * 
+ * Algorithm:
+ * 1. Get key high/low from intraday index bar.
+ * 2. For intraday uptrend:
+ *    - Enter BUY if side >= 0 and intraday index matches shift1Index.
+ *    - Adjust risk based on stop loss distance from daily low.
+ * 3. For intraday downtrend:
+ *    - Enter SELL if side <= 0 and intraday index matches shift1Index.
+ *    - Adjust risk based on stop loss distance from daily high.
+ * 
+ * @param pParams Strategy parameters.
+ * @param pIndicators Strategy indicators to populate.
+ * @param pBase_Indicators Base indicators containing intraday trend and index.
+ * @return SUCCESS on success.
+ */
 AsirikuyReturnCode workoutExecutionTrend_KeyK(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	AsirikuyReturnCode returnCode = SUCCESS;
-	int  shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	int  shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
+	int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
+	int shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
 	double keyHigh, keyLow;
 
-	pIndicators->risk = 2;
-	pIndicators->splitTradeMode = 9;
-	pIndicators->tpMode = 0;
+	pIndicators->risk = RISK_DOUBLE;
+	pIndicators->splitTradeMode = SPLIT_TRADE_MODE_KEYK;
+	pIndicators->tpMode = TP_MODE_RATIO_1_TO_1;
 
+	// Get key high/low from intraday index bar
 	keyHigh = iHigh(B_PRIMARY_RATES, shift0Index - pBase_Indicators->intradyIndex);
 	keyLow = iLow(B_PRIMARY_RATES, shift0Index - pBase_Indicators->intradyIndex);
 
+	// Handle intraday uptrend
 	if (pBase_Indicators->intradayTrend == 1)
 	{
 		if (pIndicators->side >= 0)
@@ -44,18 +108,24 @@ AsirikuyReturnCode workoutExecutionTrend_KeyK(StrategyParams* pParams, Indicator
 			pIndicators->exitSignal = EXIT_SELL;
 			pIndicators->entryPrice = pParams->bidAsk.ask[0];
 			pIndicators->stopLossPrice = keyLow;
-			if (fabs(pIndicators->stopLossPrice - pBase_Indicators->dailyLow) >= 0.5 * pBase_Indicators->dailyATR)
-				pIndicators->risk = 1;
+			
+			// Reduce risk if stop loss is far from daily low
+			if (fabs(pIndicators->stopLossPrice - pBase_Indicators->dailyLow) >= ATR_FACTOR_FOR_RISK_ADJUSTMENT * pBase_Indicators->dailyATR)
+				pIndicators->risk = RISK_FULL;
 
+			// Enter if intraday index matches shift1Index
 			if (pBase_Indicators->intradyIndex == shift1Index)
 			{
 				pIndicators->entrySignal = 1;
 			}
 		}
 		else
+		{
 			pBase_Indicators->intradayTrend = 0;
+		}
 	}
 
+	// Handle intraday downtrend
 	if (pBase_Indicators->intradayTrend == -1)
 	{
 		if (pIndicators->side <= 0)
@@ -64,33 +134,57 @@ AsirikuyReturnCode workoutExecutionTrend_KeyK(StrategyParams* pParams, Indicator
 			pIndicators->exitSignal = EXIT_BUY;
 			pIndicators->entryPrice = pParams->bidAsk.bid[0];
 			pIndicators->stopLossPrice = keyHigh;
-			if (fabs(pIndicators->stopLossPrice - pBase_Indicators->dailyHigh) >= 0.5 * pBase_Indicators->dailyATR)
-				pIndicators->risk = 1;
+			
+			// Reduce risk if stop loss is far from daily high
+			if (fabs(pIndicators->stopLossPrice - pBase_Indicators->dailyHigh) >= ATR_FACTOR_FOR_RISK_ADJUSTMENT * pBase_Indicators->dailyATR)
+				pIndicators->risk = RISK_FULL;
 
+			// Enter if intraday index matches shift1Index
 			if (pBase_Indicators->intradyIndex == shift1Index)
 			{
 				pIndicators->entrySignal = -1;
 			}
 		}
 		else
+		{
 			pBase_Indicators->intradayTrend = 0;
+		}
 	}
 
-
 	return returnCode;
-
 }
 
+/**
+ * @brief Executes KongJian (space/range) strategy for middle phase trading.
+ * 
+ * This function enters trades during middle phase when price has moved significantly
+ * from the intraday low/high, indicating a potential continuation of the trend.
+ * 
+ * Algorithm:
+ * 1. Close negative positions.
+ * 2. Filter execution timeframe.
+ * 3. For MIDDLE_UP_PHASE:
+ *    - Enter BUY if price has moved > 1/3 ATR from intraday low and hour < 23.
+ * 4. For MIDDLE_DOWN_PHASE:
+ *    - Enter SELL if price has moved > 1/3 ATR from intraday high and hour < 23.
+ * 
+ * @param pParams Strategy parameters.
+ * @param pIndicators Strategy indicators to populate.
+ * @param pBase_Indicators Base indicators containing trend phase and ATR data.
+ * @return SUCCESS on success.
+ */
 AsirikuyReturnCode workoutExecutionTrend_KongJian(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {	
-	int    shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	int    shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
+	int shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
+	int shift1Index = pParams->ratesBuffers->rates[B_SECONDARY_RATES].info.arraySize - 2;
 	time_t currentTime;
 	struct tm timeInfo1;
-	char       timeString1[MAX_TIME_STRING_SIZE] = "";
+	char timeString1[MAX_TIME_STRING_SIZE] = "";
 	double currentLow = iLow(B_DAILY_RATES, 0);
 	double currentHigh = iHigh(B_DAILY_RATES, 0);
-	double intradayClose = iClose(B_DAILY_RATES, 0), intradayHigh = iHigh(B_DAILY_RATES, 0), intradayLow = iLow(B_DAILY_RATES, 0);
+	double intradayClose = iClose(B_DAILY_RATES, 0);
+	double intradayHigh = iHigh(B_DAILY_RATES, 0);
+	double intradayLow = iLow(B_DAILY_RATES, 0);
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
 	safe_gmtime(&timeInfo1, currentTime);
@@ -99,12 +193,11 @@ AsirikuyReturnCode workoutExecutionTrend_KongJian(StrategyParams* pParams, Indic
 
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 	
-	pIndicators->risk = 1;
-	pIndicators->tpMode = 0;
-	pIndicators->splitTradeMode = 0;
+	pIndicators->risk = RISK_FULL;
+	pIndicators->tpMode = TP_MODE_RATIO_1_TO_1;
+	pIndicators->splitTradeMode = SPLIT_TRADE_MODE_STANDARD;
 
-	//pIndicators->tradeMode = 1;
-		
+	// Handle MIDDLE_UP_PHASE
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE)
 	{		
 		pIndicators->executionTrend = 1;
@@ -112,30 +205,34 @@ AsirikuyReturnCode workoutExecutionTrend_KongJian(StrategyParams* pParams, Indic
 		pIndicators->stopLossPrice = pBase_Indicators->dailyS;
 		pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
 		
-		if (pParams->bidAsk.ask[0] - intradayLow > pBase_Indicators->dailyATR / 3 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime) && timeInfo1.tm_hour < 23)
+		// Enter if price has moved significantly from intraday low and before end of day
+		if (pParams->bidAsk.ask[0] - intradayLow > pBase_Indicators->dailyATR / ATR_DIVISOR_FOR_ENTRY_CHECK 
+			&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime) 
+			&& timeInfo1.tm_hour < HOUR_BEFORE_END_OF_DAY)
 		{
 			pIndicators->entrySignal = 1;
 		}
 		pIndicators->exitSignal = EXIT_SELL;		
 	}
 
+	// Handle MIDDLE_DOWN_PHASE
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE)
 	{
-	
 		pIndicators->executionTrend = -1;
 		pIndicators->entryPrice = pParams->bidAsk.bid[0];
 		pIndicators->stopLossPrice = pBase_Indicators->dailyS;
 		pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
-		if (intradayHigh - pParams->bidAsk.bid[0] > pBase_Indicators->dailyATR / 3 &&!isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime) && timeInfo1.tm_hour < 23)
+		
+		// Enter if price has moved significantly from intraday high and before end of day
+		if (intradayHigh - pParams->bidAsk.bid[0] > pBase_Indicators->dailyATR / ATR_DIVISOR_FOR_ENTRY_CHECK 
+			&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime) 
+			&& timeInfo1.tm_hour < HOUR_BEFORE_END_OF_DAY)
 		{			
 			pIndicators->entrySignal = -1;
 		}	
 		pIndicators->exitSignal = EXIT_BUY;
 	}
-	
-	
 
-	
 	return SUCCESS;
 }
 
@@ -156,12 +253,15 @@ AsirikuyReturnCode workoutExecutionTrend_DailyOpen(StrategyParams* pParams, Indi
 	safe_gmtime(&timeInfo1, currentTime);
 
 
-	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators) == TRUE && timeInfo1.tm_hour >= 19 && timeInfo1.tm_min >= 25)
+	// Close negative positions with special handling for XAUUSD key dates
+	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators) == TRUE && timeInfo1.tm_hour >= XAUUSD_KEY_DATE_HOUR && timeInfo1.tm_min >= XAUUSD_KEY_DATE_MINUTE)
 	{
 		closeAllWithNegativeEasy(5, currentTime, 3);
 	}
 	else
+	{
 		closeAllWithNegativeEasy(1, currentTime, 3);
+	}
 
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 	//shift1Index = filterExcutionTF_ByTime(pParams, pIndicators, pBase_Indicators);
@@ -181,20 +281,24 @@ AsirikuyReturnCode workoutExecutionTrend_DailyOpen(StrategyParams* pParams, Indi
 		pIndicators->stopLossPrice = pBase_Indicators->dailyS;
 		pIndicators->stopLossPrice = min(pIndicators->stopLossPrice, pIndicators->entryPrice - pBase_Indicators->dailyATR);
 
-		if (pBase_Indicators->dailyTrend >= 3
+		// Entry conditions: strong trend, entry price above support, at daily open hour, BBS trend bullish
+		if (pBase_Indicators->dailyTrend >= MIN_DAILY_TREND_STRENGTH_UP
 			&& pIndicators->entryPrice > pBase_Indicators->dailyS + pIndicators->adjust			
-			&& timeInfo1.tm_hour == 1
-			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3))
-			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3, currentTime)))
+			&& timeInfo1.tm_hour == DAILY_OPEN_HOUR
+			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK))
+			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime)))
 			)
+		{
 			pIndicators->entrySignal = 1;
+		}
 
-		//Override the entry signal if the current daily low has been lower than stop loss price.
+		// Override entry signal if current daily low has been lower than stop loss price
 		if (pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && currentLow < pBase_Indicators->dailyS - pIndicators->adjust && pIndicators->entrySignal == 1)
+		{
 			pIndicators->entrySignal = 0;
+		}
 
 		pIndicators->exitSignal = EXIT_SELL;
-
 	}
 
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE || (ignored && pBase_Indicators->dailyTrend_Phase < 0))
@@ -204,17 +308,22 @@ AsirikuyReturnCode workoutExecutionTrend_DailyOpen(StrategyParams* pParams, Indi
 		pIndicators->stopLossPrice = pBase_Indicators->dailyS;
 		pIndicators->stopLossPrice = max(pIndicators->stopLossPrice, pIndicators->entryPrice + pBase_Indicators->dailyATR);
 
-		if (pBase_Indicators->dailyTrend <= -3
+		// Entry conditions: strong trend, entry price below support, at daily open hour, BBS trend bearish
+		if (pBase_Indicators->dailyTrend <= MIN_DAILY_TREND_STRENGTH_DOWN
 			&& pIndicators->entryPrice < pBase_Indicators->dailyS - pIndicators->adjust
-			&& timeInfo1.tm_hour == 1
-			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3))
-			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3, currentTime))
+			&& timeInfo1.tm_hour == DAILY_OPEN_HOUR
+			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK))
+			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime))
 			))
+		{
 			pIndicators->entrySignal = -1;
+		}
 
-		//Override the entry signal if the current daily high has been higher than stop loss price.
+		// Override entry signal if current daily high has been higher than stop loss price
 		if (pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && currentHigh > pBase_Indicators->dailyS + pIndicators->adjust && pIndicators->entrySignal == -1)
+		{
 			pIndicators->entrySignal = 0;
+		}
 
 		pIndicators->exitSignal = EXIT_BUY;
 	}
@@ -241,12 +350,15 @@ AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicato
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 	
-	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators) == TRUE && timeInfo1.tm_hour >= 19 && timeInfo1.tm_min >= 25)
+	// Close negative positions with special handling for XAUUSD key dates
+	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators) == TRUE && timeInfo1.tm_hour >= XAUUSD_KEY_DATE_HOUR && timeInfo1.tm_min >= XAUUSD_KEY_DATE_MINUTE)
 	{
 		closeAllWithNegativeEasy(5, currentTime, 3);
 	}
 	else
+	{
 		closeAllWithNegativeEasy(1, currentTime, 3);
+	}
 	
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 	//shift1Index = filterExcutionTF_ByTime(pParams, pIndicators, pBase_Indicators);
@@ -268,10 +380,10 @@ AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicato
 
 		if (pIndicators->entryPrice > pBase_Indicators->dailyS + pIndicators->adjust
 			&& preLow < pBase_Indicators->dailyPivot
-			&& preClose >  pBase_Indicators->dailyPivot
-			&& timeInfo1.tm_hour >= 2 && timeInfo1.tm_hour <= 22
-			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3))
-			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3, currentTime)))
+			&& preClose > pBase_Indicators->dailyPivot
+			&& timeInfo1.tm_hour >= TRADING_START_HOUR && timeInfo1.tm_hour <= TRADING_END_HOUR
+			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK))
+			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_UP_PHASE && pIndicators->bbsTrend_excution == 1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime)))
 			)
 		{
 			pIndicators->entrySignal = 1;
@@ -296,10 +408,10 @@ AsirikuyReturnCode workoutExecutionTrend_Pivot(StrategyParams* pParams, Indicato
 
 		if (pIndicators->entryPrice < pBase_Indicators->dailyS - pIndicators->adjust
 			&& preHigh > pBase_Indicators->dailyPivot
-			&& preClose <  pBase_Indicators->dailyPivot
-			&& timeInfo1.tm_hour >= 2 && timeInfo1.tm_hour <= 22
-			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3))
-			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / 3, currentTime))
+			&& preClose < pBase_Indicators->dailyPivot
+			&& timeInfo1.tm_hour >= TRADING_START_HOUR && timeInfo1.tm_hour <= TRADING_END_HOUR
+			&& ((pBase_Indicators->dailyTrend_Phase == BEGINNING_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK))
+			|| (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE && pIndicators->bbsTrend_excution == -1 && !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->pDailyMaxATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime))
 			))
 		{
 			pIndicators->entrySignal = -1;
@@ -412,10 +524,11 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 		break;
 	}
 
-	if (pIndicators->entrySignal == 1 && iClose(B_DAILY_RATES, 1) < iMA(3, B_DAILY_RATES, 50, 1))
+	// Validate entry signals against MA baseline
+	if (pIndicators->entrySignal == 1 && iClose(B_DAILY_RATES, 1) < iMA(3, B_DAILY_RATES, MA_BASELINE_PERIOD, 1))
 		pIndicators->entrySignal = 0;
 
-	if (pIndicators->entrySignal == -1 && iClose(B_DAILY_RATES, 1) > iMA(3, B_DAILY_RATES, 50, 1))
+	if (pIndicators->entrySignal == -1 && iClose(B_DAILY_RATES, 1) > iMA(3, B_DAILY_RATES, MA_BASELINE_PERIOD, 1))
 		pIndicators->entrySignal = 0;
 
 	//Asia hours
@@ -460,13 +573,13 @@ AsirikuyReturnCode workoutExecutionTrend_Auto(StrategyParams* pParams, Indicator
 	//	pIndicators->tradeMode = 0;
 	//}
 
-	// After 17:00, if the current day hasn't exceeded the intraday range, then need to close all short term orders
-	if (timeInfo1.tm_hour >= 17)
+	// After Euro session start (17:00), if the current day hasn't exceeded the intraday range, close all short term orders
+	if (timeInfo1.tm_hour >= EURO_SESSION_START_HOUR)
 	{
 		execution_tf = (int)pParams->settings[TIMEFRAME];
-		euro_index_rate = shift1Index - ((timeInfo1.tm_hour - 17) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
+		euro_index_rate = shift1Index - ((timeInfo1.tm_hour - EURO_SESSION_START_HOUR) * (60 / execution_tf) + (int)(timeInfo1.tm_min / execution_tf));
 
-		count = (17 - 1) * (60 / execution_tf) - 1;
+		count = (EURO_SESSION_START_HOUR - 1) * (60 / execution_tf) - 1;
 		iSRLevels(pParams, pBase_Indicators, B_PRIMARY_RATES, euro_index_rate, count, &(pIndicators->euro_high), &(pIndicators->euro_low));
 		pIndicators->euro_low = min(close_prev1, pIndicators->euro_low);
 		pIndicators->euro_high = max(close_prev1, pIndicators->euro_high);
@@ -569,12 +682,15 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators) == TRUE && timeInfo1.tm_hour >= 19 && timeInfo1.tm_min >= 25)
+	// Close negative positions with special handling for XAUUSD key dates
+	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators) == TRUE && timeInfo1.tm_hour >= XAUUSD_KEY_DATE_HOUR && timeInfo1.tm_min >= XAUUSD_KEY_DATE_MINUTE)
 	{
 		closeAllWithNegativeEasy(5, currentTime, 3);
 	}
 	else
+	{
 		closeAllWithNegativeEasy(1, currentTime, 3);
+	}
 	
 	shift1Index = filterExcutionTF(pParams, pIndicators, pBase_Indicators);
 	//shift1Index = filterExcutionTF_ByTime(pParams, pIndicators, pBase_Indicators);
@@ -609,8 +725,8 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 			|| (intraHigh < breakingHigh && intraLow > breakingLow)
 			)
 			&& pIndicators->entryPrice > pBase_Indicators->dailyS + pIndicators->adjust
-			&& fabs(pIndicators->entryPrice - pBase_Indicators->dailyS) <= pBase_Indicators->dailyATR * 0.666
-			&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
+			&& fabs(pIndicators->entryPrice - pBase_Indicators->dailyS) <= pBase_Indicators->dailyATR * ATR_FACTOR_FOR_RETREAT_DISTANCE
+			&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime)
 			)
 /* 
  * BBS strategy functions have been extracted to:
@@ -641,8 +757,8 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 			|| (intraHigh < breakingHigh && intraLow > breakingLow)
 			)
 			&& pIndicators->entryPrice < pBase_Indicators->dailyS - pIndicators->adjust
-			&& fabs(pIndicators->entryPrice - pBase_Indicators->dailyS) <= pBase_Indicators->dailyATR * 0.666
-			&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / 3, currentTime)
+			&& fabs(pIndicators->entryPrice - pBase_Indicators->dailyS) <= pBase_Indicators->dailyATR * ATR_FACTOR_FOR_RETREAT_DISTANCE
+			&& !isSameDaySamePricePendingOrderEasy(pIndicators->entryPrice, pBase_Indicators->dailyATR / ATR_DIVISOR_FOR_PENDING_CHECK, currentTime)
 			)
 		{
 			pIndicators->entrySignal = -1;
@@ -1519,14 +1635,6 @@ AsirikuyReturnCode workoutExecutionTrend_ASI(StrategyParams* pParams, Indicators
 
 	return SUCCESS;
 }
-
-/* 
- * MACD and Ichimoko strategy functions have been extracted to:
- * - workoutExecutionTrend_MACD_Daily_New, workoutExecutionTrend_MACD_Daily -> strategies/macd/MACDDailyStrategy.c
- * - workoutExecutionTrend_MACD_Weekly -> strategies/macd/MACDWeeklyStrategy.c
- * - workoutExecutionTrend_Ichimoko_Weekly_Index -> strategies/ichimoko/IchimokoWeeklyStrategy.c
- */
-
 
 AsirikuyReturnCode workoutExecutionTrend_4H_Shellington(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
