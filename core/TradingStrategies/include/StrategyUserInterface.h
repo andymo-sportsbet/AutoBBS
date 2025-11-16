@@ -51,7 +51,7 @@
 extern "C" {
 #endif
 
-#include "Base.h"
+#include "strategies/autobbs/base/Base.h"
 
 /**
  * Saves an array of string and double to a file

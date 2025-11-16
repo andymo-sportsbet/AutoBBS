@@ -75,7 +75,7 @@
 #define UNIX_EPOCH_YEAR          1970    /* In UNIX based systems years are counted from 1970. time_t is also widely accepted to use this epoch */
 #define ALL_ORDER_TICKETS        -1      /* A special constant for order tickets used when a trading signal is to be applied to all open trades. */
 #define PRIMARY_RATES_INDEX      0       /* This rates index used for the main symbol and timeframe being traded. */
-#define TICK_DATA_STORAGE_LIMIT  500	 /* Maximum number of ticks to store
+#define TICK_DATA_STORAGE_LIMIT  500	 /* Maximum number of ticks to store */
 
 
 /* Days of the week */

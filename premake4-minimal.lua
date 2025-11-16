@@ -97,9 +97,8 @@ else
 	include "core/OrderManager"
 	include "core/TradingStrategies"
 	include "core/NTPClient"
-	-- Optional: Uncomment if needed
-	-- include "core/AsirikuyFrameworkAPI"
-	-- include "core/CTesterFrameworkAPI"
-	-- include "core/UnitTests"
+	include "core/AsirikuyFrameworkAPI"
+	include "core/CTesterFrameworkAPI"
+	include "core/UnitTests"
 end
 
