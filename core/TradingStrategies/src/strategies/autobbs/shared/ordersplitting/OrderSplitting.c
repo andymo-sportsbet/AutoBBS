@@ -21,8 +21,8 @@
 #include "strategies/autobbs/trend/misc/KeyKOrderSplitting.h"  // For splitBuyOrders_KeyK, splitSellOrders_KeyK
 #include "strategies/autobbs/trend/bbs/BBSOrderSplitting.h"  // For splitBuyOrders_4HSwing, splitSellOrders_4HSwing, splitBuyOrders_4HSwing_100P, splitSellOrders_4HSwing_100P
 #include "strategies/autobbs/trend/macd/MACDOrderSplitting.h"  // For splitBuyOrders_MACDDaily, splitSellOrders_MACDDaily, splitBuyOrders_MACDWeekly, splitSellOrders_MACDWeekly
-#include "strategies/autobbs/trend/shortterm/ShortTermOrderSplitting.h"  // For splitBuyOrders_ShortTerm_New, splitSellOrders_ShortTerm_New
-#include "strategies/autobbs/swing/daytrading/DayTradingOrderSplitting.h"  // For splitBuyOrders_Daily_Swing_ExecutionOnly, splitSellOrders_Daily_Swing_ExecutionOnly
+#include "strategies/autobbs/trend/shortterm/ShortTermOrderSplitting.h"  // For splitBuyOrders_ShortTerm_New, splitSellOrders_ShortTerm_New, splitBuyOrders_ShortTerm, splitSellOrders_ShortTerm
+#include "strategies/autobbs/swing/daytrading/DayTradingOrderSplitting.h"  // For splitBuyOrders_Daily_Swing_ExecutionOnly, splitSellOrders_Daily_Swing_ExecutionOnly, splitSellOrders_Daily_Swing
 #include "strategies/autobbs/shared/ordersplitting/OrderSplitting.h"
 
 
@@ -32,7 +32,6 @@ static void splitBuyOrders_Limit(StrategyParams *pParams, Indicators *pIndicator
 	double openPrice;
 	double preHigh = iHigh(B_DAILY_RATES, 1);
 	double preLow = iLow(B_DAILY_RATES, 1);
-	double preClose = iClose(B_DAILY_RATES, 1);
 
 	int shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	time_t currentTime;
@@ -67,7 +66,6 @@ static void splitSellOrders_Limit(StrategyParams *pParams, Indicators *pIndicato
 	double openPrice;
 	double preHigh = iHigh(B_DAILY_RATES, 1);
 	double preLow = iLow(B_DAILY_RATES, 1);
-	double preClose = iClose(B_DAILY_RATES, 1);
 
 	int shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	time_t currentTime;
@@ -84,7 +82,7 @@ static void splitSellOrders_Limit(StrategyParams *pParams, Indicators *pIndicato
 		// Fin 50%
 		openPrice = preLow + (preHigh - preLow) * 0.5 - pIndicators->adjust;
 		if (!isSamePriceSellLimitOrderEasy(openPrice, currentTime, 0.0))
-			openSingleBuyLimitEasy(openPrice, takePrice, stopLoss, 0, 1);
+			openSingleSellLimitEasy(openPrice, takePrice, stopLoss, 0, 1);
 	}
 
 	if (pBase_Indicators->dailyTrend_Phase == MIDDLE_DOWN_PHASE)
@@ -97,87 +95,9 @@ static void splitSellOrders_Limit(StrategyParams *pParams, Indicators *pIndicato
 }
 
 // splitBuyOrders_LongTerm is implemented in OrderSplittingUtilities.c - removed duplicate
-#if 0
-// Long term trades.
-// split into 2 trades
-// 50% 2:1
-// 50% no tp.
-void splitBuyOrders_LongTerm(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-
-	double takePrice;
-	double pATR = pBase_Indicators->pDailyATR;
-	double pHigh = pBase_Indicators->pDailyHigh;
-	double pLow = pBase_Indicators->pDailyLow;
-	double lots;
-	double gap = pHigh - pIndicators->entryPrice;
-
-	// Pullback over 1/3 range
-	if (gap >= pATR / 2)
-	{
-		// takePrice = 2 * takePrice_primary;
-		// openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk /2 );
-		takePrice = 0;
-		openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk);
-	}
-}
-#endif
-
 // splitBuyOrders_Weekly_Beginning is implemented in WeeklyOrderSplitting.c - removed duplicate
-#if 0
-void splitBuyOrders_Weekly_Beginning(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
-	// 1:1 ratio
-	if (pIndicators->entryPrice <= pBase_Indicators->weeklyR1)
-	{
-		takePrice = 0;
-		openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk);
-	}
-}
-#endif
-
 // splitSellOrders_LongTerm is implemented in OrderSplittingUtilities.c - removed duplicate
-#if 0
-// Long term trades.
-// split into 2 trades
-// 50% 2:1
-// 50% no tp.
-void splitSellOrders_LongTerm(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
-	double pATR = pBase_Indicators->pDailyATR;
-	double pHigh = pBase_Indicators->pDailyHigh;
-	double pLow = pBase_Indicators->pDailyLow;
-	double lots;
-	double gap = pIndicators->entryPrice - pLow;
-
-	// Pullback over 1/3 range
-	if (gap >= pATR / 2)
-	{
-		// takePrice = 2 * takePrice_primary;
-		// openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 2);
-		takePrice = 0;
-		openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk);
-	}
-}
-#endif
-
 // splitSellOrders_Weekly_Beginning is implemented in WeeklyOrderSplitting.c - removed duplicate
-#if 0
-void splitSellOrders_Weekly_Beginning(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
-	// 1:1 ratio
-	if (pIndicators->entryPrice >= pBase_Indicators->weeklyS1)
-	{
-		// takePrice = 2 * takePrice_primary;
-		// openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 2);
-		takePrice = 0;
-		openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk);
-	}
-}
-#endif
 
 // Short & Long term trades
 // split into 3 trades
@@ -208,7 +128,7 @@ static void splitBuyOrders_MediumTerm(StrategyParams *pParams, Indicators *pIndi
 
 		if ((int)parameter(AUTOBBS_TP_MODE) == 1)
 		{
-			// [Comment removed - encoding corrupted]
+			// Calculate take profit for third order (3:1 ratio)
 			if (pBase_Indicators->dailyPivot - pIndicators->entryPrice > 0)
 				takePrice = 3 * takePrice_primary;
 			else
@@ -286,114 +206,23 @@ void splitBuyOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators
 	double lots, lots_singal;
 	double gap = pHigh - pIndicators->entryPrice;
 
-	// if (gap >= 3)
-	{
-		// if (gap * 2 / 3 < 2)
-		//	takePrice = 2;
-		// else
-		//	takePrice = min(gap * 2 / 3, 3);
+	takePrice = 3;
 
-		takePrice = 3;
+	lots_singal = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice);
 
-		lots_singal = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice);
+	lots = pIndicators->total_lose_pips / takePrice + lots_singal;
 
-		// lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice) * pIndicators->risk;
-		// if (pIndicators->total_lose_pips > takePrice * lots)
-		{
-			lots = pIndicators->total_lose_pips / takePrice + lots_singal;
+	// Cap lots to 1.5% of equity
+	if (lots * takePrice * 100 / pParams->accountInfo.equity > 0.015)
+		lots = pParams->accountInfo.equity * 0.015 / 100 / takePrice;
 
-			// [Comment removed - encoding corrupted]
-			if (lots * takePrice * 100 / pParams->accountInfo.equity > 0.015)
-				lots = pParams->accountInfo.equity * 0.015 / 100 / takePrice;
-		}
-
-		openSingleLongEasy(takePrice, stopLoss, lots, 0);
-	}
+	openSingleLongEasy(takePrice, stopLoss, lots, 0);
 }
 
 // splitSellOrders_Daily_Swing is implemented in DayTradingOrderSplitting.c - removed duplicate
-#if 0
-void splitSellOrders_Daily_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
-	double pATR = pBase_Indicators->pDailyATR;
-	double pHigh = pBase_Indicators->pDailyHigh;
-	double pLow = pBase_Indicators->pDailyLow;
-	double lots, lots_singal;
-	double gap = pIndicators->entryPrice - pLow;
-
-	// if (gap >= 3)
-	{
-		// if (gap * 2 / 3 < 2)
-		//	takePrice = 2;
-		// else
-		//	takePrice = min(gap * 2 / 3, 3);
-
-		takePrice = 3;
-		lots_singal = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, takePrice);
-		// lots = calculateOrderSize(pParams, SELL, pIndicators->entryPrice, takePrice) * pIndicators->risk;
-
-		// if (pIndicators->total_lose_pips > takePrice * lots)
-		{
-			lots = pIndicators->total_lose_pips / takePrice + lots_singal;
-
-			// [Comment removed - encoding corrupted]
-			if (lots * takePrice * 100 / pParams->accountInfo.equity > 0.015)
-				lots = pParams->accountInfo.equity * 0.015 / 100 / takePrice;
-		}
-
-		openSingleShortEasy(takePrice, stopLoss, lots, 0);
-	}
-}
-#endif
 
 // splitBuyOrders_ATR is implemented in OrderSplittingUtilities.c - removed duplicate
-
 // splitBuyOrders_ShortTerm is implemented in ShortTermOrderSplitting.c - removed duplicate
-#if 0
-// Short term trades only
-void splitBuyOrders_ShortTerm(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-
-	double takePrice;
-	double pATR = pBase_Indicators->pDailyATR;
-	double pHigh = pBase_Indicators->pDailyHigh;
-	double pLow = pBase_Indicators->pDailyLow;
-	double lots;
-	double gap = pHigh - pIndicators->entryPrice;
-	int shift0Index_Primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	time_t currentTime;
-	struct tm timeInfo1;
-	double riskcap = parameter(AUTOBBS_RISK_CAP);
-
-	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index_Primary];
-	safe_gmtime(&timeInfo1, currentTime);
-
-	// Pullback over 1/3 range
-
-	if (pIndicators->tradeMode == 1 && gap >= pATR / 2 && fabs(iClose(B_DAILY_RATES, 1) - iClose(B_DAILY_RATES, 2)) < pBase_Indicators->dailyATR)
-	{
-
-		takePrice = gap / 3;
-		lots = calculateOrderSize(pParams, BUY, pIndicators->entryPrice, takePrice) * pIndicators->risk;
-		// Cap to 2 % risk
-		// if (stopLoss / takePrice * pParams->settings[ACCOUNT_RISK_PERCENT] > riskcap)
-		//	lots = lots * riskcap / (stopLoss / takePrice * pParams->settings[ACCOUNT_RISK_PERCENT]);
-		openSingleLongEasy(takePrice, stopLoss, lots, 0);
-	}
-
-	{
-		if (pIndicators->entryPrice <= pBase_Indicators->dailyR1)
-		{
-			takePrice = 0;
-			if (pIndicators->tradeMode == 1)
-				openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 2);
-			else
-				openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk);
-		}
-	}
-}
-#endif
 
 static void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
 {
@@ -406,7 +235,7 @@ static void splitBuyOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicato
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	// [Comment removed - encoding corrupted]
+	// Hedge order when price is near the low (within 1/3 ATR)
 	if (down_gap <= pATR / 3)
 	{
 		takePrice = up_gap / 4;
@@ -428,7 +257,7 @@ static void splitSellOrders_ShortTerm_ATR_Hedge(StrategyParams *pParams, Indicat
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	// [Comment removed - encoding corrupted]
+	// Hedge order when price is near the high (within 1/3 ATR)
 	if (up_gap <= pATR / 3)
 	{
 		takePrice = down_gap / 4;
@@ -450,7 +279,7 @@ static void splitBuyOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators *
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	// [Comment removed - encoding corrupted]
+	// Hedge order when price is near the low (within 1/3 ATR)
 	if (down_gap <= pATR / 3)
 	{
 		takePrice = up_gap / 4;
@@ -472,7 +301,7 @@ static void splitSellOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators 
 	double down_gap = pIndicators->entryPrice - pLow;
 	double up_gap = pHigh - pIndicators->entryPrice;
 
-	// [Comment removed - encoding corrupted]
+	// Hedge order when price is near the high (within 1/3 ATR)
 	if (up_gap <= pATR / 3)
 	{
 		takePrice = down_gap / 4;
@@ -484,44 +313,9 @@ static void splitSellOrders_ShortTerm_Hedge(StrategyParams *pParams, Indicators 
 }
 
 // splitBuyOrders_KeyK is implemented in KeyKOrderSplitting.c - removed duplicate
-#if 0
-void splitBuyOrders_KeyK(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
-	// [Comment removed - encoding corrupted]
-
-	takePrice = takePrice_primary;
-	openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 3);
-
-	takePrice = 2 * takePrice_primary;
-	openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 3);
-
-	takePrice = 0;
-	openSingleLongEasy(takePrice, stopLoss, 0, pIndicators->risk / 3);
-}
-#endif
-
 // splitSellOrders_ATR is implemented in OrderSplittingUtilities.c - removed duplicate
-
 // splitSellOrders_ShortTerm is implemented in ShortTermOrderSplitting.c - removed duplicate
-
 // splitSellOrders_KeyK is implemented in KeyKOrderSplitting.c - removed duplicate
-#if 0
-void splitSellOrders_KeyK(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)
-{
-	double takePrice;
-
-	takePrice = takePrice_primary;
-	openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 3);
-
-	takePrice = 2 * takePrice_primary;
-	openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 3);
-
-	takePrice = 0;
-
-	openSingleShortEasy(takePrice, stopLoss, 0, pIndicators->risk / 3);
-}
-#endif
 
 // Stub implementations for missing order splitting functions
 static void splitBuyOrders_MultiDays_GBPJPY_Swing(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, double takePrice_primary, double stopLoss)

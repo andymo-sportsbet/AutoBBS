@@ -12,26 +12,13 @@
 #include "EasyTradeCWrapper.hpp"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"
-// Include strategy-specific headers EARLY to ensure declarations are available before use
-#include "strategies/autobbs/trend/bbs/BBSSwingStrategy.h"  // For workoutExecutionTrend_4HBBS_Swing, workoutExecutionTrend_4HBBS_Swing_BoDuan, workoutExecutionTrend_4HBBS_Swing_XAUUSD_BoDuan
-#include "strategies/autobbs/trend/limit/LimitStrategy.h"  // For workoutExecutionTrend_Limit
-#include "strategies/autobbs/trend/limit/LimitBBSStrategy.h"  // For workoutExecutionTrend_Limit_BBS, workoutExecutionTrend_Limit_BBS_LongTerm, workoutExecutionTrend_Limit_BreakOutOnPivot
-#include "strategies/autobbs/trend/weekly/WeeklyAutoStrategy.h"  // For workoutExecutionTrend_WeeklyAuto
-#include "strategies/autobbs/swing/weekly/WeeklyStrategy.h"  // For workoutExecutionTrend_Weekly_Swing_New, workoutExecutionTrend_WeeklyATR_Prediction
-#include "strategies/autobbs/swing/daytrading/DayTradingStrategy.h"  // For workoutExecutionTrend_GBPJPY_DayTrading_Ver2, workoutExecutionTrend_DayTrading_ExecutionOnly
-#include "strategies/autobbs/swing/multipleday/MultipleDayStrategy.h"  // For workoutExecutionTrend_MultipleDay, workoutExecutionTrend_MultipleDay_V2
-#include "strategies/autobbs/trend/macd/MACDDailyStrategy.h"  // For workoutExecutionTrend_MACD_Daily_New, workoutExecutionTrend_MACD_Daily
-#include "strategies/autobbs/trend/macd/MACDWeeklyStrategy.h"  // For workoutExecutionTrend_MACD_Weekly
-#include "strategies/autobbs/trend/ichimoko/IchimokoDailyStrategy.h"  // For workoutExecutionTrend_Ichimoko_Daily_New, workoutExecutionTrend_Ichimoko_Daily_Index
-#include "strategies/autobbs/trend/ichimoko/IchimokoWeeklyStrategy.h"  // For workoutExecutionTrend_Ichimoko_Weekly_Index
-#include "strategies/autobbs/trend/misc/MiscStrategies.h"  // For workoutExecutionTrend_4H_Shellington
-#include "strategies/autobbs/trend/shortterm/ShortTermStrategy.h"  // For workoutExecutionTrend_ShortTerm
-#include "strategies/autobbs/swing/macd_beili/MACDBEILIStrategy.h"  // For workoutExecutionTrend_MACD_BEILI
+// Include strategy convenience headers - these include all individual strategy headers
+#include "strategies/autobbs/trend/TrendStrategy.h"  // Includes all trend strategy headers (BBS, Limit, MACD, Ichimoko, Weekly, ShortTerm, Misc)
+#include "strategies/autobbs/swing/SwingStrategy.h"  // Includes all swing strategy headers (Weekly, DayTrading, MultipleDay, MACD_BEILI)
 #include "StrategyUserInterface.h"
 #include "AsirikuyTime.h"
 #include "InstanceStates.h"
 #include "AsirikuyLogger.h"
-#include "strategies/autobbs/trend/common/OrderSplittingUtilities.h"
 #include "strategies/autobbs/shared/common/ProfitManagement.h"
 #include "strategies/autobbs/shared/ordermanagement/OrderManagement.h"
 #include "strategies/autobbs/shared/execution/StrategyExecution.h"
@@ -1306,6 +1293,9 @@ if (pIndicators->bbsTrend_primary == -1)
 	return SUCCESS;
 }
 
+// XAUUSD_DayTrading_Allow_Trade and XAUUSD_DayTrading_Entry are implemented in DayTradingHelpers.c
+// Removed duplicate implementations - using the ones from DayTradingHelpers.c
+#if 0
 /*
 
 1.ATR > 20
@@ -1315,7 +1305,7 @@ if (pIndicators->bbsTrend_primary == -1)
 5.10
 6.15MA too close,  21H MA 
 */
-static BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
+BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators)
 {
 int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
 int count, asia_index_rate, euro_index_rate, execution_tf;
@@ -1403,7 +1393,7 @@ if (close_prev1 > R3 || close_prev1 < S3)
 return TRUE;
 }
 
-static void XAUUSD_DayTrading_Entry(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators, OrderType orderType, double ATR0_EURO, double stopLoss, double Range)
+void XAUUSD_DayTrading_Entry(StrategyParams * pParams, Indicators * pIndicators, Base_Indicators * pBase_Indicators, OrderType orderType, double ATR0_EURO, double stopLoss, double Range)
 {
 int shift0Index_primary = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 time_t currentTime;
@@ -1444,6 +1434,7 @@ if (orderType == BUY)
 	pIndicators->exitSignal = EXIT_BUY;
 }
 }
+#endif
 
 // workoutExecutionTrend_XAUUSD_DayTrading is implemented in DayTradingStrategy.c
 // Removed duplicate/broken implementation - using the one from DayTradingStrategy.c

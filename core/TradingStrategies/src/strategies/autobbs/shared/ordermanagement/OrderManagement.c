@@ -43,7 +43,7 @@ AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pIndicators
 
 				modifyTradeEasy_DayTrading(BUY, -1, stopLoss, pIndicators->bbsStopPrice_primary, -1, tpMode, currentTime, pIndicators->adjust, FALSE);
 			}
-			// [Comment removed - encoding corrupted]
+	
 			//{
 			//	takePrice = adjustTakePrice_Weekly_Swing_Easy(B_HOURLY_RATES, pBase_Indicators->pWeeklyATR/3);
 			//	modifyTradeEasy_new(BUY, -1, stopLoss, takePrice, tpMode, FALSE);

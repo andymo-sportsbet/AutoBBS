@@ -657,8 +657,8 @@ AsirikuyReturnCode workoutExecutionTrend_MIDDLE_RETREAT_PHASE(StrategyParams* pP
 	return SUCCESS;
 }
 
-// workoutExecutionTrend_Weekly_MIDDLE_RETREAT_PHASE is declared and defined in StrategyComLib.c
-// Removed duplicate definition - using the one from StrategyComLib.c
+// workoutExecutionTrend_Weekly_MIDDLE_RETREAT_PHASE is declared and defined in WeeklyAutoStrategy.c
+// Removed duplicate definition - using the one from WeeklyAutoStrategy.c
 
 /*
 Ϊʹ15MBBS볡

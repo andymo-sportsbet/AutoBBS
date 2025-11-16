@@ -1,6 +1,12 @@
 /*
-* Common libaray for autobbs
-*/
+ * Common library for autobbs
+ * 
+ * Provides shared utility functions used across AutoBBS strategies:
+ * - Volume calculations (CMF)
+ * - Time filtering and date checks
+ * - Price utilities
+ * - Order management helpers
+ */
 #include "Precompiled.h"
 #include "OrderManagement.h"
 #include "Logging.h"
@@ -89,10 +95,7 @@ double getCMFVolumeGap(int index, int fast_period, int slow_period, int shift)
 	double high, low, close, volume, open;
 	int i = 0;
 	double sum = 0.0;
-
-	TA_RetCode taRetCode;
-	int        outBegIdx, outNBElement;
-	double	   fast_ma,slow_ma;	
+	double fast_ma, slow_ma;	
 
 	for (i = 0; i< 20; i++)
 	{
@@ -104,11 +107,7 @@ double getCMFVolumeGap(int index, int fast_period, int slow_period, int shift)
 				
 		if (high - low >0)
 			cmfVolumes[i] = fabs(volume * ((close - open) / (high - low)));
-			//cmfVolumes[i] = abs(volume * ((close - low) - (high - close)) / (high - low));
 	}
-	
-	//TA_MA(1, 19, cmfVolumes, fast_period, TA_MAType_SMA, &outBegIdx, &outNBElement, &fast_ma);
-	//TA_MA(1, 19, cmfVolumes, slow_period, TA_MAType_SMA, &outBegIdx, &outNBElement, &slow_ma);
 
 	for (i = shift; i < fast_period + shift; i++)
 	{
@@ -132,8 +131,6 @@ double getCMFVolumeGap(int index, int fast_period, int slow_period, int shift)
 
 
 // handleTradeExits is implemented in OrderManagement.c - removed duplicate
-
-// pParams->orderInfo[0]
 void traceLatestOpenStopLoss(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double minTP, double traceSL)
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
@@ -203,7 +200,7 @@ BOOL isNextdayMACDPostiveBar2(StrategyParams* pParams, int orderIndex,int startS
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
 	time_t currentTime, orderOpenTime;
-	struct tm timeInfo1, timeInfo2, timeInfoPreBar;
+	struct tm timeInfo1, timeInfo2;
 	char   timeString[MAX_TIME_STRING_SIZE] = "";	
 	BOOL result = TRUE;
 	double preDayOpen, preDayOpen1, preDayClose, preDayClose1, preDayRange, preDayRange1;
@@ -224,6 +221,7 @@ BOOL isNextdayMACDPostiveBar2(StrategyParams* pParams, int orderIndex,int startS
 	preDayClose1 = iClose(B_DAILY_RATES, startShift + 1);
 	preDayRange1 = preDayOpen1 - preDayClose1;
 
+	// Adjust for Friday orders (skip weekend)
 	if (timeInfo2.tm_wday == 5)
 	{		
 		orderOpenTime += 24 * 2 * 60 * 60;	
@@ -371,91 +369,14 @@ int weeklyTrend4HSwingSignal(StrategyParams* pParams, Indicators* pIndicators, B
 }
 
 // modifyOrders is implemented in OrderManagement.c - removed duplicate
-#if 0
-AsirikuyReturnCode modifyOrders(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, OrderType orderType, double stopLoss, double takePrice)
-{
-	int tpMode = 0;
-	int shift0Index;
-	time_t currentTime;
-	
-	shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-
-	if ((int)parameter(AUTOBBS_TREND_MODE) == 33 || (int)parameter(AUTOBBS_TREND_MODE) == 2 
-		|| (int)parameter(AUTOBBS_TREND_MODE) == 3
-		|| (int)parameter(AUTOBBS_TREND_MODE) == 34) //MACD BEILI, need to move take profit price
-	{
-		takePrice = pIndicators->takePrice;
-
-		logInfo("ModifyOrders: takePrice = %lf,takePrice=%lf\n", takePrice, pIndicators->takePrice);
-
-	}
-	
-
-	if ((int)parameter(AUTOBBS_TREND_MODE) == 15 )
-	{
-
-		//traceLatestOpenStopLoss(pParams, pIndicators, pBase_Indicators, 3, 0.5);
-	}
-	else
-	{
-		if ((int)pParams->settings[TIMEFRAME] >= 60 && isNewDay(pParams, currentTime))
-		{
-			setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
-			tpMode = 1;
-		}
-
-
-		if (orderType == BUY)
-		{
-			if (totalOpenOrders(pParams, BUY) > 0)
-			{
-				if ((int)parameter(AUTOBBS_TREND_MODE) == 5) //Day Trading, override the stop loss to primary bbs on the new day.
-				{
-					//stopLoss2 = fabs(pIndicators->entryPrice - pIndicators->bbsStopPrice_primary) + pIndicators->adjust;
-
-					modifyTradeEasy_DayTrading(BUY, -1, stopLoss, pIndicators->bbsStopPrice_primary, -1, tpMode, currentTime, pIndicators->adjust, pIndicators->stopMovingBackSL);
-				}
-				else
-					modifyTradeEasy_new(BUY, -1, stopLoss, takePrice, tpMode, pIndicators->stopMovingBackSL); // New day TP change as
-			}
-		}
-
-		if (orderType == SELL)
-		{
-			if (totalOpenOrders(pParams, SELL) > 0)
-			{
-				if ((int)parameter(AUTOBBS_TREND_MODE) == 5) //Day Trading, override the stop loss to primary bbs on the new day.
-				{
-					//stopLoss2 = fabs(pIndicators->entryPrice - pIndicators->bbsStopPrice_primary) + pIndicators->adjust;
-					modifyTradeEasy_DayTrading(SELL, -1, stopLoss, pIndicators->bbsStopPrice_primary, -1, tpMode, currentTime, pIndicators->adjust, pIndicators->stopMovingBackSL);
-				}
-				//else if ((int)parameter(AUTOBBS_TREND_MODE) == 13) //�ڿ��ֺ�TP�ǵ͵㵽�ߵ�ľ��롣
-				//{
-				//	takePrice = adjustTakePrice_Weekly_Swing_Easy(B_HOURLY_RATES, pBase_Indicators->pWeeklyATR / 3);
-				//	modifyTradeEasy_new(SELL, -1, stopLoss, takePrice, tpMode);
-				//}
-				else if ((int)parameter(AUTOBBS_TREND_MODE) != 15)
-					modifyTradeEasy_new(SELL, -1, stopLoss, takePrice, tpMode, pIndicators->stopMovingBackSL); // New day TP change as
-			}
-		}
-	}
-
-	return SUCCESS;
-
-}
-#endif
 
 AsirikuyReturnCode getHighestHourlyClosePrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index, int orderIndex, double * highPrice, double * lowPrice)
 {
-	
 	int  shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-	int  openBar = 0;
 	int count;
 	time_t currentTime;
 	struct tm timeInfo1; 
 	char   timeString[MAX_TIME_STRING_SIZE] = "";
-	int seconds;
 	
 	*highPrice = -999999.0;
 	*lowPrice = 999999.0;
@@ -467,8 +388,6 @@ AsirikuyReturnCode getHighestHourlyClosePrice(StrategyParams* pParams, Indicator
 	if (orderIndex >=0 && pParams->orderInfo[orderIndex].isOpen == TRUE)
 	{
 		count = (int)difftime(currentTime, pParams->orderInfo[orderIndex].openTime) / (60 * 60);
-
-		openBar = shift1Index - count;
 
 		if (count >= 1)
 			iSRLevels_close(pParams, pBase_Indicators, rate_index, shift1Index, 2 * count, highPrice, lowPrice);
@@ -483,9 +402,7 @@ AsirikuyReturnCode getHighestHourlyClosePrice(StrategyParams* pParams, Indicator
 
 AsirikuyReturnCode getHighLowPrice(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int rate_index, int timeFrame,int orderIndex, double * highPrice, double * lowPrice)
 {
-
 	int  shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-	int  openBar = 0;
 	int count;
 	time_t currentTime;
 	struct tm timeInfo1;
@@ -502,8 +419,6 @@ AsirikuyReturnCode getHighLowPrice(StrategyParams* pParams, Indicators* pIndicat
 		&& (pParams->orderInfo[orderIndex].type == BUY || pParams->orderInfo[orderIndex].type == SELL))
 	{		
 		count = (int)difftime(currentTime, pParams->orderInfo[orderIndex].openTime) / timeFrame;
-
-		openBar = shift1Index - count;
 
 		if (count >= 1)
 			iSRLevels(pParams, pBase_Indicators, rate_index, shift1Index, count, highPrice, lowPrice);
@@ -572,71 +487,63 @@ AsirikuyReturnCode addMoreOrdersOnLongTermTrend(StrategyParams* pParams, Indicat
 BOOL XAUUSD_not_full_trading_day(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
 {
 	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
-	time_t currentTime, adjustTime;
-	struct tm timeInfo1, adjustTimeInfo;
+	time_t currentTime;
+	struct tm timeInfo1;
 	char       timeString[MAX_TIME_STRING_SIZE] = "";
-	int secondsPerWeek = 7 * 24 * 60 * 60;
 	BOOL isFilter = FALSE;
 
 	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
 	safe_gmtime(&timeInfo1, currentTime);
 	safe_timeString(timeString, currentTime);
 
-
-	//Martin holiday 3st week Monday on Jan
+	// Martin Luther King Jr. Day - 3rd Monday in January
 	if (timeInfo1.tm_mon == 0 && timeInfo1.tm_wday == 1
 		&& timeInfo1.tm_mday >= 2 * 7 && timeInfo1.tm_mday <= 3 * 7)
 	{
-		//adjustTime = currentTime - 3 * secondsPerWeek;
-		//safe_gmtime(&adjustTimeInfo, adjustTime);
-		//if (adjustTimeInfo.tm_mon == 11)
-		{
-			strcpy(pIndicators->status, "Filter Martin holiday.\n\n");
-			isFilter = TRUE;
-		}
-
+		strcpy(pIndicators->status, "Filter Martin holiday.\n\n");
+		isFilter = TRUE;
 	}
-	//Washington holiday 3st Monday
+	// Presidents' Day - 3rd Monday in February
 	if (timeInfo1.tm_mon == 1 && timeInfo1.tm_wday == 1
 		&& timeInfo1.tm_mday >= 2 * 7 && timeInfo1.tm_mday <= 3 * 7)
 	{
 		strcpy(pIndicators->status, "Filter Washington holiday.\n\n");
 		isFilter = TRUE;
 	}
-	//Good Friday holiday from KeyDate file
+	// Good Friday holiday from KeyDate file
 	if (XAUUSD_IsKeyDate(pParams, pIndicators, pBase_Indicators))
 	{
 		strcpy(pIndicators->status, "Filter GoodFriday holiday or adjusted US Independent day.\n\n");
 		isFilter = TRUE;
 	}
-	//Memorial holiday Last Monday
+	// Memorial Day - Last Monday in May
 	if (timeInfo1.tm_mon == 4 && timeInfo1.tm_wday == 1
 		&& timeInfo1.tm_mday >= 31 - 7 && timeInfo1.tm_mday <= 31)
 	{
 		strcpy(pIndicators->status, "Filter Memorial holiday.\n\n");
 		isFilter = TRUE;
 	}
-	//US Independent day holiday on 04/07
+	// US Independence Day - July 4th
 	if (timeInfo1.tm_mon == 6 && timeInfo1.tm_mday == 4)
 	{
-		strcpy(pIndicators->status, "Filter US Independent day .\n\n");
+		strcpy(pIndicators->status, "Filter US Independent day.\n\n");
 		isFilter = TRUE;
 	}
-	//Labour holiday 1st Monday
+	// Labor Day - 1st Monday in September
 	if (timeInfo1.tm_mon == 8 && timeInfo1.tm_wday == 1
 		&& timeInfo1.tm_mday >= 1 && timeInfo1.tm_mday <= 7)
 	{
 		strcpy(pIndicators->status, "Filter Labour holiday.\n\n");
 		isFilter = TRUE;
 	}
-	//Thanksgiving holiday 4st Thursday on NOV
+	// Thanksgiving - 4th Thursday in November
 	if (timeInfo1.tm_mon == 10 && timeInfo1.tm_wday == 4
 		&& timeInfo1.tm_mday >= 3 * 7 && timeInfo1.tm_mday <= 4 * 7)
 	{
 		strcpy(pIndicators->status, "Filter thanksgiving holiday.\n\n");
 		isFilter = TRUE;
 	}
-	//filter christmas eve and new year eve
+	// Filter Christmas Eve and New Year's Eve
 	if (timeInfo1.tm_mon == 11 && (timeInfo1.tm_mday == 24 || timeInfo1.tm_mday == 31))
 	{
 		strcpy(pIndicators->status, "Filter Christmas and New Year Eve.\n\n");

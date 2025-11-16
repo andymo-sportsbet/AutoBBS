@@ -99,5 +99,6 @@ AsirikuyReturnCode setUIValues(StrategyParams *pParams, Indicators *pIndicators,
 		addValueToUI("strategyMarketVolRisk", pIndicators->strategyMarketVolRisk);
 		break;
 	}
+	
 	return SUCCESS;
 }

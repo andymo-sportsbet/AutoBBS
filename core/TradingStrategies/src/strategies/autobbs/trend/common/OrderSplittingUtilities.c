@@ -2,7 +2,7 @@
  * Order Splitting Utilities Module
  * 
  * Provides shared utility order splitting functions used by multiple strategies.
- * These functions are called from AutoBBS.c, StrategyComLib.c, and various strategy modules.
+ * These functions are called from AutoBBS.c and various strategy modules.
  */
 
 #include "Precompiled.h"
