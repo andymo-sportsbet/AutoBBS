@@ -10,16 +10,9 @@
  * - Sets UI values for display in trading interface
  */
 
-#include "Precompiled.h"
-#include "OrderManagement.h"
-#include "Logging.h"
 #include "EasyTradeCWrapper.hpp"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"
-#include "StrategyUserInterface.h"
-#include "AsirikuyTime.h"
-#include "InstanceStates.h"
-#include "AsirikuyLogger.h"
 #include "strategies/autobbs/shared/execution/StrategyExecution.h"
 #include "strategies/autobbs/shared/indicators/IndicatorManagement.h"
 

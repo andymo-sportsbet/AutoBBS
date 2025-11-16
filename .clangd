@@ -1,0 +1,26 @@
+CompileFlags:
+  Add:
+    - -I/Users/andym/projects/AutoBBS/core/TradingStrategies/include
+    - -I/Users/andym/projects/AutoBBS/core/TradingStrategies/src
+    - -I/Users/andym/projects/AutoBBS/core/AsirikuyCommon/include
+    - -I/Users/andym/projects/AutoBBS/core/Log/include
+    - -I/Users/andym/projects/AutoBBS/core/OrderManager/include
+    - -I/Users/andym/projects/AutoBBS/core/AsirikuyTechnicalAnalysis/include
+    - -I/Users/andym/projects/AutoBBS/core/AsirikuyEasyTrade/include
+    - -I/Users/andym/projects/AutoBBS/vendor/TALib/c/include
+
+---
+If:
+  PathMatch: .*\.(cpp|hpp)$
+CompileFlags:
+  Add:
+    - -x
+    - c++
+    - -std=c++11
+
+Index:
+  Background: Build
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None

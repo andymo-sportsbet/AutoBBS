@@ -5,17 +5,14 @@
  * Handles trade entries, exits, and order modifications.
  */
 
-#include "Precompiled.h"
 #include "OrderManagement.h"
-#include "Logging.h"
 #include "EasyTradeCWrapper.hpp"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"
-#include "AsirikuyTime.h"
 #include "InstanceStates.h"
 #include "AsirikuyLogger.h"
-#include "strategies/autobbs/shared/ordermanagement/OrderManagement.h"
 #include "strategies/autobbs/shared/ordersplitting/OrderSplitting.h"
+#include <math.h>
 
 AsirikuyReturnCode modifyOrders(StrategyParams *pParams, Indicators *pIndicators, Base_Indicators *pBase_Indicators, OrderType orderType, double stopLoss, double takePrice)
 {
