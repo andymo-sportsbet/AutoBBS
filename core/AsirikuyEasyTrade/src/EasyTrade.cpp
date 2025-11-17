@@ -53,7 +53,7 @@
 #include "OrderManagement.h"
 #include "OrderSignals.h"
 #include "AsirikuyTechnicalAnalysis.h"
-#include "tradingweekboundaries.h"
+#include "TradingWeekBoundaries.h"
 #include "curl/curl.h"
 #include "TimeZoneOffsets.h"
 #include "Broker-tz.h"
@@ -357,7 +357,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRates(char* ratesName, time_t intFromDa
 	safe_gmtime(&finalDate, pParams->currentBrokerTime);
 	safe_gmtime(&fromDate, intFromDate);
 
-	sprintf(outfilename, "%s_%d.csv", ratesName, pParams->settings[STRATEGY_INSTANCE_ID]);
+	sprintf(outfilename, "%s_%d.csv", ratesName, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 
 	strcat(url, "http://ichart.yahoo.com/table.csv?s=\n");
 	strcat(url, ratesName);
@@ -516,7 +516,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandl(char* token, char* dataset,
 	safe_gmtime(&finalDate, pParams->currentBrokerTime);
 	safe_gmtime(&fromDate, intFromDate);
 
-	sprintf(outfilename, "%s_%d.csv", ratesName, pParams->settings[STRATEGY_INSTANCE_ID]);
+	sprintf(outfilename, "%s_%d.csv", ratesName, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 
 	strcat(url, "http://www.quandl.com/api/v1/datasets/\n");
 	strcat(url, dataset);
@@ -663,7 +663,7 @@ AsirikuyReturnCode EasyTrade::addNewDailyRatesQuandlOpenOnly(char* token, char* 
 	safe_gmtime(&finalDate, pParams->currentBrokerTime);
 	safe_gmtime(&fromDate, intFromDate);
 
-	sprintf(outfilename, "%s_%d.csv", ratesName, pParams->settings[STRATEGY_INSTANCE_ID]);
+	sprintf(outfilename, "%s_%d.csv", ratesName, (int)pParams->settings[STRATEGY_INSTANCE_ID]);
 
 	strcat(url, "http://www.quandl.com/api/v1/datasets/\n");
 	strcat(url, dataset);
@@ -799,14 +799,14 @@ AsirikuyReturnCode EasyTrade::addNewRenkoRates(int originalRatesIndex, int rates
 		if (newCandle == TRUE)
 		{
 			if (pParams->ratesBuffers->rates[ratesIndex].info.arraySize == 0) 
-			currentOpen = pParams->ratesBuffers->rates[originalRatesIndex].open[i] ; else
-			currentOpen = pParams->ratesBuffers->rates[ratesIndex].close[pParams->ratesBuffers->rates[ratesIndex].info.arraySize-1] ;
+				currentOpen = pParams->ratesBuffers->rates[originalRatesIndex].open[i] ; else
+				currentOpen = pParams->ratesBuffers->rates[ratesIndex].close[pParams->ratesBuffers->rates[ratesIndex].info.arraySize-1] ;
 
-			currentTime  = pParams->ratesBuffers->rates[originalRatesIndex].time[i];
-			lowest = currentOpen;
-			highest = currentOpen;
-			cumulativeVolume = 0;
-			newCandle = FALSE;
+		currentTime  = pParams->ratesBuffers->rates[originalRatesIndex].time[i];
+		lowest = currentOpen;
+		highest = currentOpen;
+		cumulativeVolume = 0;
+		newCandle = FALSE;
 		}
 
 		cumulativeDown = currentOpen-pParams->ratesBuffers->rates[originalRatesIndex].low[i];
@@ -908,14 +908,14 @@ AsirikuyReturnCode EasyTrade::addNewConstantVolumeRates(int originalRatesIndex, 
 		if (newCandle == TRUE)
 		{
 			if (pParams->ratesBuffers->rates[ratesIndex].info.arraySize == 0) 
-			currentOpen = pParams->ratesBuffers->rates[originalRatesIndex].open[i] ; else
-			currentOpen = pParams->ratesBuffers->rates[ratesIndex].close[pParams->ratesBuffers->rates[ratesIndex].info.arraySize-1] ;
+				currentOpen = pParams->ratesBuffers->rates[originalRatesIndex].open[i] ; else
+				currentOpen = pParams->ratesBuffers->rates[ratesIndex].close[pParams->ratesBuffers->rates[ratesIndex].info.arraySize-1] ;
 
-			currentTime  = pParams->ratesBuffers->rates[originalRatesIndex].time[i];
-			lowest = currentOpen;
-			highest = currentOpen;
-			cumulativeVolume = 0;
-			newCandle = FALSE;
+		currentTime  = pParams->ratesBuffers->rates[originalRatesIndex].time[i];
+		lowest = currentOpen;
+		highest = currentOpen;
+		cumulativeVolume = 0;
+		newCandle = FALSE;
 		}
 
 		cumulativeVolume += pParams->ratesBuffers->rates[originalRatesIndex].volume[i]; 
@@ -1006,7 +1006,17 @@ AsirikuyReturnCode EasyTrade::openSingleSellLimitEasy(double entryPrice, double 
   addTradingSignal(SIGNAL_OPEN_SELLLIMIT, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
-  setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  // Check if rates[0] has valid data before accessing
+  if (pParams->ratesBuffers != NULL && 
+      pParams->ratesBuffers->rates[0].info.arraySize > 0)
+  {
+    setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  }
+  else
+  {
+    logWarning("Cannot set last order update time: rates[0] array is empty or invalid. arraySize=%d", 
+      pParams->ratesBuffers != NULL ? pParams->ratesBuffers->rates[0].info.arraySize : -1);
+  }
 
   return SUCCESS;
 }
@@ -1052,7 +1062,17 @@ AsirikuyReturnCode EasyTrade::openSingleSellStopEasy(double entryPrice, double t
   addTradingSignal(SIGNAL_OPEN_SELLSTOP, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
-  setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  // Check if rates[0] has valid data before accessing
+  if (pParams->ratesBuffers != NULL && 
+      pParams->ratesBuffers->rates[0].info.arraySize > 0)
+  {
+    setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  }
+  else
+  {
+    logWarning("Cannot set last order update time: rates[0] array is empty or invalid. arraySize=%d", 
+      pParams->ratesBuffers != NULL ? pParams->ratesBuffers->rates[0].info.arraySize : -1);
+  }
 
   return SUCCESS;
 }
@@ -1098,7 +1118,17 @@ AsirikuyReturnCode EasyTrade::openSingleBuyStopEasy(double entryPrice, double ta
   addTradingSignal(SIGNAL_OPEN_BUYSTOP, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
-  setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  // Check if rates[0] has valid data before accessing
+  if (pParams->ratesBuffers != NULL && 
+      pParams->ratesBuffers->rates[0].info.arraySize > 0)
+  {
+    setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  }
+  else
+  {
+    logWarning("Cannot set last order update time: rates[0] array is empty or invalid. arraySize=%d", 
+      pParams->ratesBuffers != NULL ? pParams->ratesBuffers->rates[0].info.arraySize : -1);
+  }
 
   return SUCCESS;
 }
@@ -1144,7 +1174,17 @@ AsirikuyReturnCode EasyTrade::openSingleBuyLimitEasy(double entryPrice, double t
   addTradingSignal(SIGNAL_OPEN_BUYLIMIT, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
 
-  setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  // Check if rates[0] has valid data before accessing
+  if (pParams->ratesBuffers != NULL && 
+      pParams->ratesBuffers->rates[0].info.arraySize > 0)
+  {
+    setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  }
+  else
+  {
+    logWarning("Cannot set last order update time: rates[0] array is empty or invalid. arraySize=%d", 
+      pParams->ratesBuffers != NULL ? pParams->ratesBuffers->rates[0].info.arraySize : -1);
+  }
 
   return SUCCESS;
 }
@@ -1184,7 +1224,17 @@ AsirikuyReturnCode EasyTrade::openSingleShortEasy(double takeProfit, double stop
   logInfo("%d Short Entry Signal, EntryPrice = %lf,TP =%lf, SL=%lf, lots=%lf", resultIndex, pParams->results[resultIndex].entryPrice, takeProfit, stopLoss, pParams->results[resultIndex].lots);
   addTradingSignal(SIGNAL_OPEN_SELL, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
-  setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  // Check if rates[0] has valid data before accessing
+  if (pParams->ratesBuffers != NULL && 
+      pParams->ratesBuffers->rates[0].info.arraySize > 0)
+  {
+    setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  }
+  else
+  {
+    logWarning("Cannot set last order update time: rates[0] array is empty or invalid. arraySize=%d", 
+      pParams->ratesBuffers != NULL ? pParams->ratesBuffers->rates[0].info.arraySize : -1);
+  }
 
   return SUCCESS;
 }
@@ -1227,7 +1277,17 @@ AsirikuyReturnCode EasyTrade::openSingleLongEasy(double takeProfit, double stopL
 
   addTradingSignal(SIGNAL_OPEN_BUY, &tradingSignals);
   pParams->results[resultIndex].tradingSignals = tradingSignals;
-  setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  // Check if rates[0] has valid data before accessing
+  if (pParams->ratesBuffers != NULL && 
+      pParams->ratesBuffers->rates[0].info.arraySize > 0)
+  {
+    setLastOrderUpdateTime((int)pParams->settings[STRATEGY_INSTANCE_ID], pParams->ratesBuffers->rates[0].time[pParams->ratesBuffers->rates[0].info.arraySize - 1], (BOOL)pParams->settings[IS_BACKTESTING]);
+  }
+  else
+  {
+    logWarning("Cannot set last order update time: rates[0] array is empty or invalid. arraySize=%d", 
+      pParams->ratesBuffers != NULL ? pParams->ratesBuffers->rates[0].info.arraySize : -1);
+  }
 
   return SUCCESS;
 }
@@ -1268,7 +1328,7 @@ BOOL EasyTrade::addValueToUI(char* valueName, double valueToAdd)
 
   for (i=0; i < TOTAL_UI_VALUES; i++)
   {
-    if (userInterfaceVariableNames[i] == "")
+    if (strcmp(userInterfaceVariableNames[i], "") == 0)
     {
       userInterfaceVariableNames[i] = valueName;
       userInterfaceValues[i] = valueToAdd;
@@ -1535,15 +1595,15 @@ double EasyTrade::iSMI(int ratesArrayIndex, int period_Q, int period_R, int peri
 
 		if (i > period_R+period_Q){
 
-taRetCode = TA_MA(i, i, HQ_Buffer, period_R, TA_MAType_EMA, &outBegIdx, &outNBElement, &HQ_EMA_1[i]);
-taRetCode = TA_MA(i, i, SM_Buffer, period_R, TA_MAType_EMA, &outBegIdx, &outNBElement, &SM_EMA_1[i]);
+			taRetCode = TA_MA(i, i, HQ_Buffer, period_R, TA_MAType_EMA, &outBegIdx, &outNBElement, &HQ_EMA_1[i]);
+			taRetCode = TA_MA(i, i, SM_Buffer, period_R, TA_MAType_EMA, &outBegIdx, &outNBElement, &SM_EMA_1[i]);
 
 		}
- else {
+		else {
 
-	 HQ_EMA_1[i] = 0;
-	 SM_EMA_1[i] = 0;
- }
+			HQ_EMA_1[i] = 0;
+			SM_EMA_1[i] = 0;
+		}
 
 	}
 
@@ -2229,10 +2289,10 @@ double EasyTrade::iAtrDailyByHourInterval(int period, int firstHour, int lastHou
 		while  (j <= hourDifferential){
 
 			if (high(k+j) > highDaily[i])
-			highDaily[i] = high(k+j) ;
+				highDaily[i] = high(k+j) ;
 
 			if (low(k+j) < lowDaily[i])
-			lowDaily[i] = low(k+j) ;
+				lowDaily[i] = low(k+j) ;
 
 			j++;
 		}	
@@ -2990,7 +3050,7 @@ OrderType EasyTrade::getLastestOrderType_XAUUSD(int rateIndex, double *pHigh, do
 
 		openTime = pParams->orderInfo[index].openTime;
 		safe_gmtime(&timeInfo2, openTime);
-		minGap = int((timeInfo1.tm_min - timeInfo2.tm_min) / execution_tf + 0.5);
+		minGap = int((double)(timeInfo1.tm_min - timeInfo2.tm_min) / execution_tf + 0.5);
 		hourGap = (timeInfo1.tm_hour - timeInfo2.tm_hour) * (60 / execution_tf);
 
 		openIndex = shift1Index - (hourGap + minGap);
@@ -3106,7 +3166,7 @@ OrderType EasyTrade::getLastestOpenOrderType(int rateIndex,double *pHigh, double
 		{
 			openTime = pParams->orderInfo[i].openTime;
 			safe_gmtime(&timeInfo2, pParams->orderInfo[i].openTime);
-			minGap = int( (timeInfo1.tm_min - timeInfo2.tm_min) / execution_tf + 0.5);
+			minGap = int((double)(timeInfo1.tm_min - timeInfo2.tm_min) / execution_tf + 0.5);
 			hourGap = (timeInfo1.tm_hour - timeInfo2.tm_hour) * (60 / execution_tf);
 
 			openIndex = shift1Index - (hourGap + minGap);
@@ -3160,7 +3220,7 @@ double EasyTrade::hasSameDayDayTradingOrder(int rateIndex, OrderInfo * pOrder, d
 	{
 		openTime = pParams->orderInfo[index].openTime;
 		safe_gmtime(&timeInfo2, openTime);
-		minGap = int((timeInfo1.tm_min - timeInfo2.tm_min) / execution_tf + 0.5);
+		minGap = int((double)(timeInfo1.tm_min - timeInfo2.tm_min) / execution_tf + 0.5);
 		hourGap = (timeInfo1.tm_hour - timeInfo2.tm_hour) * (60 / execution_tf);
 
 		openIndex = shift1Index - (hourGap + minGap);
@@ -5437,14 +5497,14 @@ AsirikuyReturnCode EasyTrade::validateHourlyBars(StrategyParams* pParams, int pr
 	}
 	else 
 		if (hourlyTimeInfo.tm_yday == timeInfo.tm_yday && hourlyTimeInfo.tm_hour == timeInfo.tm_hour && hourlyTimeInfo.tm_min <=offset_min)
-	{		
-		return SUCCESS;
-	}
-	else
-	{
-		logError("Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
-		return ERROR_IN_RATES_RETRIEVAL;
-	}
+		{		
+			return SUCCESS;
+		}
+		else
+		{
+			logError("Potential missing bars: Current hourly bar not matached: current time = %s, current hourly time =%s", timeString, hourlyTimeString);
+			return ERROR_IN_RATES_RETRIEVAL;
+		}
 
 }
 BOOL EasyTrade::validateSecondaryBarsGap(StrategyParams* pParams, time_t currentTime, time_t currentSeondaryTime, int secondary_tf, int primary_tf, bool isWithPrimary, int startHour, int rateErrorTimes)
