@@ -11,6 +11,7 @@
  * for account risk limits and side restrictions.
  */
 
+#include "AsirikuyDefines.h"
 #include "Precompiled.h"
 #include "OrderManagement.h"
 #include "Logging.h"
@@ -171,9 +172,6 @@ AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pI
 		// Limit BBS Long Term strategy
 		workoutExecutionTrend_Limit_BBS_LongTerm(pParams, pIndicators, pBase_Indicators);
 		break;
-	case 27:
-		workoutExecutionTrend_Ichimoko_Daily_Index(pParams, pIndicators, pBase_Indicators);
-		break;	
 	case 28:
 		workoutExecutionTrend_Ichimoko_Daily_Index(pParams, pIndicators, pBase_Indicators);
 		break;
@@ -194,9 +192,6 @@ AsirikuyReturnCode workoutExecutionTrend(StrategyParams *pParams, Indicators *pI
 		workoutExecutionTrend_Ichimoko_Weekly_Index(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 36:
-		break;
-	case 101:
-		workoutExecutionTrend_Ichimoko_Daily_Index_Regression_Test(pParams, pIndicators, pBase_Indicators);
 		break;
 	case 102:
 		workoutExecutionTrend_ASI(pParams, pIndicators, pBase_Indicators);
@@ -458,12 +453,12 @@ if (pIndicators->executionTrend == 0)
 	if (totalOpenOrders(pParams, BUY) > 0)
 	{
 		stopLoss = fabs(pParams->bidAsk.ask[0] - pBase_Indicators->weeklyS) + pIndicators->adjust;
-		modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0, FALSE);
+		modifyTradeEasy_new(BUY, -1, stopLoss, -1, 0, TRUE);
 	}
 	if (totalOpenOrders(pParams, SELL) > 0)
 	{
 		stopLoss = fabs(pParams->bidAsk.bid[0] - pBase_Indicators->weeklyR) + pIndicators->adjust;
-		modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0, FALSE);
+		modifyTradeEasy_new(SELL, -1, stopLoss, -1, 0, TRUE);
 	}
 }
 
