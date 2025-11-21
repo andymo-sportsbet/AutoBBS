@@ -465,6 +465,21 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
 }
 
 /**
+ * GBPJPY Day Trading strategy execution.
+ * 
+ * Wrapper function that calls Version 2 implementation.
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure containing MA trend and ATR
+ * @return SUCCESS on success
+ */
+AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
+{
+	return workoutExecutionTrend_GBPJPY_DayTrading_Ver2(pParams, pIndicators, pBase_Indicators);
+}
+
+/**
  * GBPJPY day trading strategy execution (Version 2).
  * 
  * Similar to XAUUSD strategy but adapted for GBPJPY:

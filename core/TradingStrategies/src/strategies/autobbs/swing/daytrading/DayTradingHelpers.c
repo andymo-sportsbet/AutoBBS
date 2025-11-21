@@ -501,3 +501,59 @@ BOOL XAUUSD_DayTrading_Allow_Trade_Ver4(StrategyParams* pParams, Indicators* pIn
 	return TRUE;
 }
 
+/**
+ * Check if commodity day trading is allowed (XAUUSD, XAGUSD, etc.).
+ * 
+ * This is a wrapper function that uses XAUUSD_DayTrading_Allow_Trade_Ver2
+ * for commodity symbols (XAUUSD, XAGUSD).
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure
+ * @param shouldFilter Whether to apply ATR-based filtering
+ * @return TRUE if trading is allowed, FALSE otherwise
+ */
+BOOL Commodity_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, BOOL shouldFilter)
+{
+	// Use XAUUSD filter for commodities (XAUUSD, XAGUSD)
+	return XAUUSD_DayTrading_Allow_Trade_Ver2(pParams, pIndicators, pBase_Indicators, shouldFilter);
+}
+
+/**
+ * Check if BTCUSD/ETHUSD day trading is allowed.
+ * 
+ * For crypto symbols, this function applies basic time-based filtering.
+ * Currently returns TRUE if shouldFilter is FALSE, otherwise applies
+ * basic time checks.
+ * 
+ * @param pParams Strategy parameters containing rates and settings
+ * @param pIndicators Strategy indicators structure to modify
+ * @param pBase_Indicators Base indicators structure
+ * @param shouldFilter Whether to apply filtering
+ * @return TRUE if trading is allowed, FALSE otherwise
+ */
+BOOL BTCUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, BOOL shouldFilter)
+{
+	// Skip filtering if shouldFilter is FALSE
+	if (shouldFilter == FALSE)
+		return TRUE;
+	
+	// Basic time-based filtering for crypto
+	int shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1;
+	time_t currentTime;
+	struct tm timeInfo1;
+	
+	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
+	safe_gmtime(&timeInfo1, currentTime);
+	
+	// Check if current time is after start trading hour
+	if (timeInfo1.tm_hour < pIndicators->startHour)
+		return FALSE;
+	
+	// Check if current time is before end trading hour
+	if (pIndicators->endHour > 0 && timeInfo1.tm_hour >= pIndicators->endHour)
+		return FALSE;
+	
+	return TRUE;
+}
+
