@@ -34,36 +34,6 @@ AsirikuyReturnCode workoutExecutionTrend_XAUUSD_DayTrading(StrategyParams* pPara
  */
 AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
 
-/**
- * GBPJPY Day Trading strategy execution (Version 2).
- * 
- * @param pParams Strategy parameters
- * @param pIndicators Strategy indicators
- * @param pBase_Indicators Base indicators
- * @return AsirikuyReturnCode SUCCESS or error code
- */
-AsirikuyReturnCode workoutExecutionTrend_GBPJPY_DayTrading_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
-
-/**
- * Day Trading Execution Only strategy (Old version).
- * 
- * @param pParams Strategy parameters
- * @param pIndicators Strategy indicators
- * @param pBase_Indicators Base indicators
- * @return AsirikuyReturnCode SUCCESS or error code
- */
-AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly_Old(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
-
-/**
- * Day Trading Execution Only strategy.
- * 
- * @param pParams Strategy parameters
- * @param pIndicators Strategy indicators
- * @param pBase_Indicators Base indicators
- * @return AsirikuyReturnCode SUCCESS or error code
- */
-AsirikuyReturnCode workoutExecutionTrend_DayTrading_ExecutionOnly(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

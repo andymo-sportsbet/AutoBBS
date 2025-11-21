@@ -14,7 +14,6 @@
 #include "InstanceStates.h"
 #include "strategies/autobbs/swing/daytrading/DayTradingOrderSplitting.h"
 // splitBuyOrders_Daily_Swing is implemented in OrderSplitting.c - removed duplicate
-#if 0
 // Removed duplicate function body - see OrderSplitting.c for implementation
 void splitBuyOrders_Daily_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {
@@ -81,7 +80,6 @@ void splitBuyOrders_Daily_Swing(StrategyParams* pParams, Indicators* pIndicators
 		}
 	}
 }
-#endif
 
 void splitSellOrders_Daily_Swing(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double takePrice_primary, double stopLoss)
 {

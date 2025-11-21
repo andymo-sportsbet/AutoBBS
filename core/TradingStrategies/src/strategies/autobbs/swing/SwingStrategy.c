@@ -12,12 +12,8 @@
 #define USE_INTERNAL_SL FALSE
 #define USE_INTERNAL_TP FALSE
 
-/* Include common strategy modules */
-#include "strategies/autobbs/swing/common/MultipleDayOrderManagement.h"
-
 /* Include Hedge strategy modules */
-#include "strategies/autobbs/swing/hedge/HedgeStrategy.h"
-#include "strategies/autobbs/swing/hedge/HedgeOrderSplitting.h"
+/* Note: MultipleDayOrderManagement.h, HedgeStrategy.h, and HedgeOrderSplitting.h have been removed as part of refactor */
 
 /* Include DayTrading strategy modules */
 #include "strategies/autobbs/swing/daytrading/DayTradingStrategy.h"

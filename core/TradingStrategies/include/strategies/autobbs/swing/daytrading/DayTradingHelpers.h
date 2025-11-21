@@ -36,16 +36,6 @@ BOOL XAUUSD_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicat
 BOOL XAUUSD_DayTrading_Allow_Trade_Ver2(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, BOOL shouldFilter);
 
 /**
- * Check if XAUUSD day trading is allowed (Version 4).
- * 
- * @param pParams Strategy parameters
- * @param pIndicators Strategy indicators
- * @param pBase_Indicators Base indicators
- * @return TRUE if trading is allowed, FALSE otherwise
- */
-BOOL XAUUSD_DayTrading_Allow_Trade_Ver4(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators);
-
-/**
  * Check if GBPJPY day trading is allowed.
  * 
  * @param pParams Strategy parameters

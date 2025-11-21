@@ -447,59 +447,6 @@ BOOL GBPJPY_DayTrading_Allow_Trade(StrategyParams* pParams, Indicators* pIndicat
 
 	return TRUE;
 }
-BOOL XAUUSD_DayTrading_Allow_Trade_Ver4(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators)
-{
-	int    shift0Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 1, shift1Index = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize - 2;
-	int count, asia_index_rate, euro_index_rate, execution_tf;
-	time_t currentTime;
-	struct tm timeInfo1;
-	double preHigh, preLow, preClose;
-	double pivot, S3, R3;
-	char       timeString[MAX_TIME_STRING_SIZE] = "";
-	double close_prev1 = iClose(B_DAILY_RATES, 1), close_prev2 = iClose(B_DAILY_RATES, 2);
-	int startTradingTime = pIndicators->startHour;
-	//int startTradingTime = 2;
-	double ATRWeekly0;
-
-	currentTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shift0Index];
-	safe_gmtime(&timeInfo1, currentTime);
-	safe_timeString(timeString, currentTime);
-
-	execution_tf = (int)pParams->settings[TIMEFRAME];
-
-
-	// filter ��ũ
-	if (timeInfo1.tm_wday == 5 && timeInfo1.tm_mday - 7 < 1)
-	{
-
-		logWarning("System InstanceID = %d, BarTime = %s, Filter Non-farm day",
-			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString);
-
-		return FALSE;
-	}
-
-	logInfo("System InstanceID = %d, BarTime = %s, asia_high = %lf,asia_low = %lf",
-		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pIndicators->asia_high, pIndicators->asia_low);
-
-	readWeeklyATRFile(pParams->tradeSymbol, &(pBase_Indicators->pWeeklyPredictATR), &(pBase_Indicators->pWeeklyPredictMaxATR), (BOOL)pParams->settings[IS_BACKTESTING]);
-
-	ATRWeekly0 = iAtr(B_WEEKLY_RATES, 1, 0);
-
-	logInfo("System InstanceID = %d, BarTime = %s, ATRWeekly0 = %lf,pWeeklyPredictATR = %lf, pWeeklyPredictMaxATR=%lf",
-		(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, ATRWeekly0, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR);
-
-	if (pBase_Indicators->pDailyPredictATR < pIndicators->atr_euro_range)
-		return FALSE;
-
-	if (ATRWeekly0 > pBase_Indicators->pWeeklyPredictMaxATR && pBase_Indicators->pDailyPredictATR < 10)
-	{
-		logWarning("System InstanceID = %d, BarTime = %s, pDailyPredictATR =%lf, ATRWeekly0 = %lf,pWeeklyPredictATR = %lf, pWeeklyPredictMaxATR=%lf",
-			(int)pParams->settings[STRATEGY_INSTANCE_ID], timeString, pBase_Indicators->pDailyPredictATR, ATRWeekly0, pBase_Indicators->pWeeklyPredictATR, pBase_Indicators->pWeeklyPredictMaxATR);
-		return FALSE;
-	}
-
-	return TRUE;
-}
 
 /**
  * Check if commodity day trading is allowed (XAUUSD, XAGUSD, etc.).

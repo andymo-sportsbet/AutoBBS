@@ -29,10 +29,7 @@
 #include "InstanceStates.h"
 #include "strategies/autobbs/swing/multipleday/MultipleDayStrategy.h"
 #include "strategies/autobbs/swing/multipleday/MultipleDayHelpers.h"
-/* Note: MultipleDayOrderManagement.h was deleted as part of refactor, but functions are still in MultipleDayOrderManagement.c */
-/* Forward declarations for functions still in MultipleDayOrderManagement.c */
-AsirikuyReturnCode enterOrder_MultipleDay(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, double riskCapBuy, double riskCapSell, BOOL isSameDayClosedOrder);
-AsirikuyReturnCode modifyOrder_MultipleDay(StrategyParams* pParams, Indicators* pIndicators, Base_Indicators * pBase_Indicators, int latestOrderIndex, double openOrderHigh, double openOrderLow, double floatingTP, int takeProfitMode, BOOL isLongTerm);
+#include "strategies/autobbs/swing/multipleday/MultipleDayOrderManagement.h"
 #include "strategies/autobbs/swing/daytrading/DayTradingHelpers.h"
 #include <math.h>
 #include <string.h>
