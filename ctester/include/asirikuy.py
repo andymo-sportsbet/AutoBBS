@@ -11,30 +11,69 @@ VERSION = "0.56"
 
 def loadLibrary(library):
     """Load a shared library, checking multiple possible locations."""
+    # Get the script's directory to resolve absolute paths
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    ctester_dir = os.path.dirname(script_dir)  # Go up from include/ to ctester/
+    project_root = os.path.dirname(ctester_dir)  # Go up from ctester/ to project root
+    
     if os.name == 'nt':
         # Windows: try current directory and build directories
         possible_paths = [
             library,
+            os.path.join(project_root, "bin", "gmake", "x64", "Debug", library),
+            os.path.join(project_root, "bin", "gmake", "x64", "Release", library),
+            os.path.join(ctester_dir, library),
             f"../bin/gmake/x64/Debug/{library}",
             f"../bin/gmake/x64/Release/{library}",
         ]
         for path in possible_paths:
-            if os.path.exists(path):
-                return windll.LoadLibrary(path)
-        return windll.LoadLibrary(library)  # Fallback to system search
+            abs_path = os.path.abspath(path)
+            if os.path.exists(abs_path):
+                return windll.LoadLibrary(abs_path)
+        # Fallback to system search
+        try:
+            return windll.LoadLibrary(library)
+        except OSError as e:
+            print(f"[ERROR] Failed to load library '{library}'")
+            print(f"[ERROR] Tried the following paths:")
+            for path in possible_paths:
+                abs_path = os.path.abspath(path)
+                exists = "✓" if os.path.exists(abs_path) else "✗"
+                print(f"[ERROR]   {exists} {abs_path}")
+            print(f"[ERROR] System search also failed: {e}")
+            raise
     elif os.name == 'posix':
         # Unix/Linux/macOS: try current directory and build directories
         possible_paths = [
             library,
+            os.path.join(project_root, "bin", "gmake", "x64", "Debug", library),
+            os.path.join(project_root, "bin", "gmake", "x64", "Release", library),
+            os.path.join(ctester_dir, library),
             f"../bin/gmake/x64/Debug/{library}",
             f"../bin/gmake/x64/Release/{library}",
             f"./bin/gmake/x64/Debug/{library}",
             f"./bin/gmake/x64/Release/{library}",
         ]
         for path in possible_paths:
-            if os.path.exists(path):
-                return cdll.LoadLibrary(path)
-        return cdll.LoadLibrary(library)  # Fallback to system search
+            abs_path = os.path.abspath(path)
+            if os.path.exists(abs_path):
+                return cdll.LoadLibrary(abs_path)
+        # Fallback to system search
+        try:
+            return cdll.LoadLibrary(library)
+        except OSError as e:
+            print(f"[ERROR] Failed to load library '{library}'")
+            print(f"[ERROR] Tried the following paths:")
+            for path in possible_paths:
+                abs_path = os.path.abspath(path)
+                exists = "✓" if os.path.exists(abs_path) else "✗"
+                print(f"[ERROR]   {exists} {abs_path}")
+            print(f"[ERROR] System search also failed: {e}")
+            print(f"[ERROR]")
+            print(f"[ERROR] The library may need to be built. Try running:")
+            print(f"[ERROR]   cd {project_root}")
+            print(f"[ERROR]   ./build.sh CTesterFrameworkAPI")
+            raise
     else:
         return None
 
@@ -492,8 +531,12 @@ strategies = [
 ]
 
 opType = [
-    'BUY',
-    'SELL'
+    'BUY',        # 0
+    'SELL',       # 1
+    'BUYLIMIT',   # 2
+    'SELLLIMIT',  # 3
+    'BUYSTOP',    # 4
+    'SELLSTOP'    # 5
 ]
 
 #Define regression types

@@ -231,8 +231,8 @@ if [ "$(uname -s)" = "Darwin" ]; then
         continue
       fi
       
-      # Collect .so references, absolute paths to our libraries, and vendor library references
-      if [[ "$dep" == *".so"* ]] || [[ "$dep" == "$PROJECT_ROOT"* ]] || [[ "$dep" == *"libmxml"* ]] || [[ "$dep" == "/usr/local/lib/"* ]]; then
+      # Collect .so references, absolute paths to our libraries, relative paths (../), and vendor library references
+      if [[ "$dep" == *".so"* ]] || [[ "$dep" == "$PROJECT_ROOT"* ]] || [[ "$dep" == *"libmxml"* ]] || [[ "$dep" == "/usr/local/lib/"* ]] || [[ "$dep" == "../"* ]] || [[ "$dep" == "./"* ]]; then
         deps_to_fix+=("$dep")
       fi
     done < <(otool -L "$lib" 2>/dev/null | grep -E "\.so|\.dylib" | grep -v ":" | awk '{print $1}')
