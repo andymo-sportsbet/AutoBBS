@@ -15,7 +15,8 @@
  * controlled by the AUTOBBS_TREND_MODE parameter.
  */
 
-#include "Precompiled.h"
+#include <string.h>
+#include <math.h>
 #include "OrderManagement.h"
 #include "Logging.h"
 #include "EasyTradeCWrapper.hpp"
@@ -23,11 +24,8 @@
 #include "AsirikuyTime.h"
 #include "InstanceStates.h"
 #include "strategies/autobbs/shared/ComLib.h"
-#include "strategies/autobbs/swing/SwingStrategy.h"
-#include "strategies/autobbs/trend/TrendStrategy.h"
 #include "StrategyUserInterface.h"
 #include "AsirikuyLogger.h"
-#include "strategies/autobbs/trend/common/OrderSplittingUtilities.h"
 #include "strategies/autobbs/shared/execution/StrategyExecution.h"
 #include "strategies/autobbs/shared/ordersplitting/OrderSplitting.h"
 

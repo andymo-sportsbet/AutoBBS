@@ -6,9 +6,8 @@
  * levels based on risk management parameters and trade mode settings.
  */
 
-#include "Precompiled.h"
+
 #include "OrderManagement.h"
-#include "Logging.h"
 #include "EasyTradeCWrapper.hpp"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"

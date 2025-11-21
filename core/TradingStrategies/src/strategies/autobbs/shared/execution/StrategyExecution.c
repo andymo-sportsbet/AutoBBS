@@ -18,10 +18,6 @@
 #include "OrderManagement.h"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"
-// Include strategy convenience headers - these include all individual strategy headers
-// These headers transitively include function declarations used in the switch statement below
-// Note: Linter warns these aren't used "directly" but they're required for function declarations
-// from included sub-headers (workoutExecutionTrend_* functions used in switch at line 111)
 #include "strategies/autobbs/trend/TrendStrategy.h"  // Includes all trend strategy headers (BBS, Limit, MACD, Ichimoko, Weekly, ShortTerm, Misc)
 #include "strategies/autobbs/swing/SwingStrategy.h"  // Includes all swing strategy headers (Weekly, DayTrading, MultipleDay, MACD_BEILI)
 #include "AsirikuyTime.h"

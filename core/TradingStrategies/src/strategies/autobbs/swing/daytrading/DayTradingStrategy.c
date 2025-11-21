@@ -5,9 +5,8 @@
  * Includes XAUUSD, GBPJPY, and ExecutionOnly strategies.
  */
 
-#include "Precompiled.h"
-#include "OrderManagement.h"
-#include "Logging.h"
+#include <math.h>
+#include <stdlib.h>
 #include "EasyTradeCWrapper.hpp"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"

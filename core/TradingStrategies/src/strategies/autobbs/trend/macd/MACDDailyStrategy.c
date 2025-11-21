@@ -27,9 +27,9 @@
  * AUDNZD, and default (EURUSD).
  */
 
-#include "Precompiled.h"
-#include "OrderManagement.h"
-#include "Logging.h"
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
 #include "EasyTradeCWrapper.hpp"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"
@@ -37,7 +37,6 @@
 #include "AsirikuyLogger.h"
 #include "InstanceStates.h"
 #include "strategies/autobbs/trend/macd/MACDDailyStrategy.h"
-#include "strategies/autobbs/trend/macd/MACDOrderSplitting.h"
 
 /* Strategy configuration constants */
 #define SPLIT_TRADE_MODE_MACD_DAILY 24     /* Split trade mode for MACD Daily strategy */
