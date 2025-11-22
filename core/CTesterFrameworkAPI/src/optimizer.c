@@ -1181,6 +1181,21 @@ int __stdcall runOptimizationMultipleSymbols(
 			fflush(stderr);
 			// Note: The implicit barrier ensures all threads have finished their loop iterations
 			// Detailed logging in runPortfolioTest tracks each test's lifecycle, so no additional wait needed
+			
+			// Close thread-local log files after all iterations complete
+			// This ensures all log data is flushed and files are properly closed for review
+			// We need to close from each thread's context, so use a parallel section
+			#pragma omp parallel num_threads(numThreads)
+			{
+				int cleanup_thread_id = omp_get_thread_num();
+				if (cleanup_thread_id < numThreads) {
+					asirikuyLoggerCloseThreadLocal();
+					fprintf(stderr, "[OPT] Thread %d closed thread-local log file\n", cleanup_thread_id);
+					fflush(stderr);
+				}
+			}
+			fprintf(stderr, "[OPT] All thread-local log files closed. Files available for review in log/ directory.\n");
+			fflush(stderr);
 		}
 		#endif
 

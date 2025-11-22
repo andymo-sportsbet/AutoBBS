@@ -80,9 +80,11 @@
   - [✅] Handle path length limits
   - [✅] Ensure directory exists
 
-- [⬜] Add cleanup (optional)
-  - [⬜] Consider calling `asirikuyLoggerCloseThreadLocal()` at end
-  - [⬜] Or let threads clean up automatically
+- [✅] Add cleanup (required for proper file handling)
+  - [✅] Close thread-local log files at END of optimization (after all iterations complete)
+  - [✅] Files remain on disk for review (not deleted)
+  - [✅] Ensures all log data is flushed to disk before function returns
+  - [✅] Cleanup happens after implicit barrier when all threads have finished
 
 ### 2.2 Testing and Validation
 
