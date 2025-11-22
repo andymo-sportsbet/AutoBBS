@@ -43,6 +43,7 @@ Implement thread-local storage for log files, allowing each thread to write to i
 - Implement `asirikuyLoggerInitThreadLocal()`
 - Implement `asirikuyLoggerCloseThreadLocal()`
 - Modify `asirikuyLogMessage()` to check thread-local first, fall back to global logger
+- **Optimization**: Removed unnecessary critical section from global logger path (single-threaded runtime has no concurrent access)
 
 ### Optimizer (`optimizer.c`)
 - Initialize thread-local logging in OpenMP parallel loop **only when numThreads > 1**

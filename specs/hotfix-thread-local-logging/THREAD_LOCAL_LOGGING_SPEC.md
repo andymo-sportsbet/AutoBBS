@@ -98,6 +98,12 @@ This document specifies the implementation of thread-local logging to eliminate 
    - Each thread writes to its own log file (e.g., `AsirikuyFramework_thread0.log`)
    - **No critical section contention** - maximum performance
 
+2. **Single-threaded modes (normal test, optimization with 1 core, live trading)**:
+   - Uses global logger (thread-local not initialized)
+   - **No critical section needed** - single-threaded runtime has no concurrent access
+   - `asirikuyLoggerInit()` already protects initialization with critical section
+   - Eliminates unnecessary synchronization overhead
+
 2. **Single-threaded optimization (numThreads = 1)**:
    - Thread-local logging is **NOT** initialized
    - Falls back to global logger automatically
@@ -430,19 +436,56 @@ void asirikuyLogMessage(int severity, const char* format, ...)
 ```
 
 **Key Points**:
-- Thread-local check happens **first** (before critical section)
+- Thread-local check happens **first** (no lock needed)
 - If thread-local is initialized and message passes severity check, write and return immediately
 - If thread-local is **not** initialized (single-threaded), automatically falls back to global logger
+- **Global logger path has NO critical section** - single-threaded runtime has no concurrent access
+- `asirikuyLoggerInit()` already protects initialization with critical section
 - This ensures backward compatibility - existing single-threaded code requires no changes
+- Eliminates unnecessary synchronization overhead in single-threaded modes
 
 ---
 
 **Document Version**: 1.0  
 ---
 
-## 7. Tmp File Thread-Safety Issues
+## 7. Critical Section Optimization
 
-### 7.1 Problem Discovery
+### 7.1 Analysis: Unnecessary Critical Sections in Single-Threaded Mode
+
+**Discovery**: After implementing thread-local logging, we analyzed whether critical sections are still needed in single-threaded modes.
+
+**Findings**:
+- **Multi-threaded optimization (numThreads > 1)**: Uses thread-local logging, returns early (no critical section)
+- **Single-threaded modes** (normal test, optimization with 1 core, live trading):
+  - Only one thread accesses global logger state (`gLogFiles[]`, `gSeverityLevel`)
+  - No concurrent access = no race conditions
+  - Critical section adds unnecessary overhead
+
+**Conclusion**: Critical section in `asirikuyLogMessage()` global logger path is unnecessary for single-threaded runtime.
+
+### 7.2 Implementation
+
+**Removed Critical Section from Global Logger Path**:
+- Removed `enterCriticalSection()` and `leaveCriticalSection()` from `asirikuyLogMessage()` global logger fallback
+- Updated comments to explain why no synchronization is needed
+- `asirikuyLoggerInit()` still uses critical section (can be called from multiple frameworks during initialization)
+
+**Benefits**:
+- Eliminates unnecessary synchronization overhead in single-threaded modes
+- Simpler code path for common case (single-threaded)
+- No performance impact on multi-threaded optimization (uses thread-local logging)
+
+**Safety**:
+- Initialization is still protected by critical section in `asirikuyLoggerInit()`
+- Runtime logging is single-threaded (no concurrent access)
+- Thread-local logging handles multi-threaded optimization (returns early)
+
+---
+
+## 8. Tmp File Thread-Safety Issues
+
+### 8.1 Problem Discovery
 
 During analysis of thread-safety in the optimization framework, critical issues were discovered with files created in the `tmp` directory:
 
@@ -450,7 +493,7 @@ During analysis of thread-safety in the optimization framework, critical issues 
 2. **`{instanceId}_OrderInfo.txt`** - InstanceId collisions cause multiple threads to write to same file (HIGH)
 3. **`{instanceId}.state`** - File writes not protected by critical section (MEDIUM)
 
-### 7.2 Detailed Analysis
+### 8.2 Detailed Analysis
 
 See [TMP_FILES_THREAD_SAFETY.md](./TMP_FILES_THREAD_SAFETY.md) for complete analysis including:
 - File locations and functions
@@ -458,7 +501,7 @@ See [TMP_FILES_THREAD_SAFETY.md](./TMP_FILES_THREAD_SAFETY.md) for complete anal
 - Collision analysis (24 collisions detected with 8 threads, 5 symbols)
 - Recommended fixes
 
-### 7.3 Fixes Required
+### 8.3 Fixes Required
 
 **Priority 1 (CRITICAL)**: Fix `results.open`
 - Modify `save_openorder_to_file()` to use thread-specific filename
@@ -473,9 +516,9 @@ See [TMP_FILES_THREAD_SAFETY.md](./TMP_FILES_THREAD_SAFETY.md) for complete anal
 - Add critical sections around file writes
 - Or use thread-specific filenames to eliminate need for locks
 
-### 7.4 Implementation
+### 8.4 Implementation
 
-These fixes are tracked in **Phase 5** of [TASKS.md](./TASKS.md).
+These fixes are tracked in **Phase 6** of [TASKS.md](./TASKS.md).
 
 ---
 

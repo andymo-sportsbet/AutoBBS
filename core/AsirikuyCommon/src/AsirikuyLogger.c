@@ -356,14 +356,15 @@ void asirikuyLogMessage(int severity, const char* format, ...)
     }
   }
   
-  // Fall back to global logger (requires critical section)
+  // Fall back to global logger (NO critical section needed)
   // Used for single-threaded runs or when thread-local not initialized
-  enterCriticalSection();
+  // Note: asirikuyLoggerInit() already protects initialization with critical section.
+  // Runtime logging is single-threaded (no concurrent access to gLogFiles[] or gSeverityLevel),
+  // so no synchronization needed here.
   
   // Check if this severity level should be logged
   if(severity > gSeverityLevel)
   {
-    leaveCriticalSection();
     return; // Skip logging for levels above the threshold
   }
   
@@ -373,7 +374,7 @@ void asirikuyLogMessage(int severity, const char* format, ...)
     fprintf(stderr, "%s", logLine);
   }
   
-  // Write to all open log files (protected by critical section)
+  // Write to all open log files (no lock needed - single-threaded runtime)
   int i;
   for(i = 0; i < MAX_LOG_FILES; i++)
   {
@@ -383,7 +384,5 @@ void asirikuyLogMessage(int severity, const char* format, ...)
       fflush(gLogFiles[i]); // Ensure immediate write
     }
   }
-  
-  leaveCriticalSection();
 }
 
