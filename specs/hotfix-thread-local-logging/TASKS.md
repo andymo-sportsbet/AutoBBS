@@ -181,37 +181,36 @@
 
 ### 5.1 Fix `results.open` File (CRITICAL)
 
-- [⬜] Modify `save_openorder_to_file()` function
-  - [⬜] Add `testId` parameter to function signature
-  - [⬜] Change hardcoded filename `"results.open"` to `"results_{testId}.open"`
-  - [⬜] Update function call in `tester.c:1949` to pass `testId`
-  - [⬜] Verify thread-specific files are created correctly
+- [✅] Modify `save_openorder_to_file()` function
+  - [✅] Add `testId` and `instanceId` parameters to function signature
+  - [✅] Change hardcoded filename `"results.open"` to `"results_{testId}.open"` (backtesting) or `"results_{instanceId}.open"` (live trading)
+  - [✅] Update function call in `tester.c:1960` to pass both `testId` and `instanceId`
+  - [⬜] Verify thread-specific files are created correctly (testing pending)
 
 ### 5.2 Fix InstanceId Uniqueness (HIGH)
 
-- [⬜] Fix instanceId formula in `optimizer.c`
-  - [⬜] Review current formula: `(testId+1) + 2*(n+1)`
-  - [⬜] Identify collision issues (verified: 24 collisions with 8 threads, 5 symbols)
-  - [⬜] Implement collision-free formula: `(testId * MAX_SYMBOLS_PER_THREAD) + n + BASE_INSTANCE_ID`
-  - [⬜] Or add thread ID to filenames: `{instanceId}_thread{threadId}_OrderInfo.txt`
-  - [⬜] Update both `testFitnessMultipleSymbols()` and `runOptimizationMultipleSymbols()`
-  - [⬜] Test with multiple threads to verify uniqueness
+- [✅] Fix instanceId formula in `optimizer.c`
+  - [✅] Review current formula: `(testId+1) + 2*(n+1)`
+  - [✅] Identify collision issues (verified: 24 collisions with 8 threads, 5 symbols)
+  - [✅] Implement collision-free formula: `(testId * 1000) + n + 1`
+  - [✅] Update both `testFitnessMultipleSymbols()` and `runOptimizationMultipleSymbols()`
+  - [✅] Verified uniqueness: 0 collisions with 8 threads, 100 symbols (800 combinations)
+  - [⬜] Test with multiple threads to verify uniqueness in practice (testing pending)
 
 ### 5.3 Fix `{instanceId}_OrderInfo.txt` Thread-Safety (HIGH)
 
-- [⬜] Modify `saveTradingInfo()` in `StrategyUserInterface.c`
-  - [⬜] Option 1: Add critical section around file write operations
-  - [⬜] Option 2: Make filename thread-specific (preferred - no lock needed)
-  - [⬜] Update filename generation to include thread ID if needed
-  - [⬜] Test with multiple threads to verify no corruption
+- [✅] Modify `saveTradingInfo()` in `StrategyUserInterface.c`
+  - [✅] Added `CriticalSection.h` include
+  - [✅] Added critical section around file write operations (defense-in-depth)
+  - [✅] Proper error handling with return code
+  - [⬜] Test with multiple threads to verify no corruption (testing pending)
 
 ### 5.4 Fix `{instanceId}.state` File Thread-Safety (MEDIUM)
 
-- [⬜] Review `backupInstanceState()` in `InstanceStates.c`
-  - [⬜] Verify critical section protection (currently protected by `hasInstanceRunOnCurrentBar()`)
-  - [⬜] Add critical section around file write operations if needed
-  - [⬜] Or make filename thread-specific to eliminate need for locks
-  - [⬜] Test with multiple threads to verify no corruption
+- [✅] Review `backupInstanceState()` in `InstanceStates.c`
+  - [✅] Verified critical section protection (already protected by `hasInstanceRunOnCurrentBar()`)
+  - [✅] File writes are already thread-safe (called within `enterCriticalSection()` / `leaveCriticalSection()`)
+  - [⬜] Test with multiple threads to verify no corruption (testing pending)
 
 ### 5.5 Testing Tmp File Thread-Safety
 
@@ -254,25 +253,27 @@
 
 ## Current Status Summary
 
-**Overall Progress**: 20% (12/60 tasks completed)
+**Overall Progress**: 30% (18/60 tasks completed)
 
 **Phase 1**: 100% (12/12 tasks) ✅  
 **Phase 2**: 33% (2/6 tasks) 🔄  
 **Phase 3**: 0% (0/4 tasks)  
 **Phase 4**: 0% (0/18 tasks)  
-**Phase 5**: 0% (0/10 tasks) ⚠️ **NEW - CRITICAL**  
+**Phase 5**: 80% (8/10 tasks) ✅ **CRITICAL FIXES COMPLETE**  
 **Phase 6**: 0% (0/10 tasks)
 
 **Next Steps**:
 1. ✅ Phase 1 Complete: Thread-local storage and logging functions implemented
 2. ✅ Phase 2.1 Complete: Thread-local logging initialization in optimizer
-3. ⚠️ **URGENT**: Fix tmp file thread-safety issues (Phase 5)
-   - Fix `results.open` hardcoded filename (CRITICAL)
-   - Fix instanceId collision formula (HIGH)
-   - Fix OrderInfo.txt and .state file thread-safety (HIGH/MEDIUM)
-4. 🔄 Test implementation with single thread first (backward compatibility)
-5. 🔄 Test with multiple threads (2, 4, 8)
-6. 🔄 Measure performance improvement
+3. ✅ Phase 5 Complete: Tmp file thread-safety fixes implemented
+   - ✅ Fixed `results.open` hardcoded filename (CRITICAL)
+   - ✅ Fixed instanceId collision formula (HIGH)
+   - ✅ Fixed OrderInfo.txt thread-safety (HIGH)
+   - ✅ Verified .state file thread-safety (MEDIUM)
+4. 🔄 **NEXT**: Phase 5.5 - Test tmp file thread-safety with multiple threads
+5. 🔄 Phase 2.2 - Test thread-local logging with single thread (backward compatibility)
+6. 🔄 Phase 2.2 - Test thread-local logging with multiple threads (2, 4, 8)
+7. 🔄 Phase 4.3 - Measure performance improvement
 
 **Blockers**: None
 
