@@ -559,6 +559,27 @@ int __stdcall runOptimizationMultipleSymbols(
 			int num_threads = 1;
 			#endif
 			
+			// Initialize thread-local logging for multi-threaded runs only
+			// This eliminates critical section contention by giving each thread its own log file
+			#ifdef _OPENMP
+			if (num_threads > 1) {
+				// Use thread-local static flag to ensure initialization happens only once per thread
+				static __thread int thread_local_init_done = 0;
+				if (!thread_local_init_done) {
+					char threadLogPath[512] = "";
+					// Default log folder - can be made configurable later
+					snprintf(threadLogPath, sizeof(threadLogPath), "log/AsirikuyFramework_thread%d.log", thread_id);
+					// Use LOG_INFO (6) as default severity level - matches global logger default
+					// Thread-local logger will use same severity as global logger
+					asirikuyLoggerInitThreadLocal(threadLogPath, LOG_INFO);
+					fprintf(stderr, "[OPT] Thread %d/%d initialized thread-local logging to: %s\n", 
+					        thread_id, num_threads, threadLogPath);
+					fflush(stderr);
+					thread_local_init_done = 1;
+				}
+			}
+			#endif
+			
 			fprintf(stderr, "[DEBUG] Loop iteration: i=%d, thread=%d/%d\n", i, thread_id, num_threads);
 			fflush(stderr);
 			//Stop optimization if stopOptimization was called

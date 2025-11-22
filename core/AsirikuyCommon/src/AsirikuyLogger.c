@@ -17,6 +17,9 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <errno.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // Maximum number of log files (support multiple loggers)
 #define MAX_LOG_FILES 4
@@ -25,6 +28,21 @@
 static FILE* gLogFiles[MAX_LOG_FILES] = {NULL, NULL, NULL, NULL};
 static int gSeverityLevel = LOG_INFO; // Default to Info level
 static BOOL gInitialized = FALSE;
+
+// Thread-local storage for per-thread log files
+// Each thread can have its own log file to avoid critical section contention
+#if defined __APPLE__ || defined __linux__
+  static __thread FILE* threadLocalLogFile = NULL;
+  static __thread int threadLocalSeverityLevel = -1; // -1 means not initialized
+#elif defined _WIN32 || defined _WIN64
+  static __declspec(thread) FILE* threadLocalLogFile = NULL;
+  static __declspec(thread) int threadLocalSeverityLevel = -1;
+#else
+  // Fallback: use a simple per-thread array (limited to MAX_THREADS)
+  #define MAX_THREADS 64
+  static FILE* threadLocalLogFiles[MAX_THREADS] = {NULL};
+  static int threadLocalSeverityLevels[MAX_THREADS] = {-1};
+#endif
 
 // Get severity level label
 static const char* getSeverityLabel(int severity)
@@ -200,18 +218,87 @@ int asirikuyLoggerInit(const char* pLogFilePath, int severityLevel)
   return 0;
 }
 
+int asirikuyLoggerInitThreadLocal(const char* pLogFilePath, int severityLevel)
+{
+  // Debug: Log initialization attempt
+  fprintf(stderr, "[DEBUG] asirikuyLoggerInitThreadLocal called: path='%s', severity=%d\n", 
+          pLogFilePath ? pLogFilePath : "NULL", severityLevel);
+  fflush(stderr);
+
+  // Close existing thread-local log file if any
+  if(threadLocalLogFile != NULL)
+  {
+    fclose(threadLocalLogFile);
+    threadLocalLogFile = NULL;
+  }
+
+  // Set thread-local severity level
+  threadLocalSeverityLevel = severityLevel;
+
+  // Open thread-local log file if path provided
+  if(pLogFilePath != NULL && strlen(pLogFilePath) > 0)
+  {
+    fprintf(stderr, "[DEBUG] asirikuyLoggerInitThreadLocal: Opening thread-local log file: %s\n", pLogFilePath);
+    fflush(stderr);
+    
+    // Ensure directory exists
+    ensureDirectoryExists(pLogFilePath);
+    
+    // Open log file in append mode
+    threadLocalLogFile = fopen(pLogFilePath, "a");
+    if(threadLocalLogFile == NULL)
+    {
+      // If append fails, try write mode
+      threadLocalLogFile = fopen(pLogFilePath, "w");
+    }
+    
+    if(threadLocalLogFile != NULL)
+    {
+      fprintf(stderr, "[DEBUG] asirikuyLoggerInitThreadLocal: Successfully opened thread-local log file: %s\n", pLogFilePath);
+      fflush(stderr);
+      // Write header
+      char timestamp[32] = "";
+      getTimestamp(timestamp, sizeof(timestamp));
+      fprintf(threadLocalLogFile, "\n=== Asirikuy Thread-Local Logger Started ===\n");
+      fprintf(threadLocalLogFile, "[%s] Thread ID: ", timestamp);
+      #ifdef _OPENMP
+      fprintf(threadLocalLogFile, "%d", omp_get_thread_num());
+      #else
+      fprintf(threadLocalLogFile, "main");
+      #endif
+      fprintf(threadLocalLogFile, "\n");
+      fprintf(threadLocalLogFile, "[%s] Log file: %s\n", timestamp, pLogFilePath);
+      fprintf(threadLocalLogFile, "[%s] Severity level: %d (%s)\n", timestamp, severityLevel, getSeverityLabel(severityLevel));
+      fflush(threadLocalLogFile);
+    }
+    else
+    {
+      fprintf(stderr, "[WARNING] Failed to open thread-local log file: %s. Logging to stderr only.\n", pLogFilePath);
+      fprintf(stderr, "[WARNING] Error details: errno=%d, path='%s'\n", errno, pLogFilePath);
+      fflush(stderr);
+    }
+  }
+  else
+  {
+    fprintf(stderr, "[DEBUG] asirikuyLoggerInitThreadLocal: No file path provided, using stderr only\n");
+    fflush(stderr);
+  }
+
+  return 0;
+}
+
+void asirikuyLoggerCloseThreadLocal(void)
+{
+  if(threadLocalLogFile != NULL)
+  {
+    fclose(threadLocalLogFile);
+    threadLocalLogFile = NULL;
+  }
+  threadLocalSeverityLevel = -1;
+}
+
 void asirikuyLogMessage(int severity, const char* format, ...)
 {
-  // Thread-safe access to shared logger state
-  enterCriticalSection();
-  
-  // Check if this severity level should be logged
-  if(severity > gSeverityLevel)
-  {
-    leaveCriticalSection();
-    return; // Skip logging for levels above the threshold
-  }
-  
   va_list args;
   char timestamp[32] = "";
   char messageBuffer[1024] = "";
@@ -245,6 +332,39 @@ void asirikuyLogMessage(int severity, const char* format, ...)
       logLine[len] = '\n';
       logLine[len + 1] = '\0';
     }
+  }
+  
+  // Check thread-local logger first (no lock needed!)
+  // Only active if explicitly initialized (multi-threaded optimization)
+  if(threadLocalSeverityLevel >= 0 && severity <= threadLocalSeverityLevel)
+  {
+    if(threadLocalLogFile != NULL)
+    {
+      // Write to thread-local file (NO CRITICAL SECTION!)
+      fprintf(threadLocalLogFile, "%s", logLine);
+      fflush(threadLocalLogFile);
+      
+      // Also write to stderr for critical messages
+      if(severity <= LOG_ERROR)
+      {
+        fprintf(stderr, "%s", logLine);
+        fflush(stderr);
+      }
+      
+      // Thread-local logging complete, return early
+      return;
+    }
+  }
+  
+  // Fall back to global logger (requires critical section)
+  // Used for single-threaded runs or when thread-local not initialized
+  enterCriticalSection();
+  
+  // Check if this severity level should be logged
+  if(severity > gSeverityLevel)
+  {
+    leaveCriticalSection();
+    return; // Skip logging for levels above the threshold
   }
   
   // Write to stderr (always, for critical messages)

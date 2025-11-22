@@ -69,6 +69,22 @@ int asirikuyLoggerInit(const char* pLogFilePath, int severityLevel);
  */
 void asirikuyLogMessage(int severity, const char* format, ...);
 
+/**
+ * Initialize thread-local logger with a log file path and severity level
+ * Each thread can have its own log file to avoid contention
+ * 
+ * @param pLogFilePath Path to the thread-local log file (can be NULL for stderr only)
+ * @param severityLevel Maximum severity level to log (0-7)
+ * @return 0 on success, non-zero on error
+ */
+int asirikuyLoggerInitThreadLocal(const char* pLogFilePath, int severityLevel);
+
+/**
+ * Close thread-local logger for the current thread
+ * Should be called when thread is done logging
+ */
+void asirikuyLoggerCloseThreadLocal(void);
+
 // Convenience macros for different log levels
 #define logEmergency(...) asirikuyLogMessage(LOG_EMERGENCY, __VA_ARGS__)
 #define logAlert(...)     asirikuyLogMessage(LOG_ALERT, __VA_ARGS__)
