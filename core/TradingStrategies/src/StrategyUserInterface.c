@@ -45,6 +45,7 @@
 
 #include "Logging.h"
 #include "AsirikuyLogger.h"
+#include "CriticalSection.h"
 
 static char tempFilePath[MAX_FILE_PATH_CHARS] ;
 
@@ -415,6 +416,7 @@ AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo)
 	char extension[] = "_OrderInfo.txt";
 	char timeString[MAX_TIME_STRING_SIZE] = "";		
 	FILE *fp;
+	AsirikuyReturnCode result = SUCCESS;
 
 	sprintf(instanceIDName, "%d", instanceID);
 	strcat(buffer, tempFilePath);
@@ -423,25 +425,32 @@ AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo)
 
 	logDebug("saveTradingInfo() Saving trading order info to : %s", buffer);
 
+	// Protect file operations with critical section for thread-safety
+	// Even though instanceId is now unique per thread+symbol, this provides defense-in-depth
+	enterCriticalSection();
+	
 	fp = fopen(buffer, "w\n");
 	if (fp == NULL)
 	{
 		logCritical("saveTradingInfo() Failed to open trading order info file.\n\n");
-		return NULL_POINTER;
+		result = NULL_POINTER;
 	}
-
-	fprintf(fp, "%d\n", pOrderInfo->orderNumber);
-	fprintf(fp, "%d\n", pOrderInfo->type);
-	fprintf(fp, "%d\n", pOrderInfo->orderStatus);
-	fprintf(fp, "%f\n", pOrderInfo->openPrice);
-	fprintf(fp, "%f\n", pOrderInfo->stopLossPrice);
-	fprintf(fp, "%f\n", pOrderInfo->takeProfitPrice);
-	fprintf(fp, "%d\n", pOrderInfo->timeStamp);
+	else
+	{
+		fprintf(fp, "%d\n", pOrderInfo->orderNumber);
+		fprintf(fp, "%d\n", pOrderInfo->type);
+		fprintf(fp, "%d\n", pOrderInfo->orderStatus);
+		fprintf(fp, "%f\n", pOrderInfo->openPrice);
+		fprintf(fp, "%f\n", pOrderInfo->stopLossPrice);
+		fprintf(fp, "%f\n", pOrderInfo->takeProfitPrice);
+		fprintf(fp, "%d\n", pOrderInfo->timeStamp);
+		
+		fclose(fp);
+	}
 	
+	leaveCriticalSection();
 
-	fclose(fp);
-
-	return SUCCESS;
+	return result;
 }
 
 int readTradingInfo(int instanceID, Order_Info *pOrderInfo)
