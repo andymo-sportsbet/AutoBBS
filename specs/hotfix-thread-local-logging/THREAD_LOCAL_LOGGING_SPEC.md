@@ -427,11 +427,11 @@ void asirikuyLogMessage(int severity, const char* format, ...)
         }
     }
     
-    // Fall back to global logger (requires lock)
+    // Fall back to global logger (NO critical section needed)
     // Used for single-threaded runs or when thread-local not initialized
-    enterCriticalSection();
-    // ... existing global logging code ...
-    leaveCriticalSection();
+    // Single-threaded runtime has no concurrent access to gLogFiles[] or gSeverityLevel
+    // asirikuyLoggerInit() already protects initialization with critical section
+    // ... existing global logging code (no lock needed) ...
 }
 ```
 
