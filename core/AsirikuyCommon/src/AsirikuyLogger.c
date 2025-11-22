@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include "AsirikuyLogger.h"
+#include "CriticalSection.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -42,21 +43,22 @@ static const char* getSeverityLabel(int severity)
   }
 }
 
-// Get current timestamp string
+// Get current timestamp string (thread-safe)
 static void getTimestamp(char* buffer, size_t bufferSize)
 {
   time_t now;
-  struct tm* timeinfo;
+  struct tm timeinfo;
   
   time(&now);
-  timeinfo = localtime(&now);
   
 #if defined _WIN32 || defined _WIN64
+  localtime_s(&timeinfo, &now);
   snprintf(buffer, bufferSize, "%04d-%02d-%02d %02d:%02d:%02d",
-           timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday,
-           timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+           timeinfo.tm_year + 1900, timeinfo.tm_mon + 1, timeinfo.tm_mday,
+           timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 #else
-  strftime(buffer, bufferSize, "%Y-%m-%d %H:%M:%S", timeinfo);
+  localtime_r(&now, &timeinfo);
+  strftime(buffer, bufferSize, "%Y-%m-%d %H:%M:%S", &timeinfo);
 #endif
 }
 
@@ -108,6 +110,9 @@ int asirikuyLoggerInit(const char* pLogFilePath, int severityLevel)
   fprintf(stderr, "[DEBUG] asirikuyLoggerInit called: path='%s', severity=%d\n", 
           pLogFilePath ? pLogFilePath : "NULL", severityLevel);
   fflush(stderr);
+  
+  // Thread-safe access to shared logger state
+  enterCriticalSection();
   
   // Update severity level (use lowest/most restrictive severity if multiple loggers)
   // Lower numbers = more restrictive (only critical errors), higher numbers = less restrictive (everything)
@@ -190,14 +195,20 @@ int asirikuyLoggerInit(const char* pLogFilePath, int severityLevel)
   }
 
   gInitialized = TRUE;
+  
+  leaveCriticalSection();
   return 0;
 }
 
 void asirikuyLogMessage(int severity, const char* format, ...)
 {
+  // Thread-safe access to shared logger state
+  enterCriticalSection();
+  
   // Check if this severity level should be logged
   if(severity > gSeverityLevel)
   {
+    leaveCriticalSection();
     return; // Skip logging for levels above the threshold
   }
   
@@ -206,7 +217,7 @@ void asirikuyLogMessage(int severity, const char* format, ...)
   char messageBuffer[1024] = "";
   char logLine[1124] = "";
   
-  // Get timestamp
+  // Get timestamp (thread-safe)
   getTimestamp(timestamp, sizeof(timestamp));
   
   // Format the message
@@ -236,7 +247,7 @@ void asirikuyLogMessage(int severity, const char* format, ...)
     fprintf(stderr, "%s", logLine);
   }
   
-  // Write to all open log files
+  // Write to all open log files (protected by critical section)
   int i;
   for(i = 0; i < MAX_LOG_FILES; i++)
   {
@@ -246,5 +257,7 @@ void asirikuyLogMessage(int severity, const char* format, ...)
       fflush(gLogFiles[i]); // Ensure immediate write
     }
   }
+  
+  leaveCriticalSection();
 }
 
