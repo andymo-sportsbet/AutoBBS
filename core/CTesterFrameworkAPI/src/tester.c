@@ -1332,6 +1332,10 @@ TestResult __stdcall runPortfolioTest (
 
 	for(s = 0; s<numSystems; s++){
 	rates[s][0] = (CRates*)malloc(sizeof(CRates) * numBarsRequired[s][0]);
+	// Initialize i[s] to ensure sourceIndex calculation is correct
+	// i[s] must be at least numBarsRequired[s][0] - 1 to prevent negative sourceIndex
+	// Use maxNumbarsRequired - 1 to ensure all systems start at the same point
+	// Since maxNumbarsRequired >= numBarsRequired[s][0], this ensures i[s] >= numBarsRequired[s][0] - 1
 	i[s] = maxNumbarsRequired - 1;
 	lastProcessedBar[s] = 0;
 	testsFinished[s] = 0;
@@ -1433,6 +1437,11 @@ TestResult __stdcall runPortfolioTest (
 			if (i[s]<numCandles-1){
                 if ((int)currentBrokerTime > (int)pRates[s][0][i[s]+1].time)
 					i[s]++;
+			}
+		} else {
+			// No tick file - increment i[s] on each iteration to progress through candles
+			if (i[s] < numCandles - 1) {
+				i[s]++;
 			}
 		}
 
@@ -1604,6 +1613,15 @@ TestResult __stdcall runPortfolioTest (
 
 		for(j=0; j<numBarsRequired[s][0]; j++){
 			sourceIndex = i[s] - numBarsRequired[s][0] + j + 1;
+			
+			// Validate sourceIndex to prevent array bounds violation
+			if(sourceIndex < 0 || sourceIndex >= numCandles) {
+				logError("Array bounds violation: sourceIndex=%d is out of bounds [0, %d) for system %d, bar %d, i[s]=%d, numBarsRequired=%d. Aborting test.", 
+				         sourceIndex, numCandles, s, j, i[s], numBarsRequired[s][0]);
+				abortTest = true;
+				break; // Exit loop to prevent further corruption
+			}
+			
 			if(j==(numBarsRequired[s][0]-1)){   //Current Bar
 				rates[s][0][j].high	 = pRates[s][0][sourceIndex].open;
 				rates[s][0][j].low	 = pRates[s][0][sourceIndex].open;
@@ -1628,10 +1646,21 @@ TestResult __stdcall runPortfolioTest (
 			}
 		}
 
-		for (n = 1; n < 10; n++){
-		if (numBarsRequired[s][n] > 0){
-			for(j=0; j<numBarsRequired[s][n]; j++){
-				sourceIndex = i[s] - numBarsRequired[s][n] + j + 1;
+		// Skip processing other timeframes if we already detected a bounds violation
+		if (!abortTest) {
+			for (n = 1; n < 10; n++){
+			if (numBarsRequired[s][n] > 0){
+				for(j=0; j<numBarsRequired[s][n]; j++){
+					sourceIndex = i[s] - numBarsRequired[s][n] + j + 1;
+					
+					// Validate sourceIndex to prevent array bounds violation
+					if(sourceIndex < 0 || sourceIndex >= numCandles) {
+						logError("Array bounds violation: sourceIndex=%d is out of bounds [0, %d) for system %d, timeframe %d, bar %d, i[s]=%d, numBarsRequired=%d. Aborting test.", 
+						         sourceIndex, numCandles, s, n, j, i[s], numBarsRequired[s][n]);
+						abortTest = true;
+						break; // Exit loop to prevent further corruption
+					}
+				
 				if(j==(numBarsRequired[s][n]-1)){   //Current Bar
 					rates[s][n][j].high   = pRates[s][n][sourceIndex].open;
 					rates[s][n][j].low	   = pRates[s][n][sourceIndex].open;
@@ -1648,8 +1677,9 @@ TestResult __stdcall runPortfolioTest (
 				rates[s][n][j].open = pRates[s][n][sourceIndex].open;
 
 				if (pRates[s][n][sourceIndex].time == -1) abortTest = true;
+				}
 			}
-		}
+			}
 		}
 		} else {
 
@@ -1680,6 +1710,12 @@ TestResult __stdcall runPortfolioTest (
 		}
 
 		if (abortTest){
+			logError("Test aborted due to bounds violation or invalid data. Finishing test for system %d at bar %d", s, i[s]);
+			testsFinished[s] = 1;
+			finishedCount++;
+			fprintf(stderr, "[TEST] System %d aborted. finishedCount = %d, numSystems = %d\n", s, finishedCount, numSystems);
+			fflush(stderr);
+			logInfo("System %d aborted. finishedCount = %d", s, finishedCount);
 			continue;
 		}
         

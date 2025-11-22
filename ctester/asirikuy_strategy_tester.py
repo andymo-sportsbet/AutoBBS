@@ -238,12 +238,13 @@ def main():
     print("[DEBUG] Final numCores value: %d" % numCores, flush=True)
 
     #Config values
-    accountCurrency = config.get("account", "currency")
-    
-    # Read brokerName and refBrokerName from config, with fallback defaults
     # IMPORTANT: Encode to bytes to ensure the string buffer persists
     # ctypes creates temporary buffers for Python strings, which can be freed
     # Encoding to bytes and keeping a reference ensures the buffer stays alive
+    accountCurrencyStr = config.get("account", "currency")
+    accountCurrency = accountCurrencyStr.encode('utf-8')  # Encode to bytes for C function
+    
+    # Read brokerName and refBrokerName from config, with fallback defaults
     try:
         brokerName = config.get("account", "brokerName").encode('utf-8')
     except:
@@ -438,8 +439,8 @@ def main():
         quoteRatePath = historyPath + symbol_str + '_' + str(passedTimeFrame[i]) + '.csv'
         loadRates(quoteRatePath, numCandles, symbol, True)
 
-        if accountCurrency != baseName and accountCurrency != termName:
-            newSymbolsList = [baseName+accountCurrency+additionalName, accountCurrency+baseName+additionalName, termName+accountCurrency+additionalName, accountCurrency+termName+additionalName]
+        if accountCurrencyStr != baseName and accountCurrencyStr != termName:
+            newSymbolsList = [baseName+accountCurrencyStr+additionalName, accountCurrencyStr+baseName+additionalName, termName+accountCurrencyStr+additionalName, accountCurrencyStr+termName+additionalName]
             for newSymbol in newSymbolsList:
                 quoteRatePath = historyPath + newSymbol + '_' + str(passedTimeFrame[i]) + '.csv'
                 if os.path.isfile(quoteRatePath):
@@ -762,8 +763,8 @@ def main():
                 _ratesInfoArray[0] = ratesInfoArray[i]
 
                 astdll.runPortfolioTest.restype = TestResult
-                # Encode accountCurrency to bytes for C function (keep string version for Python operations)
-                accountCurrencyBytes = accountCurrency.encode('utf-8')
+                # accountCurrency is already encoded to bytes
+                accountCurrencyBytes = accountCurrency
                 result = astdll.runPortfolioTest (
                     c_int(1),ctypes.pointer(_settings), ctypes.pointer(_symbols), accountCurrencyBytes, brokerName, refBrokerName,
                     ctypes.pointer(_accountInfo), ctypes.pointer(_testSettings), ctypes.pointer(_ratesInfoArray), c_int(numCandles),
@@ -807,8 +808,8 @@ def main():
             f = open(outputFile + ".txt", 'w')
             f.write("Order Number, Order Type, Open Time, Close Time, Open Price, Close Price, Lots, Profit, SL, TP, Balance, ID, Pair, Swap\n")
             astdll.runPortfolioTest.restype = TestResult
-            # Encode accountCurrency to bytes for C function (keep string version for Python operations)
-            accountCurrencyBytes = accountCurrency.encode('utf-8')
+            # accountCurrency is already encoded to bytes
+            accountCurrencyBytes = accountCurrency
             result = astdll.runPortfolioTest (
                 c_int(1), ctypes.pointer(settings), ctypes.pointer(symbols), accountCurrencyBytes, brokerName, refBrokerName, ctypes.pointer(accountInfo),
                 ctypes.pointer(testSettings), ctypes.pointer(ratesInfoArray), c_int(numCandles), c_int(numSystemsInPortfolio), ctypes.pointer(ratesArray), c_double(minLotSize),

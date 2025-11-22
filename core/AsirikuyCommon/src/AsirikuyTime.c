@@ -78,9 +78,18 @@ char* safe_timeString(char timeString[MAX_TIME_STRING_SIZE], time_t time)
 {
   struct tm timeInfo;
   
+  /* Validate input time BEFORE processing to prevent garbage output */
+  if(time < 0)
+  {
+    logError("safe_timeString() Invalid input time: %zd (before Unix epoch 1970-01-01)", time);
+    strncpy(timeString, "Invalid Time", MAX_TIME_STRING_SIZE - 1);
+    timeString[MAX_TIME_STRING_SIZE - 1] = '\0';
+    return timeString;
+  }
+  
   safe_gmtime(&timeInfo, time);
 
-  /* Validate the time */
+  /* Validate the time structure */
   if(  (timeInfo.tm_hour < 0)
     || (timeInfo.tm_hour > 23)
     || (timeInfo.tm_mday < 1)
@@ -96,7 +105,7 @@ char* safe_timeString(char timeString[MAX_TIME_STRING_SIZE], time_t time)
     || (timeInfo.tm_yday < 0)
     || (timeInfo.tm_yday > 365))
   {
-    logError("safe_timeString() Invalid time: %zd", time);
+    logError("safe_timeString() Invalid time structure from time: %zd", time);
     strncpy(timeString, "Invalid Time", MAX_TIME_STRING_SIZE - 1);
     timeString[MAX_TIME_STRING_SIZE - 1] = '\0';
   }

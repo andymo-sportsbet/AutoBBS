@@ -215,7 +215,8 @@ void asirikuyLogMessage(int severity, const char* format, ...)
   va_list args;
   char timestamp[32] = "";
   char messageBuffer[1024] = "";
-  char logLine[1124] = "";
+  // Increased buffer size to accommodate timestamp (32) + severity label (10) + message (1024) + formatting (50) + null terminator
+  char logLine[2048] = "";
   
   // Get timestamp (thread-safe)
   getTimestamp(timestamp, sizeof(timestamp));
@@ -227,8 +228,13 @@ void asirikuyLogMessage(int severity, const char* format, ...)
   va_end(args);
   
   // Format the full log line with timestamp and severity
-  snprintf(logLine, sizeof(logLine), "[%s] [%s] %s", 
-           timestamp, getSeverityLabel(severity), messageBuffer);
+  // Use snprintf with explicit size limit to prevent overflow
+  int written = snprintf(logLine, sizeof(logLine) - 1, "[%s] [%s] %s", 
+                         timestamp, getSeverityLabel(severity), messageBuffer);
+  if (written < 0 || written >= (int)sizeof(logLine)) {
+    // Truncation occurred or error - ensure null termination
+    logLine[sizeof(logLine) - 1] = '\0';
+  }
   
   // Ensure newline
   size_t len = strlen(logLine);

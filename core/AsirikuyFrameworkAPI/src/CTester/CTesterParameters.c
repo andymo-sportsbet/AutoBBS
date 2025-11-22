@@ -130,7 +130,19 @@ static AsirikuyReturnCode copyBarC(const CRates* pSource, Rates* pDest, int dest
 
   if(pDest->time)
   {
+    // Validate source time before processing
+    if(pSource->time < 0)
+    {
+      logError("copyBarC() received invalid source time: %zd. Skipping this bar.", pSource->time);
+      return SUCCESS; // Skip invalid bar, don't process it
+    }
     pDest->time[destIndex] = getAdjustedBrokerTime(pSource->time, tzOffsets);
+    // Validate adjusted time
+    if(pDest->time[destIndex] < 0)
+    {
+      logError("copyBarC() adjusted time is invalid: %zd. Skipping this bar.", pDest->time[destIndex]);
+      return SUCCESS; // Skip invalid bar, don't process it
+    }
     // Debug logging - uncomment if needed
     // if(1)
     {
@@ -201,7 +213,19 @@ static AsirikuyReturnCode mergeBar(int instanceId, int ratesIndex, const CRates*
     return NULL_POINTER;
   }
 
+  // Validate source time before processing
+  if(pSource->time < 0)
+  {
+    logError("mergeBar() received invalid source time: %zd. Skipping this bar.", pSource->time);
+    return SUCCESS; // Skip invalid bar, don't process it
+  }
   CTime  = getAdjustedBrokerTime(pSource->time, tzOffsets);
+  // Validate adjusted time
+  if(CTime < 0)
+  {
+    logError("mergeBar() adjusted time is invalid: %zd. Skipping this bar.", CTime);
+    return SUCCESS; // Skip invalid bar, don't process it
+  }
   destTime = pDest->time[destIndex];
 
   if(pDest->time)
