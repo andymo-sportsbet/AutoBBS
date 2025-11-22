@@ -25,6 +25,7 @@ Implement thread-local storage for log files, allowing each thread to write to i
 
 - **Specification**: [THREAD_LOCAL_LOGGING_SPEC.md](./THREAD_LOCAL_LOGGING_SPEC.md)
 - **Tasks**: [TASKS.md](./TASKS.md)
+- **Tmp File Thread-Safety Analysis**: [TMP_FILES_THREAD_SAFETY.md](./TMP_FILES_THREAD_SAFETY.md)
 
 ## Quick Start
 
@@ -65,6 +66,10 @@ Implement thread-local storage for log files, allowing each thread to write to i
 - Performance degradation in multi-threaded optimization
 - Critical section contention in logger
 - Slow optimization execution times
+- **NEW**: Tmp file thread-safety issues (file corruption in multi-threaded runs)
+  - `results.open` uses hardcoded filename (CRITICAL)
+  - InstanceId collisions in `{instanceId}_OrderInfo.txt` (HIGH)
+  - Unprotected file writes in `{instanceId}.state` (MEDIUM)
 
 ## References
 

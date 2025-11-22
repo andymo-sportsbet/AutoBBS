@@ -177,53 +177,109 @@
 
 ---
 
-## Phase 5: Documentation and Deployment
+## Phase 5: Tmp File Thread-Safety Fixes
 
-### 5.1 Code Documentation
+### 5.1 Fix `results.open` File (CRITICAL)
+
+- [⬜] Modify `save_openorder_to_file()` function
+  - [⬜] Add `testId` parameter to function signature
+  - [⬜] Change hardcoded filename `"results.open"` to `"results_{testId}.open"`
+  - [⬜] Update function call in `tester.c:1949` to pass `testId`
+  - [⬜] Verify thread-specific files are created correctly
+
+### 5.2 Fix InstanceId Uniqueness (HIGH)
+
+- [⬜] Fix instanceId formula in `optimizer.c`
+  - [⬜] Review current formula: `(testId+1) + 2*(n+1)`
+  - [⬜] Identify collision issues (verified: 24 collisions with 8 threads, 5 symbols)
+  - [⬜] Implement collision-free formula: `(testId * MAX_SYMBOLS_PER_THREAD) + n + BASE_INSTANCE_ID`
+  - [⬜] Or add thread ID to filenames: `{instanceId}_thread{threadId}_OrderInfo.txt`
+  - [⬜] Update both `testFitnessMultipleSymbols()` and `runOptimizationMultipleSymbols()`
+  - [⬜] Test with multiple threads to verify uniqueness
+
+### 5.3 Fix `{instanceId}_OrderInfo.txt` Thread-Safety (HIGH)
+
+- [⬜] Modify `saveTradingInfo()` in `StrategyUserInterface.c`
+  - [⬜] Option 1: Add critical section around file write operations
+  - [⬜] Option 2: Make filename thread-specific (preferred - no lock needed)
+  - [⬜] Update filename generation to include thread ID if needed
+  - [⬜] Test with multiple threads to verify no corruption
+
+### 5.4 Fix `{instanceId}.state` File Thread-Safety (MEDIUM)
+
+- [⬜] Review `backupInstanceState()` in `InstanceStates.c`
+  - [⬜] Verify critical section protection (currently protected by `hasInstanceRunOnCurrentBar()`)
+  - [⬜] Add critical section around file write operations if needed
+  - [⬜] Or make filename thread-specific to eliminate need for locks
+  - [⬜] Test with multiple threads to verify no corruption
+
+### 5.5 Testing Tmp File Thread-Safety
+
+- [⬜] Run optimization with 4+ threads
+- [⬜] Verify no file corruption in `tmp` directory
+- [⬜] Verify all expected files are created
+- [⬜] Verify no duplicate filenames
+- [⬜] Check file contents for corruption
+- [⬜] Verify `results_{testId}.open` files are created correctly
+
+---
+
+## Phase 6: Documentation and Deployment
+
+### 6.1 Code Documentation
 
 - [⬜] Add inline comments to new functions
 - [⬜] Document thread-local storage usage
 - [⬜] Document log file naming convention
 - [⬜] Document backward compatibility behavior
+- [⬜] Document tmp file thread-safety fixes
 
-### 5.2 User Documentation
+### 6.2 User Documentation
 
 - [⬜] Update README with thread-local logging info
 - [⬜] Document log file locations
 - [⬜] Document how to find thread-specific logs
+- [⬜] Document tmp file naming conventions
 - [⬜] Add troubleshooting section
 
-### 5.3 Deployment
+### 6.3 Deployment
 
 - [⬜] Merge to `refactor` branch
 - [⬜] Run production optimization tests
 - [⬜] Monitor performance improvements
+- [⬜] Verify tmp file thread-safety in production
 - [⬜] Collect user feedback
 
 ---
 
 ## Current Status Summary
 
-**Overall Progress**: 24% (12/50 tasks completed)
+**Overall Progress**: 20% (12/60 tasks completed)
 
 **Phase 1**: 100% (12/12 tasks) ✅  
 **Phase 2**: 33% (2/6 tasks) 🔄  
 **Phase 3**: 0% (0/4 tasks)  
 **Phase 4**: 0% (0/18 tasks)  
-**Phase 5**: 0% (0/10 tasks)
+**Phase 5**: 0% (0/10 tasks) ⚠️ **NEW - CRITICAL**  
+**Phase 6**: 0% (0/10 tasks)
 
 **Next Steps**:
 1. ✅ Phase 1 Complete: Thread-local storage and logging functions implemented
 2. ✅ Phase 2.1 Complete: Thread-local logging initialization in optimizer
-3. 🔄 Test implementation with single thread first (backward compatibility)
-4. 🔄 Test with multiple threads (2, 4, 8)
-5. 🔄 Measure performance improvement
+3. ⚠️ **URGENT**: Fix tmp file thread-safety issues (Phase 5)
+   - Fix `results.open` hardcoded filename (CRITICAL)
+   - Fix instanceId collision formula (HIGH)
+   - Fix OrderInfo.txt and .state file thread-safety (HIGH/MEDIUM)
+4. 🔄 Test implementation with single thread first (backward compatibility)
+5. 🔄 Test with multiple threads (2, 4, 8)
+6. 🔄 Measure performance improvement
 
 **Blockers**: None
 
 **Risks**:
 - ⚠️ Thread-local storage may not be available on all platforms (mitigation: fallback implementation)
 - ⚠️ Too many log files may be created (mitigation: configurable naming, optional cleanup)
+- ⚠️ **CRITICAL**: Tmp files (`results.open`, `{instanceId}_OrderInfo.txt`, `{instanceId}.state`) are not thread-safe and can cause file corruption in multi-threaded runs (mitigation: Phase 5 fixes)
 
 ---
 
@@ -233,6 +289,10 @@
 - Thread-local logging eliminates critical section contention
 - Backward compatibility is maintained through fallback to global logger
 - Performance improvement target: 50%+ faster optimization execution
+- **NEW**: Tmp file thread-safety issues discovered and documented in `TMP_FILES_THREAD_SAFETY.md`
+  - `results.open`: Hardcoded filename shared across threads (CRITICAL)
+  - `{instanceId}_OrderInfo.txt`: InstanceId collisions cause file corruption (HIGH)
+  - `{instanceId}.state`: File writes not protected (MEDIUM)
 
 **Last Updated**: November 2024
 

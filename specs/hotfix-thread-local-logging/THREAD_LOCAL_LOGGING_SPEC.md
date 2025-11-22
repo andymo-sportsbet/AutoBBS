@@ -438,6 +438,47 @@ void asirikuyLogMessage(int severity, const char* format, ...)
 ---
 
 **Document Version**: 1.0  
+---
+
+## 7. Tmp File Thread-Safety Issues
+
+### 7.1 Problem Discovery
+
+During analysis of thread-safety in the optimization framework, critical issues were discovered with files created in the `tmp` directory:
+
+1. **`results.open`** - Hardcoded filename shared across all threads (CRITICAL)
+2. **`{instanceId}_OrderInfo.txt`** - InstanceId collisions cause multiple threads to write to same file (HIGH)
+3. **`{instanceId}.state`** - File writes not protected by critical section (MEDIUM)
+
+### 7.2 Detailed Analysis
+
+See [TMP_FILES_THREAD_SAFETY.md](./TMP_FILES_THREAD_SAFETY.md) for complete analysis including:
+- File locations and functions
+- Thread-safety issues
+- Collision analysis (24 collisions detected with 8 threads, 5 symbols)
+- Recommended fixes
+
+### 7.3 Fixes Required
+
+**Priority 1 (CRITICAL)**: Fix `results.open`
+- Modify `save_openorder_to_file()` to use thread-specific filename
+- Change from `"results.open"` to `"results_{testId}.open"`
+
+**Priority 2 (HIGH)**: Fix InstanceId Uniqueness
+- Current formula: `(testId+1) + 2*(n+1)` causes collisions
+- New formula: `(testId * MAX_SYMBOLS_PER_THREAD) + n + BASE_INSTANCE_ID`
+- Or add thread ID to filenames
+
+**Priority 3 (MEDIUM)**: Add File Write Protection
+- Add critical sections around file writes
+- Or use thread-specific filenames to eliminate need for locks
+
+### 7.4 Implementation
+
+These fixes are tracked in **Phase 5** of [TASKS.md](./TASKS.md).
+
+---
+
 **Last Updated**: November 2024  
 **Author**: Auto (AI Assistant)  
 **Review Status**: Pending
