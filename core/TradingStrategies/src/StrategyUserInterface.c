@@ -45,7 +45,6 @@
 
 #include "Logging.h"
 #include "AsirikuyLogger.h"
-#include "CriticalSection.h"
 
 static char tempFilePath[MAX_FILE_PATH_CHARS] ;
 
@@ -425,10 +424,8 @@ AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo)
 
 	logDebug("saveTradingInfo() Saving trading order info to : %s", buffer);
 
-	// Protect file operations with critical section for thread-safety
-	// Even though instanceId is now unique per thread+symbol, this provides defense-in-depth
-	enterCriticalSection();
-	
+	// No critical section needed: instanceId is guaranteed unique per thread+symbol
+	// Each thread writes to a different file, so file I/O is naturally thread-safe
 	fp = fopen(buffer, "w\n");
 	if (fp == NULL)
 	{
@@ -447,8 +444,6 @@ AsirikuyReturnCode saveTradingInfo(int instanceID, Order_Info * pOrderInfo)
 		
 		fclose(fp);
 	}
-	
-	leaveCriticalSection();
 
 	return result;
 }
