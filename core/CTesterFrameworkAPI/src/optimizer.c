@@ -225,7 +225,11 @@ boolean testFitnessMultipleSymbols(population *pop, entity *entity)
 	testId = omp_get_thread_num();	
 	#endif
 
-	localSettings[0][STRATEGY_INSTANCE_ID] = (testId+1)+2*(n+1);
+	// Fix instanceId formula to guarantee uniqueness across threads and symbols
+	// Old formula: (testId+1)+2*(n+1) caused collisions (e.g., thread 0 symbol 1 = thread 2 symbol 0)
+	// New formula: (testId * 1000) + n + 1 guarantees uniqueness for up to 1000 symbols per thread
+	// This ensures each thread+symbol combination gets a unique instanceId
+	localSettings[0][STRATEGY_INSTANCE_ID] = (testId * 1000) + n + 1;
 	
 	// Cast AccountInfo** to double** for runPortfolioTest (it treats AccountInfo as double array)
 	testResult = runPortfolioTest(testId+1, localSettings, localSymbol, globalAccountCurrency, globalBrokerName, globalRefBrokerName, (double**)localAccountInfo, 
@@ -847,7 +851,11 @@ int __stdcall runOptimizationMultipleSymbols(
 					testId = 1;
 				}
 
-				localSettings[0][STRATEGY_INSTANCE_ID] = (testId+1)+2*(n+1);
+				// Fix instanceId formula to guarantee uniqueness across threads and symbols
+				// Old formula: (testId+1)+2*(n+1) caused collisions (e.g., thread 0 symbol 1 = thread 2 symbol 0)
+				// New formula: (testId * 1000) + n + 1 guarantees uniqueness for up to 1000 symbols per thread
+				// This ensures each thread+symbol combination gets a unique instanceId
+				localSettings[0][STRATEGY_INSTANCE_ID] = (testId * 1000) + n + 1;
 
 				fprintf(stderr, "[OPT] localSettings[0][ADDITIONAL_PARAM_8]= %lf\n", localSettings[0][ADDITIONAL_PARAM_8]);
 				fflush(stderr);

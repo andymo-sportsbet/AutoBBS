@@ -720,16 +720,20 @@ void checkPending(double bid, double ask, int i, COrderInfo* openOrders, int ins
 	
 }
 
-void save_openorder_to_file(){
+void save_openorder_to_file(int testId){
 	
 	FILE* openOrderFile;	
 	char   timeString[MAX_TIME_STRING_SIZE] = "";
+	char   filename[MAX_FILE_PATH_CHARS] = "";
 	int orderIndex;
 	int index;
 	
-	openOrderFile = fopen("results.open", "w");
+	// Use thread-specific filename to avoid race conditions in multi-threaded runs
+	snprintf(filename, sizeof(filename), "results_%d.open", testId);
+	
+	openOrderFile = fopen(filename, "w");
 	if (openOrderFile == NULL)
-		logError("Failed to save openOrderFile.");
+		logError("Failed to save openOrderFile: %s", filename);
 
 	fprintf(openOrderFile, "Open order exist!");
 
@@ -1946,7 +1950,7 @@ TestResult __stdcall runPortfolioTest (
 	orderIndex = openOrdersCount[BUY] + openOrdersCount[SELL];
 	logInfo("Saving open orders to file. orderIndex = %d", orderIndex);
 	if (orderIndex > 0)
-		save_openorder_to_file();
+		save_openorder_to_file(testId);
 
 	logInfo("Saved open orders to file. orderIndex = %d", orderIndex);
 	//For all the open orders
