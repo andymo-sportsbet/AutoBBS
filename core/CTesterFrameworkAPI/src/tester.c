@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>
+#include <time.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -1377,8 +1378,57 @@ TestResult __stdcall runPortfolioTest (
 	//Run the test for each candle
 	int loopIteration = 0;
 	int lastLoggedIteration = 0;
+	int lastProgressPercent = -1;
+	#ifdef _OPENMP
+	time_t lastProgressTime = 0;
+	time_t startTime = time(NULL);
+	#else
+	time_t lastProgressTime = 0;
+	time_t startTime = time(NULL);
+	#endif
+	// Calculate total expected iterations (approximate: numCandles per system)
+	int totalExpectedIterations = numCandles * numSystems;
+	
 	while(finishedCount < numSystems){
 		loopIteration++;
+		
+		// Milestone-based progress logging (every 10% of expected iterations)
+		int currentProgressPercent = (int)((loopIteration * 100) / (totalExpectedIterations > 0 ? totalExpectedIterations : 1));
+		if (currentProgressPercent != lastProgressPercent && currentProgressPercent % 10 == 0 && currentProgressPercent > 0) {
+			#ifdef _OPENMP
+			fprintf(stderr, "[TEST] Progress: %d%% (iteration %d, testId=%d, thread=%d, finishedCount=%d/%d)\n", 
+			        currentProgressPercent, loopIteration, testId, loop_thread_id, finishedCount, numSystems);
+			logInfo("Progress: %d%% (iteration %d, testId=%d, thread=%d, finishedCount=%d/%d)", 
+			        currentProgressPercent, loopIteration, testId, loop_thread_id, finishedCount, numSystems);
+			#else
+			fprintf(stderr, "[TEST] Progress: %d%% (iteration %d, testId=%d, finishedCount=%d/%d)\n", 
+			        currentProgressPercent, loopIteration, testId, finishedCount, numSystems);
+			logInfo("Progress: %d%% (iteration %d, testId=%d, finishedCount=%d/%d)", 
+			        currentProgressPercent, loopIteration, testId, finishedCount, numSystems);
+			#endif
+			fflush(stderr);
+			lastProgressPercent = currentProgressPercent;
+		}
+		
+		// Time-based progress logging (every 30 seconds)
+		time_t currentTime = time(NULL);
+		if (currentTime - lastProgressTime >= 30) {
+			int elapsedSeconds = (int)(currentTime - startTime);
+			#ifdef _OPENMP
+			fprintf(stderr, "[TEST] Time progress: %d seconds elapsed (iteration %d, testId=%d, thread=%d, finishedCount=%d/%d)\n", 
+			        elapsedSeconds, loopIteration, testId, loop_thread_id, finishedCount, numSystems);
+			logInfo("Time progress: %d seconds elapsed (iteration %d, testId=%d, thread=%d, finishedCount=%d/%d)", 
+			        elapsedSeconds, loopIteration, testId, loop_thread_id, finishedCount, numSystems);
+			#else
+			fprintf(stderr, "[TEST] Time progress: %d seconds elapsed (iteration %d, testId=%d, finishedCount=%d/%d)\n", 
+			        elapsedSeconds, loopIteration, testId, finishedCount, numSystems);
+			logInfo("Time progress: %d seconds elapsed (iteration %d, testId=%d, finishedCount=%d/%d)", 
+			        elapsedSeconds, loopIteration, testId, finishedCount, numSystems);
+			#endif
+			fflush(stderr);
+			lastProgressTime = currentTime;
+		}
+		
 		// Log every 1000 iterations, but also log the first few iterations
 		if (loopIteration % 1000 == 0 || loopIteration <= 10) {
 			#ifdef _OPENMP
@@ -1389,7 +1439,6 @@ TestResult __stdcall runPortfolioTest (
 			fflush(stderr);
 			lastLoggedIteration = loopIteration;
 		}
-		logInfo("Main loop iteration: finishedCount = %d, numSystems = %d", finishedCount, numSystems);
 
 		//run each bar for all systems
 		for(s = 0; s<numSystems; s++)
@@ -1410,7 +1459,9 @@ TestResult __stdcall runPortfolioTest (
 				continue;
 			}
 
-			logInfo("Processing bar = %d, finishedCount = %d, numSystem = %d", i[s], finishedCount, s);
+			// Removed high-frequency log: "Processing bar = %d, finishedCount = %d, numSystem = %d"
+			// This was called for every system on every iteration, causing significant performance overhead.
+			// Important events (errors, completion, milestones) are still logged above.
 
 		currentBrokerTime = 0;
 
