@@ -32,7 +32,25 @@ def main():
     signalCounter = 0
     lines = ''
 
+    # Handle SIGINT (Ctrl+C) - graceful shutdown
     signal.signal(signal.SIGINT, stopOptimization)
+    
+    # Handle SIGTERM - graceful shutdown with logging
+    def handle_sigterm(sig, frame):
+        print("[ERROR] SIGTERM received - process is being terminated!", flush=True)
+        print("[ERROR] Attempting graceful shutdown...", flush=True)
+        sys.stderr.write("[ERROR] SIGTERM received - process is being terminated!\n")
+        sys.stderr.flush()
+        stopOptimization(sig, frame)
+        # Give C threads a moment to finish
+        import time
+        time.sleep(2)
+        print("[ERROR] Exiting due to SIGTERM", flush=True)
+        sys.exit(130)  # Exit code 130 for SIGTERM
+    
+    # Handle SIGTERM if available (not available on Windows)
+    if hasattr(signal, 'SIGTERM'):
+        signal.signal(signal.SIGTERM, handle_sigterm)
 
     #Check if the script was launched under MPI
     global execUnderMPI
@@ -662,6 +680,10 @@ def main():
             dbg.write("About to call runOptimizationMultipleSymbols\n")
             dbg.flush()
         try:
+            print("[DEBUG] About to call runOptimizationMultipleSymbols - this is a blocking call", flush=True)
+            print("[DEBUG] Python process PID: %d" % os.getpid(), flush=True)
+            sys.stdout.flush()
+            
             result = astdll.runOptimizationMultipleSymbols (
                     ctypes.pointer(optimizationParams[0]),
                     c_int(numOptimizationParams[0]),
@@ -686,17 +708,31 @@ def main():
             )
             print("[DEBUG] runOptimizationMultipleSymbols returned:", result, flush=True)
             print("[DEBUG] error_c.value:", error_c.value if error_c.value else "None", flush=True)
+            print("[DEBUG] Python process still alive after C function returned", flush=True)
             sys.stdout.flush()
             # Write to file
             with open("debug_optimization.txt", "a") as dbg:
                 dbg.write(f"Function returned: {result}\n")
                 dbg.write(f"Error: {error_c.value if error_c.value else 'None'}\n")
                 dbg.flush()
+        except KeyboardInterrupt:
+            print("[ERROR] KeyboardInterrupt received - user pressed Ctrl+C", flush=True)
+            sys.stderr.write("[ERROR] KeyboardInterrupt received - user pressed Ctrl+C\n")
+            sys.stderr.flush()
+            stopOptimization(signal.SIGINT, None)
+            raise  # Re-raise to exit properly
+        except SystemExit:
+            print("[ERROR] SystemExit received - process is exiting", flush=True)
+            sys.stderr.write("[ERROR] SystemExit received - process is exiting\n")
+            sys.stderr.flush()
+            raise  # Re-raise to exit properly
         except Exception as e:
-            print(f"[DEBUG] EXCEPTION in runOptimizationMultipleSymbols: {e}", flush=True)
+            print(f"[ERROR] EXCEPTION in runOptimizationMultipleSymbols: {e}", flush=True)
             import traceback
             traceback.print_exc()
-            sys.stdout.flush()
+            sys.stderr.write(f"[ERROR] EXCEPTION in runOptimizationMultipleSymbols: {e}\n")
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.flush()
             # Write exception to file
             with open("debug_optimization.txt", "a") as dbg:
                 dbg.write(f"EXCEPTION: {e}\n")
@@ -709,11 +745,16 @@ def main():
             dbg.write("AFTER function call - checking result\n")
             dbg.flush()
         print("[DEBUG] AFTER runOptimizationMultipleSymbols call - checking result...", flush=True)
+        print("[CRITICAL] Python process still alive after C function returned", flush=True)
+        print("[CRITICAL] Result value: %d" % result, flush=True)
         sys.stdout.flush()
         
         if not result:
-            print("Error executing framework: " + str(error_c.value))
+            print("[ERROR] Error executing framework: " + str(error_c.value), flush=True)
+            sys.stderr.write("[ERROR] Error executing framework: " + str(error_c.value) + "\n")
+            sys.stderr.flush()
         else:
+            print("[SUCCESS] runOptimizationMultipleSymbols completed successfully", flush=True)
             if execUnderMPI == True:
                 lines = comm.gather(lines, root = 0)
                 if rank == 0:
@@ -724,8 +765,12 @@ def main():
                     print("Optimization finished!")
 
         elapsed = (time() - start)
+        print("[DEBUG] Optimization took %f seconds" % elapsed, flush=True)
+        sys.stdout.flush()
 
         f.close()
+        print("[DEBUG] Results file closed. Python process exiting normally.", flush=True)
+        sys.stdout.flush()
 
     else:
         print("Running test...")
@@ -1013,4 +1058,26 @@ def stopOptimization(signal, frame):
 ###           MAIN           ####
 ##################################
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    try:
+        main()
+        print("[DEBUG] main() completed normally", flush=True)
+        sys.stdout.flush()
+    except KeyboardInterrupt:
+        print("[ERROR] KeyboardInterrupt in main() - user interrupted", flush=True)
+        sys.stderr.write("[ERROR] KeyboardInterrupt in main() - user interrupted\n")
+        sys.stderr.flush()
+        sys.exit(130)  # Standard exit code for SIGINT
+    except SystemExit as e:
+        print("[ERROR] SystemExit in main() - exit code: %d" % e.code, flush=True)
+        sys.stderr.write("[ERROR] SystemExit in main() - exit code: %d\n" % e.code)
+        sys.stderr.flush()
+        raise  # Re-raise to exit with proper code
+    except Exception as e:
+        print("[ERROR] Unhandled exception in main(): %s" % str(e), flush=True)
+        import traceback
+        traceback.print_exc()
+        sys.stderr.write("[ERROR] Unhandled exception in main(): %s\n" % str(e))
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
+        sys.exit(1)

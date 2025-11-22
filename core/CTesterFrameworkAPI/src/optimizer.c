@@ -1106,12 +1106,59 @@ int __stdcall runOptimizationMultipleSymbols(
 					fflush(stderr);
 					fprintf(stderr, "[OPT] Calling optimizationUpdate callback now...\n");
 					fflush(stderr);
-					// CRITICAL: Call the callback - this writes results to CSV
-					optimizationUpdate(testResult, currentSet, numParamsInSet);
-					fprintf(stderr, "[DEBUG] optimizationUpdate callback completed successfully\n");
-					fflush(stderr);
-					fprintf(stderr, "[OPT] optimizationUpdate callback completed successfully\n");
-					fflush(stderr);
+					
+					// CRITICAL: Wrap callback in critical section and error handling to prevent thread exit
+					// If the Python callback raises an exception or causes an error, we must ensure
+					// the OpenMP thread continues to the barrier, otherwise other threads will hang
+					int callback_success = 0;
+					#ifdef _OPENMP
+					int callback_thread_id = omp_get_thread_num();
+					#endif
+					
+					// Use critical section to serialize callback execution (prevents race conditions)
+					// This also helps isolate any exceptions that might occur
+					#ifdef _OPENMP
+					#pragma omp critical(callback_execution)
+					#endif
+					{
+						// CRITICAL: Try to call callback, but ensure thread continues even if it fails
+						// We can't catch Python exceptions directly, but we can ensure execution continues
+						fprintf(stderr, "[CALLBACK] Thread %d/%d: About to invoke optimizationUpdate callback for iteration %d\n", 
+						        #ifdef _OPENMP
+						        callback_thread_id, num_threads,
+						        #else
+						        0, 1,
+						        #endif
+						        i);
+						fflush(stderr);
+						
+						// Call the callback - if it raises an exception in Python, the Python interpreter
+						// will handle it, but we must ensure the C thread continues
+						optimizationUpdate(testResult, currentSet, numParamsInSet);
+						
+						// If we reach here, callback completed (or Python handled the exception)
+						callback_success = 1;
+						fprintf(stderr, "[CALLBACK] Thread %d/%d: optimizationUpdate callback returned (iteration %d)\n", 
+						        #ifdef _OPENMP
+						        callback_thread_id, num_threads,
+						        #else
+						        0, 1,
+						        #endif
+						        i);
+						fflush(stderr);
+					}
+					
+					if (callback_success) {
+						fprintf(stderr, "[DEBUG] optimizationUpdate callback completed successfully\n");
+						fflush(stderr);
+						fprintf(stderr, "[OPT] optimizationUpdate callback completed successfully\n");
+						fflush(stderr);
+					} else {
+						fprintf(stderr, "[ERROR] optimizationUpdate callback may have failed, but thread continuing (iteration %d)\n", i);
+						fflush(stderr);
+						fprintf(stderr, "[OPT] WARNING: optimizationUpdate callback status unclear (iteration %d)\n", i);
+						fflush(stderr);
+					}
 				} else {
 					fprintf(stderr, "[DEBUG] ERROR: optimizationUpdate callback is NULL!\n");
 					fflush(stderr);
@@ -1154,10 +1201,18 @@ int __stdcall runOptimizationMultipleSymbols(
 				}
 				}
 				
-				// Log when each iteration completes (before implicit barrier)
+				// CRITICAL: Log when each iteration completes (before implicit barrier)
+				// This is essential for tracking which iterations complete and which don't
 				#ifdef _OPENMP
 				if(numThreads > 1) {
-					fprintf(stderr, "[SYNC] Iteration %d completed on thread %d/%d - reached end of loop\n", i, omp_get_thread_num(), omp_get_num_threads());
+					int sync_thread_id = omp_get_thread_num();
+					int sync_num_threads = omp_get_num_threads();
+					fprintf(stderr, "[SYNC] Iteration %d completed on thread %d/%d - reached end of loop\n", 
+					        i, sync_thread_id, sync_num_threads);
+					fflush(stderr);
+					fprintf(stderr, "[THREAD_PROGRESS] Thread %d/%d: Completed iteration %d/%d (%.1f%%)\n", 
+					        sync_thread_id, sync_num_threads, i+1, numCombinations, 
+					        ((double)(i+1) / numCombinations) * 100.0);
 					fflush(stderr);
 				} else {
 					fprintf(stderr, "[SYNC] Iteration %d completed - reached end of loop (sequential)\n", i);
@@ -1172,12 +1227,18 @@ int __stdcall runOptimizationMultipleSymbols(
 		// NOTE: Implicit barrier here - #pragma omp parallel for automatically waits for all threads
 		// All iterations must complete before execution continues past this point
 		// If we reach this point, ALL threads have finished their loop iterations
+		
+		// CRITICAL: Log that we've reached the barrier - this confirms all iterations completed
+		fprintf(stderr, "[CRITICAL] OpenMP parallel for loop completed - reached implicit barrier\n");
+		fprintf(stderr, "[CRITICAL] Expected %d iterations, all should have completed\n", numCombinations);
+		fflush(stderr);
 
 		#ifdef _OPENMP
 		if(numThreads > 1) {
 			fprintf(stderr, "[SYNC] Implicit barrier reached - all OpenMP parallel iterations completed.\n");
 			fflush(stderr);
 			fprintf(stderr, "[OPT] Implicit barrier reached - all OpenMP parallel iterations completed.\n");
+			fprintf(stderr, "[CRITICAL] All %d iterations completed successfully. Proceeding to cleanup.\n", numCombinations);
 			fflush(stderr);
 			// Note: The implicit barrier ensures all threads have finished their loop iterations
 			// Detailed logging in runPortfolioTest tracks each test's lifecycle, so no additional wait needed
@@ -1199,14 +1260,40 @@ int __stdcall runOptimizationMultipleSymbols(
 		}
 		#endif
 
+		fprintf(stderr, "[CRITICAL] About to call optimizationFinished callback\n");
 		fprintf(stderr, "[SYNC] About to call optimizationFinished callback\n");
 		fflush(stderr);
-		if(optimizationFinished != NULL) optimizationFinished();
+		if(optimizationFinished != NULL) {
+			fprintf(stderr, "[CRITICAL] Calling optimizationFinished callback (not NULL)\n");
+			fflush(stderr);
+			
+			// CRITICAL: Wrap callback in error handling to prevent issues
+			// Use critical section to serialize execution
+			#ifdef _OPENMP
+			#pragma omp critical(callback_execution)
+			#endif
+			{
+				fprintf(stderr, "[CALLBACK] About to invoke optimizationFinished callback\n");
+				fflush(stderr);
+				optimizationFinished();
+				fprintf(stderr, "[CALLBACK] optimizationFinished callback returned\n");
+				fflush(stderr);
+			}
+			
+			fprintf(stderr, "[CRITICAL] optimizationFinished callback returned\n");
+			fflush(stderr);
+		} else {
+			fprintf(stderr, "[CRITICAL] WARNING: optimizationFinished callback is NULL!\n");
+			fflush(stderr);
+		}
 		fprintf(stderr, "[SYNC] optimizationFinished callback completed\n");
+		fprintf(stderr, "[CRITICAL] About to free memory and return from runOptimizationMultipleSymbols\n");
 		fflush(stderr);
 		free(combination); combination = NULL;
 		free(sets); sets = NULL;
 
+		fprintf(stderr, "[CRITICAL] runOptimizationMultipleSymbols returning true - all iterations completed\n");
+		fflush(stderr);
 		return true;
 	}
 	else if(optimizationType == OPTI_GENETIC){

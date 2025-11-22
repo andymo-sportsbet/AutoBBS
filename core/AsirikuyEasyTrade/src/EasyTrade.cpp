@@ -41,6 +41,8 @@
 
 #include <float.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include <ta_libc.h>
 
 #include "AsirikuyTime.h"
@@ -57,6 +59,7 @@
 #include "curl/curl.h"
 #include "TimeZoneOffsets.h"
 #include "Broker-tz.h"
+#include "CriticalSection.h"
 
 #define STOPS_REFERENCE_POINTS      5000
 #define INDICATOR_CALCULATION_ERROR -1
@@ -1677,7 +1680,26 @@ Look back 100 days, try to find the last two tops or downs in the MACD fast tren
 */
 int EasyTrade::iMACDTrendBeiLi(int ratesArrayIndex, int fastPeriod, int slowPeriod, int signalPeriod, int startShift, double macdLimit, OrderType orderType, int *pTruningPointIndex, double *pTurningPoint, int * pMinPointIndex, double *pMinPoint)
 {	
-	double	  fast[300] = {}, slow[300] = {}, preHist[300] = {};	
+	// CRITICAL FIX: Move large arrays from stack to heap to prevent stack overflow
+	// Original: double fast[300] = {}, slow[300] = {}, preHist[300] = {};
+	// This was causing stack buffer overflow crashes (7KB+ on stack)
+	double* fast = (double*)malloc(300 * sizeof(double));
+	double* slow = (double*)malloc(300 * sizeof(double));
+	double* preHist = (double*)malloc(300 * sizeof(double));
+	
+	// Initialize arrays to zero
+	if (fast && slow && preHist) {
+		memset(fast, 0, 300 * sizeof(double));
+		memset(slow, 0, 300 * sizeof(double));
+		memset(preHist, 0, 300 * sizeof(double));
+	} else {
+		// Memory allocation failed - return error
+		if (fast) free(fast);
+		if (slow) free(slow);
+		if (preHist) free(preHist);
+		return -1; // Error code
+	}
+	
 	//int start = 1;
 	int macdTrend = 0;
 	int priceTrend = 0;
@@ -1704,8 +1726,13 @@ int EasyTrade::iMACDTrendBeiLi(int ratesArrayIndex, int fastPeriod, int slowPeri
 		trend = 1;
 	else if (fast[startShift] < 0)
 		trend = -1;
-	else
+	else {
+		// Free heap-allocated arrays before returning
+		free(fast);
+		free(slow);
+		free(preHist);
 		return 0;
+	}
 	
 	for (int i = startShift + 1; i < 299; i++)
 	{	
@@ -1751,16 +1778,35 @@ int EasyTrade::iMACDTrendBeiLi(int ratesArrayIndex, int fastPeriod, int slowPeri
 		else
 			priceTrend = -1;
 				
-		if ((macdTrend == 1 && priceTrend == -1) || (macdTrend == -1 && priceTrend == 1))
+		if ((macdTrend == 1 && priceTrend == -1) || (macdTrend == -1 && priceTrend == 1)) {
+			// Free heap-allocated arrays before returning
+			free(fast);
+			free(slow);
+			free(preHist);
 			return 1;
+		}
 
-		if (orderType == BUY && priceTrend == -1 && macdTrend == -1)
+		if (orderType == BUY && priceTrend == -1 && macdTrend == -1) {
+			// Free heap-allocated arrays before returning
+			free(fast);
+			free(slow);
+			free(preHist);
 			return 1;
+		}
 
-		if (orderType == SELL && priceTrend == 1 && macdTrend == 1)
+		if (orderType == SELL && priceTrend == 1 && macdTrend == 1) {
+			// Free heap-allocated arrays before returning
+			free(fast);
+			free(slow);
+			free(preHist);
 			return 1;
+		}
 	}
 	
+	// Free heap-allocated arrays before returning
+	free(fast);
+	free(slow);
+	free(preHist);
 	return 0;
 }
 
@@ -1768,7 +1814,26 @@ double EasyTrade::iBBandStop(int ratesArrayIndex, int bb_period, double bb_devia
 {
 	TA_RetCode retCode;
 	int        outBegIdx, outNBElement;
-	double	  upperBand[2000] = {}, middleBand[2000] = {}, lowerBand[2000] = {};
+	// CRITICAL FIX: Move large arrays from stack to heap to prevent stack overflow
+	// Original: double upperBand[2000] = {}, middleBand[2000] = {}, lowerBand[2000] = {};
+	// This was causing stack buffer overflow crashes (48KB+ on stack)
+	double* upperBand = (double*)malloc(2000 * sizeof(double));
+	double* middleBand = (double*)malloc(2000 * sizeof(double));
+	double* lowerBand = (double*)malloc(2000 * sizeof(double));
+	
+	// Initialize arrays to zero
+	if (upperBand && middleBand && lowerBand) {
+		memset(upperBand, 0, 2000 * sizeof(double));
+		memset(middleBand, 0, 2000 * sizeof(double));
+		memset(lowerBand, 0, 2000 * sizeof(double));
+	} else {
+		// Memory allocation failed - return error
+		if (upperBand) free(upperBand);
+		if (middleBand) free(middleBand);
+		if (lowerBand) free(lowerBand);
+		return INDICATOR_CALCULATION_ERROR;
+	}
+	
 	int shift1Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 2;
 	int start = 0;
 
@@ -1779,6 +1844,10 @@ double EasyTrade::iBBandStop(int ratesArrayIndex, int bb_period, double bb_devia
 	retCode = TA_BBANDS(start, shift1Index, pParams->ratesBuffers->rates[ratesArrayIndex].close, bb_period, bb_deviation, bb_deviation, TA_MAType_SMA, &outBegIdx, &outNBElement, upperBand, middleBand, lowerBand);
 	if (retCode != TA_SUCCESS)
 	{
+		// Free heap-allocated arrays before returning
+		free(upperBand);
+		free(middleBand);
+		free(lowerBand);
 		return INDICATOR_CALCULATION_ERROR;
 	}
 
@@ -1832,6 +1901,10 @@ double EasyTrade::iBBandStop(int ratesArrayIndex, int bb_period, double bb_devia
 		
 	}
 
+	// Free heap-allocated arrays before returning
+	free(upperBand);
+	free(middleBand);
+	free(lowerBand);
 	return 0;
 }
 
@@ -1917,12 +1990,20 @@ double EasyTrade::iMACD(int ratesArrayIndex, int fastPeriod, int slowPeriod, int
   double	   macd1, macd2, macd3;
   int shift0Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 1 ;
 
+  // CRITICAL: TA_SetUnstablePeriod() modifies global TA-Lib state and is NOT thread-safe.
+  // According to TA-Lib documentation, TA-Lib functions are thread-safe with separate buffers,
+  // but functions that modify global state (like TA_SetUnstablePeriod) must be protected.
+  // Protect only the global state modification, not the TA_MACDEXT call itself.
+  enterCriticalSection();
   TA_SetUnstablePeriod(TA_FUNC_UNST_EMA, 35);
+  leaveCriticalSection();
 
   //retCode = TA_MACD(shift0Index - shift, shift0Index - shift, pParams->ratesBuffers->rates[ratesArrayIndex].close, fastPeriod, slowPeriod, signalPeriod, &outBegIdx, &outNBElement, &macd1, &macd2, &macd3);
   retCode = TA_MACDEXT(shift0Index - shift, shift0Index - shift, pParams->ratesBuffers->rates[ratesArrayIndex].close, fastPeriod, TA_MAType_EMA, slowPeriod, TA_MAType_EMA, signalPeriod, TA_MAType_EMA, &outBegIdx, &outNBElement, &macd1, &macd2, &macd3);
 
+  enterCriticalSection();
   TA_SetUnstablePeriod(TA_FUNC_UNST_EMA, 0);
+  leaveCriticalSection();
   if(retCode != TA_SUCCESS)
   {
     return INDICATOR_CALCULATION_ERROR ;
@@ -1943,10 +2024,25 @@ double EasyTrade::iMACDAll(int ratesArrayIndex, int fastPeriod, int slowPeriod, 
 	int        outBegIdx, outNBElement;	
 	int shift0Index = pParams->ratesBuffers->rates[ratesArrayIndex].info.arraySize - 1;
 
+	// CRITICAL: TA_SetUnstablePeriod() modifies global TA-Lib state and is NOT thread-safe.
+	// According to TA-Lib documentation, TA-Lib functions are thread-safe with separate buffers,
+	// but functions that modify global state (like TA_SetUnstablePeriod) must be protected.
+	// Protect only the global state modification, not the TA_MACDEXT call itself.
+	#ifdef _OPENMP
+	int cs_thread_id = omp_get_thread_num();
+	#else
+	int cs_thread_id = 0;
+	#endif
+	enterCriticalSection();
 	TA_SetUnstablePeriod(TA_FUNC_UNST_EMA, 35);
+	leaveCriticalSection();
+	
 	retCode = TA_MACDEXT(shift0Index - shift, shift0Index - shift, pParams->ratesBuffers->rates[ratesArrayIndex].close, fastPeriod, TA_MAType_EMA, slowPeriod, TA_MAType_EMA, signalPeriod, TA_MAType_EMA, &outBegIdx, &outNBElement, pMacd, pMmacdSignal, pMacdHist);
-
+	
+	enterCriticalSection();
 	TA_SetUnstablePeriod(TA_FUNC_UNST_EMA, 0);
+	leaveCriticalSection();
+
 	if (retCode != TA_SUCCESS)
 	{
 		return INDICATOR_CALCULATION_ERROR;

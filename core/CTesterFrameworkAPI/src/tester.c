@@ -18,6 +18,13 @@
 #include <unistd.h>
 #include <math.h>
 #include <time.h>
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#elif defined(__linux__)
+#include <sys/time.h>
+#else
+#include <sys/time.h>
+#endif
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -1379,6 +1386,7 @@ TestResult __stdcall runPortfolioTest (
 	int loopIteration = 0;
 	int lastLoggedIteration = 0;
 	int lastProgressPercent = -1;
+	int lastLoggedFinishedCount = -1; // Track finishedCount changes for conditional logging
 	#ifdef _OPENMP
 	time_t lastProgressTime = 0;
 	time_t startTime = time(NULL);
@@ -1465,6 +1473,61 @@ TestResult __stdcall runPortfolioTest (
 
 		currentBrokerTime = 0;
 
+		// CRITICAL: Validate array bounds and time value before accessing pRates
+		// This prevents reading uninitialized memory that can cause invalid time errors
+		if(i[s] < 0 || i[s] >= numCandles) {
+			#ifdef _OPENMP
+			int error_thread_id = omp_get_thread_num();
+			fprintf(stderr, "[TEST] CRITICAL ERROR: Array bounds violation: i[%d]=%d is out of bounds [0, %d) for system %d (testId=%d, thread=%d, iteration=%d). Aborting test.\n", 
+			        s, i[s], numCandles, s, testId, error_thread_id, loopIteration);
+			fflush(stderr);
+			logError("Array bounds violation: i[%d]=%d is out of bounds [0, %d) for system %d (testId=%d, thread=%d, iteration=%d). Aborting test.", 
+			        s, i[s], numCandles, s, testId, error_thread_id, loopIteration);
+			#else
+			fprintf(stderr, "[TEST] CRITICAL ERROR: Array bounds violation: i[%d]=%d is out of bounds [0, %d) for system %d (testId=%d, iteration=%d). Aborting test.\n", 
+			        s, i[s], numCandles, s, testId, loopIteration);
+			fflush(stderr);
+			logError("Array bounds violation: i[%d]=%d is out of bounds [0, %d) for system %d (testId=%d, iteration=%d). Aborting test.", 
+			        s, i[s], numCandles, s, testId, loopIteration);
+			#endif
+			testsFinished[s] = 1;
+			finishedCount++;
+			continue;
+		}
+		
+		// Validate time value before first access - check for both -1 and negative values (uninitialized memory)
+		// CRITICAL: This is a common cause of early exit - log extensively to help reproduce
+		if(pRates[s][0][i[s]].time < 0) {
+			#ifdef _OPENMP
+			int time_error_thread_id = omp_get_thread_num();
+			fprintf(stderr, "[TEST] CRITICAL ERROR: Invalid time detected at bar %d for system %d (testId=%d, thread=%d, iteration=%d, i[%d]=%d, time=%ld). This causes EARLY EXIT.\n", 
+			        i[s], s, testId, time_error_thread_id, loopIteration, s, i[s], (long)pRates[s][0][i[s]].time);
+			fflush(stderr);
+			if(pRates[s][0][i[s]].time == -1) {
+				logWarning("Bar %d has invalid time (-1), finishing test for system %d (testId=%d, thread=%d, iteration=%d)", 
+				          i[s], s, testId, time_error_thread_id, loopIteration);
+			} else {
+				logError("Bar %d has invalid time (%ld, before Unix epoch), finishing test for system %d (testId=%d, thread=%d, iteration=%d). This may indicate uninitialized memory or array bounds violation.", 
+				         i[s], (long)pRates[s][0][i[s]].time, s, testId, time_error_thread_id, loopIteration);
+			}
+			#else
+			fprintf(stderr, "[TEST] CRITICAL ERROR: Invalid time detected at bar %d for system %d (testId=%d, iteration=%d, i[%d]=%d, time=%ld). This causes EARLY EXIT.\n", 
+			        i[s], s, testId, loopIteration, s, i[s], (long)pRates[s][0][i[s]].time);
+			fflush(stderr);
+			if(pRates[s][0][i[s]].time == -1) {
+				logWarning("Bar %d has invalid time (-1), finishing test for system %d (testId=%d, iteration=%d)", 
+				          i[s], s, testId, loopIteration);
+			} else {
+				logError("Bar %d has invalid time (%ld, before Unix epoch), finishing test for system %d (testId=%d, iteration=%d). This may indicate uninitialized memory or array bounds violation.", 
+				         i[s], (long)pRates[s][0][i[s]].time, s, testId, loopIteration);
+			}
+			#endif
+			testsFinished[s] = 1;
+			finishedCount++;
+			logDebug("System %d finished due to invalid time. finishedCount = %d", s, finishedCount);
+			continue;
+		}
+
 		if(tickFiles[s] != NULL)
 		{		
 
@@ -1498,8 +1561,17 @@ TestResult __stdcall runPortfolioTest (
 			}
 
 			if (i[s]<numCandles-1){
-                if ((int)currentBrokerTime > (int)pRates[s][0][i[s]+1].time)
-					i[s]++;
+				// Validate bounds before accessing i[s]+1
+				if(i[s]+1 >= 0 && i[s]+1 < numCandles) {
+					// Only check time if it's valid (>= 0), otherwise skip increment to avoid invalid data
+					if(pRates[s][0][i[s]+1].time >= 0) {
+						if ((int)currentBrokerTime > (int)pRates[s][0][i[s]+1].time)
+							i[s]++;
+					} else {
+						// Next bar has invalid time - this shouldn't happen, but don't increment to avoid corruption
+						logWarning("Next bar (i[%d]+1=%d) has invalid time (%zd), not incrementing. This may cause the test to stall.", s, i[s]+1, pRates[s][0][i[s]+1].time);
+					}
+				}
 			}
 		} else {
 			// No tick file - increment i[s] on each iteration to progress through candles
@@ -1510,8 +1582,14 @@ TestResult __stdcall runPortfolioTest (
 
 		lastSignal.testId = s;
 
-		if(pRates[s][0][i[s]].time == -1){
-			logWarning("Bar %d has invalid time (-1), finishing test for system %d", i[s], s);
+		// Time validation already done above, but keep this check as defense-in-depth
+		// Note: This should never trigger if validation above works correctly
+		if(pRates[s][0][i[s]].time < 0) {
+			if(pRates[s][0][i[s]].time == -1) {
+				logWarning("Bar %d has invalid time (-1), finishing test for system %d", i[s], s);
+			} else {
+				logError("Bar %d has invalid time (%zd, before Unix epoch), finishing test for system %d. This may indicate uninitialized memory or array bounds violation.", i[s], pRates[s][0][i[s]].time, s);
+			}
 			testsFinished[s] = 1;
 			finishedCount++;
 			logDebug("System %d finished due to invalid time. finishedCount = %d", s, finishedCount);
@@ -1837,8 +1915,65 @@ TestResult __stdcall runPortfolioTest (
 		//Run Strategy
 		if((currentBrokerTime > testSettings[s].fromDate) && (currentBrokerTime < testSettings[s].toDate)){
 		logDebug("Running strategy for system %d at bar %d, time = %d", s, i[s], currentBrokerTime);
+		
+		// Timing instrumentation for strategy execution
+		#ifdef _OPENMP
+		int timing_thread_id = omp_get_thread_num();
+		#else
+		int timing_thread_id = 0;
+		#endif
+		
+		// Use high-resolution timing
+		#ifdef __APPLE__
+		// macOS: use mach_absolute_time for high-resolution timing
+		uint64_t start_time = mach_absolute_time();
+		#elif defined(__linux__)
+		// Linux: use clock_gettime
+		struct timespec start_ts, end_ts;
+		clock_gettime(CLOCK_MONOTONIC, &start_ts);
+		#else
+		// Fallback: use gettimeofday
+		struct timeval start_tv, end_tv;
+		gettimeofday(&start_tv, NULL);
+		#endif
+		
 		result = c_runStrategy(pInSettings[s], pInTradeSymbol[s], pInAccountCurrency, pInBrokerName, pInRefBrokerName, &currentBrokerTime, openOrdersCountSystem, systemOrders,
 								pInAccountInfo[s], bidAsk, pRatesInfo[s], rates[s][0], rates[s][1], rates[s][2], rates[s][3], rates[s][4], rates[s][5], rates[s][6], rates[s][7], rates[s][8], rates[s][9], (double *)strategyResults);
+		
+		// Calculate elapsed time
+		double elapsed_ms = 0.0;
+		#ifdef __APPLE__
+		uint64_t end_time = mach_absolute_time();
+		mach_timebase_info_data_t timebase;
+		mach_timebase_info(&timebase);
+		uint64_t elapsed_nanos = (end_time - start_time) * timebase.numer / timebase.denom;
+		elapsed_ms = elapsed_nanos / 1000000.0;
+		#elif defined(__linux__)
+		clock_gettime(CLOCK_MONOTONIC, &end_ts);
+		elapsed_ms = ((end_ts.tv_sec - start_ts.tv_sec) * 1000.0) + ((end_ts.tv_nsec - start_ts.tv_nsec) / 1000000.0);
+		#else
+		gettimeofday(&end_tv, NULL);
+		elapsed_ms = ((end_tv.tv_sec - start_tv.tv_sec) * 1000.0) + ((end_tv.tv_usec - start_tv.tv_usec) / 1000.0);
+		#endif
+		
+		// Log timing information - always log slow executions (> 1ms), and periodically log normal ones
+		// Also log all executions in the problematic range (17500-17700) to capture the slowdown pattern
+		int in_problematic_range = (loopIteration >= 17500 && loopIteration <= 17700);
+		if (elapsed_ms > 1.0 || loopIteration % 1000 == 0 || in_problematic_range) {
+			#ifdef _OPENMP
+			fprintf(stderr, "[TIMING] Strategy execution: testId=%d, thread=%d, iteration=%d, bar=%d, elapsed=%.3f ms\n", 
+			        testId, timing_thread_id, loopIteration, i[s], elapsed_ms);
+			logInfo("Strategy execution timing: testId=%d, thread=%d, iteration=%d, bar=%d, elapsed=%.3f ms", 
+			        testId, timing_thread_id, loopIteration, i[s], elapsed_ms);
+			#else
+			fprintf(stderr, "[TIMING] Strategy execution: testId=%d, iteration=%d, bar=%d, elapsed=%.3f ms\n", 
+			        testId, loopIteration, i[s], elapsed_ms);
+			logInfo("Strategy execution timing: testId=%d, iteration=%d, bar=%d, elapsed=%.3f ms", 
+			        testId, loopIteration, i[s], elapsed_ms);
+			#endif
+			fflush(stderr);
+		}
+		
 		logDebug("Strategy execution completed for system %d, result = %d", s, result);
 		} else {
 		logDebug("Skipping strategy execution for system %d: time %d not in range [%d, %d]", s, currentBrokerTime, testSettings[s].fromDate, testSettings[s].toDate);
@@ -1970,23 +2105,74 @@ TestResult __stdcall runPortfolioTest (
 
 		free(strategyResults); strategyResults = NULL;
 
-		if(tickFiles[s] == NULL)
+		if(tickFiles[s] == NULL) {
+			// Diagnostic: Log i[s] progression near the problematic range
+			if (loopIteration >= 17500 && loopIteration <= 17700) {
+				#ifdef _OPENMP
+				fprintf(stderr, "[TEST] Incrementing i[%d]: %d -> %d (testId=%d, thread=%d, iteration=%d, numCandles=%d)\n", 
+				        s, i[s], i[s]+1, testId, omp_get_thread_num(), loopIteration, numCandles);
+				fflush(stderr);
+				#else
+				fprintf(stderr, "[TEST] Incrementing i[%d]: %d -> %d (testId=%d, iteration=%d, numCandles=%d)\n", 
+				        s, i[s], i[s]+1, testId, loopIteration, numCandles);
+				fflush(stderr);
+				#endif
+			}
 			i[s]++;
+		}
 
 		}	
 
-		logInfo("Finished processing all systems. finishedCount = %d", finishedCount);
+		// Removed excessive per-iteration logging to improve performance
+		// Previously logged "Finished processing all systems" and "finishedCount" on every iteration
+		// Now only log when finishedCount changes or at milestones (every 1000 iterations)
 		finishedCount = 0;
 
 		for(s = 0; s<numSystems; s++){
 			finishedCount += testsFinished[s];
 		}
 
-		logInfo("finishedCount = %d, finalBalance=%lf",finishedCount, finalBalance);
+		// Conditional logging: only log when finishedCount changes or at milestones
+		if (finishedCount != lastLoggedFinishedCount || loopIteration % 1000 == 0) {
+			logInfo("finishedCount = %d, finalBalance=%lf (iteration %d)", finishedCount, finalBalance, loopIteration);
+			lastLoggedFinishedCount = finishedCount;
+		}
+		
 		if (finalBalance <= 0){
-			logError("ERROR: finalBalance is negative or zero: %lf. This should not happen. Setting to 0.", finalBalance);
+			#ifdef _OPENMP
+			int break_thread_id = omp_get_thread_num();
+			fprintf(stderr, "[TEST] CRITICAL: Breaking main loop due to finalBalance <= 0: %lf (testId=%d, thread=%d, iteration=%d, finishedCount=%d/%d)\n", 
+			        finalBalance, testId, break_thread_id, loopIteration, finishedCount, numSystems);
+			fflush(stderr);
+			logError("ERROR: finalBalance is negative or zero: %lf. Breaking main loop. testId=%d, thread=%d, iteration=%d, finishedCount=%d/%d", 
+			        finalBalance, testId, break_thread_id, loopIteration, finishedCount, numSystems);
+			#else
+			fprintf(stderr, "[TEST] CRITICAL: Breaking main loop due to finalBalance <= 0: %lf (testId=%d, iteration=%d, finishedCount=%d/%d)\n", 
+			        finalBalance, testId, loopIteration, finishedCount, numSystems);
+			fflush(stderr);
+			logError("ERROR: finalBalance is negative or zero: %lf. Breaking main loop. testId=%d, iteration=%d, finishedCount=%d/%d", 
+			        finalBalance, testId, loopIteration, finishedCount, numSystems);
+			#endif
 			finalBalance = 0;
 			break;
+		}
+		
+		// Diagnostic: Log if loop is about to exit due to finishedCount condition
+		if (finishedCount >= numSystems) {
+			#ifdef _OPENMP
+			int exit_thread_id = omp_get_thread_num();
+			fprintf(stderr, "[TEST] Loop exit condition met: finishedCount=%d >= numSystems=%d (testId=%d, thread=%d, iteration=%d)\n", 
+			        finishedCount, numSystems, testId, exit_thread_id, loopIteration);
+			fflush(stderr);
+			logInfo("Loop exit condition met: finishedCount=%d >= numSystems=%d (testId=%d, thread=%d, iteration=%d)", 
+			        finishedCount, numSystems, testId, exit_thread_id, loopIteration);
+			#else
+			fprintf(stderr, "[TEST] Loop exit condition met: finishedCount=%d >= numSystems=%d (testId=%d, iteration=%d)\n", 
+			        finishedCount, numSystems, testId, loopIteration);
+			fflush(stderr);
+			logInfo("Loop exit condition met: finishedCount=%d >= numSystems=%d (testId=%d, iteration=%d)", 
+			        finishedCount, numSystems, testId, loopIteration);
+			#endif
 		}
 	}
 	

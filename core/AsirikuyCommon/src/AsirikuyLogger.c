@@ -34,15 +34,25 @@ static BOOL gInitialized = FALSE;
 #if defined __APPLE__ || defined __linux__
   static __thread FILE* threadLocalLogFile = NULL;
   static __thread int threadLocalSeverityLevel = -1; // -1 means not initialized
+  static __thread unsigned int threadLocalLogCounter = 0; // Counter for periodic flushing
 #elif defined _WIN32 || defined _WIN64
   static __declspec(thread) FILE* threadLocalLogFile = NULL;
   static __declspec(thread) int threadLocalSeverityLevel = -1;
+  static __declspec(thread) unsigned int threadLocalLogCounter = 0;
 #else
   // Fallback: use a simple per-thread array (limited to MAX_THREADS)
   #define MAX_THREADS 64
   static FILE* threadLocalLogFiles[MAX_THREADS] = {NULL};
   static int threadLocalSeverityLevels[MAX_THREADS] = {-1};
+  static unsigned int threadLocalLogCounters[MAX_THREADS] = {0};
 #endif
+
+// Flush frequency: flush every N messages or immediately for critical messages
+// Balance between I/O performance and data safety:
+// - Lower value (10-20): More frequent flushes, safer but more I/O
+// - Higher value (50-100): Less frequent flushes, better performance but risk losing more messages on crash
+// Current: 20 messages provides ~95% I/O reduction while maintaining reasonable safety
+#define LOG_FLUSH_INTERVAL 20
 
 // Get severity level label
 static const char* getSeverityLabel(int severity)
@@ -291,10 +301,13 @@ void asirikuyLoggerCloseThreadLocal(void)
 {
   if(threadLocalLogFile != NULL)
   {
+    // Flush any remaining buffered log data before closing
+    fflush(threadLocalLogFile);
     fclose(threadLocalLogFile);
     threadLocalLogFile = NULL;
   }
   threadLocalSeverityLevel = -1;
+  threadLocalLogCounter = 0; // Reset counter
 }
 
 void asirikuyLogMessage(int severity, const char* format, ...)
@@ -342,7 +355,17 @@ void asirikuyLogMessage(int severity, const char* format, ...)
     {
       // Write to thread-local file (NO CRITICAL SECTION!)
       fprintf(threadLocalLogFile, "%s", logLine);
-      fflush(threadLocalLogFile);
+      
+      // Increment counter for periodic flushing
+      threadLocalLogCounter++;
+      
+      // Flush immediately for critical messages, or periodically to reduce I/O overhead
+      // This significantly reduces disk I/O while ensuring critical messages are written immediately
+      if(severity <= LOG_ERROR || threadLocalLogCounter >= LOG_FLUSH_INTERVAL)
+      {
+        fflush(threadLocalLogFile);
+        threadLocalLogCounter = 0; // Reset counter after flush
+      }
       
       // Also write to stderr for critical messages
       if(severity <= LOG_ERROR)

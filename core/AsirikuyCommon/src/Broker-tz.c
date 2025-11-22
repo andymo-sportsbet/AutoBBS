@@ -149,7 +149,13 @@ static AsirikuyReturnCode parseLine(int recordsIndex, char* pLine)
   removeQuotes(pLine);
 
   token = strtok_r(pLine, ";", &strtokSafe);
-  strcpy(timezoneRecords[recordsIndex].name, token);
+  if(token == NULL)
+  {
+    logError("parseLine() failed. token (timezone name) = NULL");
+    return INVALID_CONFIG;
+  }
+  strncpy(timezoneRecords[recordsIndex].name, token, MAX_TIMEZONE_NAME_SIZE - 1);
+  timezoneRecords[recordsIndex].name[MAX_TIMEZONE_NAME_SIZE - 1] = '\0';
 
   token = strtok_r(NULL, ";", &strtokSafe);
   timezoneRecords[recordsIndex].startMonth = atoi(token);

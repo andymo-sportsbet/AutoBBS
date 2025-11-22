@@ -30,6 +30,17 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#elif defined(__linux__)
+#include <sys/time.h>
+#else
+#include <sys/time.h>
+#endif
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "EasyTradeCWrapper.hpp"
 #include "strategies/autobbs/base/Base.h"
 #include "strategies/autobbs/shared/ComLib.h"
@@ -833,6 +844,15 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 		}
 	}
 
+	/* Bounds check: shiftPreDayBar is calculated from B_DAILY_RATES or B_SECONDARY_RATES,
+	 * but we're using it to index B_PRIMARY_RATES, which may have a different size */
+	int primaryArraySize = pParams->ratesBuffers->rates[B_PRIMARY_RATES].info.arraySize;
+	if (shiftPreDayBar < 0 || shiftPreDayBar >= primaryArraySize)
+	{
+		logError("workoutExecutionTrend_MACD_Daily: shiftPreDayBar %d is out of bounds for B_PRIMARY_RATES (arraySize=%d). Using shift0Index instead.",
+			shiftPreDayBar, primaryArraySize);
+		shiftPreDayBar = shift0Index;
+	}
 	preBarTime = pParams->ratesBuffers->rates[B_PRIMARY_RATES].time[shiftPreDayBar];
 	safe_gmtime(&timeInfoPreBar, preBarTime);
 
@@ -1063,7 +1083,50 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 					}
 
 					
+					// Timing instrumentation for BeiLi function (known to be expensive - calls iMACDAll up to 299 times)
+					#ifdef __APPLE__
+					uint64_t beili_start_time = mach_absolute_time();
+					#elif defined(__linux__)
+					struct timespec beili_start_ts, beili_end_ts;
+					clock_gettime(CLOCK_MONOTONIC, &beili_start_ts);
+					#else
+					struct timeval beili_start_tv, beili_end_tv;
+					gettimeofday(&beili_start_tv, NULL);
+					#endif
+					
 					isMACDBeili = iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0, BUY, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint);
+					
+					// Calculate BeiLi execution time
+					double beili_elapsed_ms = 0.0;
+					#ifdef __APPLE__
+					uint64_t beili_end_time = mach_absolute_time();
+					mach_timebase_info_data_t beili_timebase;
+					mach_timebase_info(&beili_timebase);
+					uint64_t beili_elapsed_nanos = (beili_end_time - beili_start_time) * beili_timebase.numer / beili_timebase.denom;
+					beili_elapsed_ms = beili_elapsed_nanos / 1000000.0;
+					#elif defined(__linux__)
+					clock_gettime(CLOCK_MONOTONIC, &beili_end_ts);
+					beili_elapsed_ms = ((beili_end_ts.tv_sec - beili_start_ts.tv_sec) * 1000.0) + ((beili_end_ts.tv_nsec - beili_start_ts.tv_nsec) / 1000000.0);
+					#else
+					gettimeofday(&beili_end_tv, NULL);
+					beili_elapsed_ms = ((beili_end_tv.tv_sec - beili_start_tv.tv_sec) * 1000.0) + ((beili_end_tv.tv_usec - beili_start_tv.tv_usec) / 1000.0);
+					#endif
+					
+					// Log BeiLi timing if it's slow (> 10ms)
+					if (beili_elapsed_ms > 10.0) {
+						#ifdef _OPENMP
+						fprintf(stderr, "[TIMING] iMACDTrendBeiLiEasy (BUY): instanceId=%d, thread=%d, bar=%d, elapsed=%.3f ms\n", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], omp_get_thread_num(), shift0Index, beili_elapsed_ms);
+						logInfo("iMACDTrendBeiLiEasy (BUY) timing: instanceId=%d, thread=%d, bar=%d, elapsed=%.3f ms", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], omp_get_thread_num(), shift0Index, beili_elapsed_ms);
+						#else
+						fprintf(stderr, "[TIMING] iMACDTrendBeiLiEasy (BUY): instanceId=%d, bar=%d, elapsed=%.3f ms\n", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], shift0Index, beili_elapsed_ms);
+						logInfo("iMACDTrendBeiLiEasy (BUY) timing: instanceId=%d, bar=%d, elapsed=%.3f ms", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], shift0Index, beili_elapsed_ms);
+						#endif
+						fflush(stderr);
+					}
 
 					if (config.isEnableMaxLevelBuy == TRUE
 						&& pIndicators->entrySignal != 0
@@ -1270,7 +1333,50 @@ AsirikuyReturnCode workoutExecutionTrend_MACD_Daily(StrategyParams* pParams, Ind
 						pIndicators->entrySignal = 0;
 					}
 
+					// Timing instrumentation for BeiLi function (SELL) - known to be expensive
+					#ifdef __APPLE__
+					uint64_t beili_sell_start_time = mach_absolute_time();
+					#elif defined(__linux__)
+					struct timespec beili_sell_start_ts, beili_sell_end_ts;
+					clock_gettime(CLOCK_MONOTONIC, &beili_sell_start_ts);
+					#else
+					struct timeval beili_sell_start_tv, beili_sell_end_tv;
+					gettimeofday(&beili_sell_start_tv, NULL);
+					#endif
+					
 					isMACDBeili = iMACDTrendBeiLiEasy(B_DAILY_RATES, fastMAPeriod, slowMAPeriod, signalMAPeriod, 1, 0, SELL, &truningPointIndex, &turningPoint, &minPointIndex, &minPoint);
+					
+					// Calculate BeiLi execution time (SELL)
+					double beili_sell_elapsed_ms = 0.0;
+					#ifdef __APPLE__
+					uint64_t beili_sell_end_time = mach_absolute_time();
+					mach_timebase_info_data_t beili_sell_timebase;
+					mach_timebase_info(&beili_sell_timebase);
+					uint64_t beili_sell_elapsed_nanos = (beili_sell_end_time - beili_sell_start_time) * beili_sell_timebase.numer / beili_sell_timebase.denom;
+					beili_sell_elapsed_ms = beili_sell_elapsed_nanos / 1000000.0;
+					#elif defined(__linux__)
+					clock_gettime(CLOCK_MONOTONIC, &beili_sell_end_ts);
+					beili_sell_elapsed_ms = ((beili_sell_end_ts.tv_sec - beili_sell_start_ts.tv_sec) * 1000.0) + ((beili_sell_end_ts.tv_nsec - beili_sell_start_ts.tv_nsec) / 1000000.0);
+					#else
+					gettimeofday(&beili_sell_end_tv, NULL);
+					beili_sell_elapsed_ms = ((beili_sell_end_tv.tv_sec - beili_sell_start_tv.tv_sec) * 1000.0) + ((beili_sell_end_tv.tv_usec - beili_sell_start_tv.tv_usec) / 1000.0);
+					#endif
+					
+					// Log BeiLi timing if it's slow (> 10ms)
+					if (beili_sell_elapsed_ms > 10.0) {
+						#ifdef _OPENMP
+						fprintf(stderr, "[TIMING] iMACDTrendBeiLiEasy (SELL): instanceId=%d, thread=%d, bar=%d, elapsed=%.3f ms\n", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], omp_get_thread_num(), shift0Index, beili_sell_elapsed_ms);
+						logInfo("iMACDTrendBeiLiEasy (SELL) timing: instanceId=%d, thread=%d, bar=%d, elapsed=%.3f ms", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], omp_get_thread_num(), shift0Index, beili_sell_elapsed_ms);
+						#else
+						fprintf(stderr, "[TIMING] iMACDTrendBeiLiEasy (SELL): instanceId=%d, bar=%d, elapsed=%.3f ms\n", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], shift0Index, beili_sell_elapsed_ms);
+						logInfo("iMACDTrendBeiLiEasy (SELL) timing: instanceId=%d, bar=%d, elapsed=%.3f ms", 
+						        (int)pParams->settings[STRATEGY_INSTANCE_ID], shift0Index, beili_sell_elapsed_ms);
+						#endif
+						fflush(stderr);
+					}
 
 					if (config.isEnableMaxLevelSell == TRUE
 						&& pIndicators->entrySignal != 0

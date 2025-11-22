@@ -42,13 +42,22 @@
 
 #include "CriticalSection.h"
 #include "AsirikuyDefines.h"
+#include <stdio.h>
+
+#if defined __linux__ || defined __APPLE__
+  #ifndef _POSIX_C_SOURCE
+    #define _POSIX_C_SOURCE 200809L  // Required for pthread_mutex_timedlock
+  #endif
+  #include <pthread.h>
+  #include <time.h>
+  #include <errno.h>
+#endif
 
 #if defined _WIN32 || defined _WIN64
   #include <windows.h>
   CRITICAL_SECTION criticalSection;
   static volatile LONG initialized = 0;  // Use LONG for InterlockedCompareExchange
 #elif defined __linux__ || defined __APPLE__
-  #include <pthread.h>
   pthread_mutex_t criticalSection;
   static volatile int initialized = 0;
   static pthread_mutex_t initLock = PTHREAD_MUTEX_INITIALIZER;
@@ -119,10 +128,25 @@ void deinitCriticalSection()
 
 void enterCriticalSection()
 {
+  // Safety check: ensure critical section is initialized before use
+  // This prevents undefined behavior if enterCriticalSection() is called
+  // before initCriticalSection() completes (e.g., during library loading)
+  if(!initialized)
+  {
+    initCriticalSection();
+  }
+  
 #if defined _WIN32 || defined _WIN64
   EnterCriticalSection(&criticalSection);
 #elif defined __linux__ || defined __APPLE__
-  pthread_mutex_lock(&criticalSection);
+  // Note: pthread_mutex_timedlock is not available on macOS, so we use regular lock
+  // For deadlock detection, we rely on external monitoring/logging
+  int result = pthread_mutex_lock(&criticalSection);
+  if(result != 0)
+  {
+    fprintf(stderr, "[CRITICAL] ERROR: pthread_mutex_lock() failed with error %d\n", result);
+    fflush(stderr);
+  }
 #else
   #error "Unsupported operating system"
 #endif
