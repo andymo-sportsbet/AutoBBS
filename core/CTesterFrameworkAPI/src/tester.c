@@ -720,7 +720,7 @@ void checkPending(double bid, double ask, int i, COrderInfo* openOrders, int ins
 	
 }
 
-void save_openorder_to_file(int testId){
+void save_openorder_to_file(int testId, int instanceId){
 	
 	FILE* openOrderFile;	
 	char   timeString[MAX_TIME_STRING_SIZE] = "";
@@ -728,8 +728,16 @@ void save_openorder_to_file(int testId){
 	int orderIndex;
 	int index;
 	
-	// Use thread-specific filename to avoid race conditions in multi-threaded runs
-	snprintf(filename, sizeof(filename), "results_%d.open", testId);
+	// Use thread/instance-specific filename to avoid race conditions
+	// For backtesting: use testId (unique per test iteration/thread)
+	// For live trading: use instanceId (testId is 0 or invalid, but instanceId is always available)
+	if (testId > 0) {
+		// Backtesting: use testId for thread-safety in multi-threaded optimization
+		snprintf(filename, sizeof(filename), "results_%d.open", testId);
+	} else {
+		// Live trading: use instanceId (testId is 0 or invalid in live trading)
+		snprintf(filename, sizeof(filename), "results_%d.open", instanceId);
+	}
 	
 	openOrderFile = fopen(filename, "w");
 	if (openOrderFile == NULL)
@@ -1949,8 +1957,11 @@ TestResult __stdcall runPortfolioTest (
 
 	orderIndex = openOrdersCount[BUY] + openOrdersCount[SELL];
 	logInfo("Saving open orders to file. orderIndex = %d", orderIndex);
-	if (orderIndex > 0)
-		save_openorder_to_file(testId);
+	if (orderIndex > 0) {
+		// Get instanceId from settings (always available for both backtesting and live trading)
+		int instanceId = (int)pInSettings[0][STRATEGY_INSTANCE_ID];
+		save_openorder_to_file(testId, instanceId);
+	}
 
 	logInfo("Saved open orders to file. orderIndex = %d", orderIndex);
 	//For all the open orders
