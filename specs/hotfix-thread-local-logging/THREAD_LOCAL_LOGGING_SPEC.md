@@ -89,6 +89,28 @@ This document specifies the implementation of thread-local logging to eliminate 
                         └──────────────────┘
 ```
 
+### 2.3 When Thread-Local Logging is Used
+
+**Thread-local logging is opt-in and primarily used for multi-threaded optimization:**
+
+1. **Multi-threaded optimization (numThreads > 1)**:
+   - Thread-local logging is explicitly initialized in the OpenMP parallel loop
+   - Each thread writes to its own log file (e.g., `AsirikuyFramework_thread0.log`)
+   - **No critical section contention** - maximum performance
+
+2. **Single-threaded optimization (numThreads = 1)**:
+   - Thread-local logging is **NOT** initialized
+   - Falls back to global logger automatically
+   - Uses existing log files (`AsirikuyFramework.log`, `AsirikuyCTester.log`)
+   - **Same behavior as before** - fully backward compatible
+
+3. **Other single-threaded code**:
+   - Thread-local logging is **NOT** initialized
+   - Uses global logger (no change in behavior)
+   - **Fully backward compatible**
+
+**Key Design Principle**: Thread-local logging is **optional** and only activates when explicitly initialized. If not initialized, the code automatically falls back to the global logger, ensuring backward compatibility for all existing single-threaded code paths.
+
 ### 2.3 Implementation Details
 
 **New Functions**:
@@ -126,9 +148,33 @@ This document specifies the implementation of thread-local logging to eliminate 
 **File**: `core/CTesterFrameworkAPI/src/optimizer.c`
 
 **Changes**:
-1. Initialize thread-local logging in OpenMP parallel loop
+1. Initialize thread-local logging in OpenMP parallel loop **only when numThreads > 1**
 2. Generate thread-specific log file paths (e.g., `log/AsirikuyFramework_thread0.log`)
-3. Optional: Clean up thread-local logging at end of iteration
+3. Single-threaded runs (numThreads = 1) skip thread-local initialization and use global logger
+4. Optional: Clean up thread-local logging at end of iteration
+
+**Implementation Pattern**:
+```c
+#ifdef _OPENMP
+#pragma omp parallel for private(...) schedule(dynamic)
+#endif
+for (i = 0; i<numCombinations; i++){
+    #ifdef _OPENMP
+    int thread_id = omp_get_thread_num();
+    int num_threads = omp_get_num_threads();
+    
+    // Only initialize thread-local logging for multi-threaded runs
+    if (num_threads > 1) {
+        char threadLogPath[512];
+        snprintf(threadLogPath, sizeof(threadLogPath), 
+                 "log/AsirikuyFramework_thread%d.log", thread_id);
+        asirikuyLoggerInitThreadLocal(threadLogPath, gSeverityLevel);
+    }
+    #endif
+    
+    // ... rest of loop code ...
+}
+```
 
 ### 3.3 Phase 3: Reduce Hot Path Logging (Optional)
 
@@ -153,13 +199,19 @@ This document specifies the implementation of thread-local logging to eliminate 
 
 ### 4.2 Log File Naming Convention
 
-**Pattern**: `{logFolder}/AsirikuyFramework_thread{N}.log`
+**Thread-Local Files** (only created when multi-threaded):
+- **Pattern**: `{logFolder}/AsirikuyFramework_thread{N}.log`
+- **Examples**:
+  - `log/AsirikuyFramework_thread0.log`
+  - `log/AsirikuyFramework_thread1.log`
+  - `log/AsirikuyFramework_thread2.log`
+  - `log/AsirikuyFramework_thread3.log`
 
-**Examples**:
-- `log/AsirikuyFramework_thread0.log`
-- `log/AsirikuyFramework_thread1.log`
-- `log/AsirikuyFramework_thread2.log`
-- `log/AsirikuyFramework_thread3.log`
+**Global Files** (used for single-threaded runs):
+- `log/AsirikuyFramework.log` (Framework logs)
+- `log/AsirikuyCTester.log` (CTester logs)
+
+**Note**: Thread-local files contain **all logs** from that thread (both Framework and CTester logs combined), while global files maintain separation between Framework and CTester logs.
 
 ### 4.3 Thread Safety
 
@@ -167,7 +219,11 @@ This document specifies the implementation of thread-local logging to eliminate 
 
 **Global Logger Fallback**: Still uses critical section (backward compatible)
 
-**Initialization**: Thread-local initialization should happen once per thread, typically at the start of the OpenMP parallel region
+**Initialization**: 
+- Thread-local initialization happens **only for multi-threaded runs** (numThreads > 1)
+- Should happen once per thread at the start of the OpenMP parallel region
+- Single-threaded runs skip initialization and use global logger automatically
+- This ensures backward compatibility - existing single-threaded code requires no changes
 
 ---
 
@@ -175,25 +231,53 @@ This document specifies the implementation of thread-local logging to eliminate 
 
 ### 5.1 Functional Tests
 
-- [ ] Single-threaded logging still works (backward compatibility)
-- [ ] Multi-threaded logging creates separate log files per thread
-- [ ] Thread-local logging bypasses critical section
-- [ ] Global logger fallback works when thread-local not initialized
-- [ ] Log file rotation/cleanup works correctly
+- [ ] **Single-threaded logging still works** (backward compatibility)
+  - [ ] Run optimization with numThreads = 1
+  - [ ] Verify global log files are used (`AsirikuyFramework.log`, `AsirikuyCTester.log`)
+  - [ ] Verify no thread-local log files are created
+  - [ ] Verify all logs are captured correctly
+- [ ] **Multi-threaded logging creates separate log files per thread**
+  - [ ] Run optimization with numThreads > 1 (e.g., 2, 4, 8)
+  - [ ] Verify thread-local log files are created (`AsirikuyFramework_thread{N}.log`)
+  - [ ] Verify each thread writes to its own file
+  - [ ] Verify no global log files are written to during parallel execution
+- [ ] **Thread-local logging bypasses critical section**
+  - [ ] Profile code to verify no critical section contention
+  - [ ] Measure lock wait times (should be zero for thread-local writes)
+- [ ] **Global logger fallback works when thread-local not initialized**
+  - [ ] Verify single-threaded code uses global logger
+  - [ ] Verify logs appear in global log files
+- [ ] **Log file rotation/cleanup works correctly**
+  - [ ] Verify old thread-local log files are cleaned up (if implemented)
 
 ### 5.2 Performance Tests
 
-- [ ] Measure log call latency (should be significantly reduced)
-- [ ] Measure optimization execution time (should be faster)
-- [ ] Verify no critical section contention (use profiling tools)
-- [ ] Compare before/after performance metrics
+- [ ] **Measure log call latency** (should be significantly reduced for multi-threaded)
+  - [ ] Single-threaded: Should be same as before (uses global logger)
+  - [ ] Multi-threaded: Should be much faster (no critical section)
+- [ ] **Measure optimization execution time** (should be faster for multi-threaded)
+  - [ ] Single-threaded: Should be same as before
+  - [ ] Multi-threaded: Target 50%+ improvement
+- [ ] **Verify no critical section contention** (use profiling tools)
+  - [ ] Multi-threaded: Should show zero contention for thread-local writes
+  - [ ] Single-threaded: Should show same contention as before (acceptable for single thread)
+- [ ] **Compare before/after performance metrics**
+  - [ ] Run same optimization with 1, 2, 4, 8 threads
+  - [ ] Compare execution times
+  - [ ] Verify performance improvement scales with thread count
 
 ### 5.3 Integration Tests
 
-- [ ] Run optimization with 1, 2, 4, 8 threads
-- [ ] Verify all threads write to their own log files
-- [ ] Verify log files contain correct thread-specific content
-- [ ] Verify no log corruption or missing entries
+- [ ] **Run optimization with 1 thread** (single-threaded)
+  - [ ] Verify global log files are used
+  - [ ] Verify no thread-local files created
+  - [ ] Verify backward compatibility maintained
+- [ ] **Run optimization with 2, 4, 8 threads** (multi-threaded)
+  - [ ] Verify thread-local log files are created for each thread
+  - [ ] Verify all threads write to their own log files
+  - [ ] Verify log files contain correct thread-specific content
+  - [ ] Verify no log corruption or missing entries
+  - [ ] Verify performance improvement vs single-threaded
 
 ---
 
@@ -233,10 +317,11 @@ This document specifies the implementation of thread-local logging to eliminate 
 
 ### 7.2 Functionality
 
-- ✅ All log messages are captured
-- ✅ Log files are properly organized by thread
+- ✅ All log messages are captured (both single and multi-threaded)
+- ✅ Log files are properly organized by thread (multi-threaded) or globally (single-threaded)
 - ✅ No log corruption or missing entries
-- ✅ Backward compatibility maintained
+- ✅ **Backward compatibility maintained** - single-threaded runs use global logger (no change in behavior)
+- ✅ **Opt-in design** - thread-local logging only activates for multi-threaded optimization
 
 ### 7.3 Code Quality
 
@@ -324,10 +409,12 @@ void asirikuyLogMessage(int severity, const char* format, ...)
     // ... format message ...
     
     // Check thread-local first (no lock!)
+    // Only active if explicitly initialized (multi-threaded optimization)
     if(threadLocalSeverityLevel >= 0 && severity <= threadLocalSeverityLevel)
     {
         if(threadLocalLogFile != NULL)
         {
+            // Write to thread-local file (NO CRITICAL SECTION!)
             fprintf(threadLocalLogFile, "%s", logLine);
             fflush(threadLocalLogFile);
             return; // Early return, no critical section needed!
@@ -335,11 +422,18 @@ void asirikuyLogMessage(int severity, const char* format, ...)
     }
     
     // Fall back to global logger (requires lock)
+    // Used for single-threaded runs or when thread-local not initialized
     enterCriticalSection();
     // ... existing global logging code ...
     leaveCriticalSection();
 }
 ```
+
+**Key Points**:
+- Thread-local check happens **first** (before critical section)
+- If thread-local is initialized and message passes severity check, write and return immediately
+- If thread-local is **not** initialized (single-threaded), automatically falls back to global logger
+- This ensures backward compatibility - existing single-threaded code requires no changes
 
 ---
 

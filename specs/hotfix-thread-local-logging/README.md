@@ -19,6 +19,8 @@ With 4 threads running parallel optimizations, each thread logs ~34,935 times pe
 
 Implement thread-local storage for log files, allowing each thread to write to its own log file without contention.
 
+**Important**: Thread-local logging is **opt-in** and primarily used for multi-threaded optimization runs. Single-threaded runs continue using the global logger (fully backward compatible).
+
 ## Files
 
 - **Specification**: [THREAD_LOCAL_LOGGING_SPEC.md](./THREAD_LOCAL_LOGGING_SPEC.md)
@@ -39,22 +41,24 @@ Implement thread-local storage for log files, allowing each thread to write to i
 - Add thread-local storage variables
 - Implement `asirikuyLoggerInitThreadLocal()`
 - Implement `asirikuyLoggerCloseThreadLocal()`
-- Modify `asirikuyLogMessage()` to check thread-local first
+- Modify `asirikuyLogMessage()` to check thread-local first, fall back to global logger
 
 ### Optimizer (`optimizer.c`)
-- Initialize thread-local logging in OpenMP parallel loop
+- Initialize thread-local logging in OpenMP parallel loop **only when numThreads > 1**
 - Generate thread-specific log file paths
+- Single-threaded runs skip initialization and use global logger (backward compatible)
 
 ### Optional: Tester (`tester.c`)
 - Reduce frequency of hot path log calls
 
 ## Success Criteria
 
-- ✅ Optimization runs complete faster (target: 50%+ improvement)
-- ✅ No more 3-4 minute pauses in log updates
+- ✅ **Multi-threaded optimization** runs complete faster (target: 50%+ improvement)
+- ✅ **Single-threaded optimization** maintains same performance (uses global logger)
+- ✅ No more 3-4 minute pauses in log updates (multi-threaded)
 - ✅ Consistent execution times across runs
-- ✅ All log messages captured correctly
-- ✅ Backward compatibility maintained
+- ✅ All log messages captured correctly (both single and multi-threaded)
+- ✅ **Backward compatibility maintained** - single-threaded code requires no changes
 
 ## Related Issues
 
