@@ -417,6 +417,8 @@ int __stdcall runOptimizationMultipleSymbols(
 	}
 	#endif
 
+	// OpenMP completely disabled at compile time - _OPENMP is not defined
+	// This removes all OpenMP overhead including library linking and initialization
 	#ifdef _OPENMP
 		#if defined _MSC_VER
 		_putenv("OMP_STACKSIZE=256M");
@@ -428,6 +430,13 @@ int __stdcall runOptimizationMultipleSymbols(
 		fprintf(stderr, "[OPT] OpenMP enabled. Using %d threads on %d available CPU cores\n", numThreads, omp_get_num_procs());
 		fflush(stderr);
 		fprintf(stderr, "[OPENMP] Enabled with %d threads on %d CPU cores\n", numThreads, omp_get_num_procs());
+		fflush(stderr);
+	#else
+		// OpenMP is completely disabled - _OPENMP is not defined at compile time
+		// This means no OpenMP library is linked, no overhead, pure sequential execution
+		fprintf(stderr, "[OPT] OpenMP COMPLETELY DISABLED at compile time - using pure sequential execution (numThreads=%d)\n", numThreads);
+		fflush(stderr);
+		fprintf(stderr, "[OPENMP] DISABLED - no OpenMP library linked, no overhead, sequential execution only\n");
 		fflush(stderr);
 	#endif
 

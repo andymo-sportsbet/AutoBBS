@@ -47,24 +47,27 @@ project "CTesterFrameworkAPI"
     linkoptions{"/DEF:../../../core/CTesterFrameworkAPI/src/CTesterFrameworkAPI.def"}
     links{"mpi"}
   configuration{"macosx", "x64"}
-    links{"mpi", "pmpi", "mpl", "omp"}
-    buildoptions{"-Xpreprocessor", "-fopenmp"}
-    includedirs{
-      (os.getenv("HOMEBREW_PREFIX") or "/opt/homebrew") .. "/opt/libomp/include",
-      "/Users/andym/homebrew/opt/libomp/include",
-      "/opt/homebrew/opt/libomp/include"
-    }
+    links{"mpi", "pmpi", "mpl"}
+    -- OpenMP disabled for reliability testing - remove "omp" from links and buildoptions
+    -- buildoptions{"-Xpreprocessor", "-fopenmp"}
+    -- includedirs{
+    --   (os.getenv("HOMEBREW_PREFIX") or "/opt/homebrew") .. "/opt/libomp/include",
+    --   "/Users/andym/homebrew/opt/libomp/include",
+    --   "/opt/homebrew/opt/libomp/include"
+    -- }
   configuration{"macosx", "x32"}
-    links{"mpi", "pmpi", "mpl", "omp"}
-    buildoptions{"-Xpreprocessor", "-fopenmp"}
-    includedirs{
-      (os.getenv("HOMEBREW_PREFIX") or "/opt/homebrew") .. "/opt/libomp/include",
-      "/Users/andym/homebrew/opt/libomp/include",
-      "/opt/homebrew/opt/libomp/include"
-    }
+    links{"mpi", "pmpi", "mpl"}
+    -- OpenMP disabled for reliability testing - remove "omp" from links and buildoptions
+    -- buildoptions{"-Xpreprocessor", "-fopenmp"}
+    -- includedirs{
+    --   (os.getenv("HOMEBREW_PREFIX") or "/opt/homebrew") .. "/opt/libomp/include",
+    --   "/Users/andym/homebrew/opt/libomp/include",
+    --   "/opt/homebrew/opt/libomp/include"
+    -- }
   configuration{"linux"}
     links{"mpich", "mpl"}
-    buildoptions{"-fopenmp"}
+    -- OpenMP disabled for reliability testing
+    -- buildoptions{"-fopenmp"}
   os.chdir("../..")
   cwd = os.getcwd()
   -- Windows
